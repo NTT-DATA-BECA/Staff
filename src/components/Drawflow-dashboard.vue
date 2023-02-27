@@ -20,10 +20,10 @@
 
         <div class="h-3/4 flex flex-row w-full">
             <div className="w-[200px] mx-auto p-2 text-sm">
-                <!-- <div class="nodes-list" draggable="true" v-for="i in nodesList" :key="i" :node-item="i.item"
+                <div class="nodes-list" draggable="true" v-for="i in nodesList" :key="i.name" :node-item="i.item"
                     @dragstart="drag($event)">
                     <span class="node">{{ i.name }}</span>
-                </div> -->
+                </div>
             </div>
             <div className="drawflow-container w-full mx-2 relative">
                 <div id="drawflow" @drop="drop($event)" @dragover="allowDrop($event)"></div>
@@ -40,9 +40,6 @@
 import { useStore } from 'vuex'
 import { h, getCurrentInstance, render, onMounted, shallowRef } from 'vue'
 import Drawflow from 'drawflow'
-// eslint-disable-next-line no-unused-vars
-import styleDrawflow from 'drawflow/dist/drawflow.min.css'
-import style from '../assets/style.css'
 import NodeNumber from './Node-number.vue'
 import NodeOperation from './Node-operation.vue'
 import NodeAssign from './Node-assign.vue'
@@ -215,15 +212,15 @@ export default {
             editor.value = new Drawflow(id, Vue, internalInstance.appContext.app._context);
             editor.value.start();
 
-            // editor.value.registerNode("number", <NodeNumber>, {}, {});
-            // editor.value.registerNode("addition", <NodeOperation title="Addition" />, {}, {});
-            // editor.value.registerNode("subtraction", <NodeOperation title="Subtraction" />, {}, {});
-            // editor.value.registerNode("multiplication", <NodeOperation title="Multiplication" />, {}, {});
-            // editor.value.registerNode("division", <NodeOperation title="Division" />, {}, {});
-            // editor.value.registerNode("assign", <NodeAssign />, {}, {});
-            // editor.value.registerNode("if", <NodeIf title="If statement" />, {}, {});
-            // editor.value.registerNode("for", <NodeFor title="For statement" />, {}, {});
-            // editor.value.registerNode("nodeCondition", <NodeCondition />, {}, {});
+            editor.value.registerNode("number", NodeNumber, {}, {});
+            editor.value.registerNode("addition", NodeOperation, { title: "Addition" }, {});
+            editor.value.registerNode("subtraction", NodeOperation, { title: "Subtraction" }, {});
+            editor.value.registerNode("multiplication", NodeOperation, { title: "Multiplication" }, {});
+            editor.value.registerNode("division", NodeOperation, { title: "Division" }, {});
+            editor.value.registerNode("assign", NodeAssign, {}, {});
+            editor.value.registerNode("if", NodeIf, { title: "If statement" }, {});
+            editor.value.registerNode("for", NodeFor, { title: "For statement" }, {});
+            editor.value.registerNode("nodeCondition", NodeCondition, {}, {});
 
             let num1 = 0;
             let num2 = 0;
@@ -461,7 +458,6 @@ export default {
             store,
             addProgramName,
             editorData,
-            style,
             verifyProgramName
         };
     },

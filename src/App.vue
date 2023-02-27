@@ -1,8 +1,4 @@
 <template>
-  <div className="flex border-2 my-5 justify-center">
-    <img className="w-10 h-10" src="./assets/icon.png" alt="Drawflow icon">
-    <h1 className="text-2xl font-bold text-sky-600 ml-2">Drawflow NTT DATA</h1>
-  </div>
   <DrawflowDashboard />
 </template>
 
