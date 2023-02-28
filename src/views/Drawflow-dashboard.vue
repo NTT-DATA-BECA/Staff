@@ -1,39 +1,40 @@
 <template>
-    <div className="h-full w-full">
-        <div className="flex justify-end mb-3 text-lg text-gray-100">
-            <input className="text-sm mr-2 rounded-sm text-gray-700 hover:bg-gray-100" placeholder="Add program name"
-                @input="addProgramName($event)" v-model="nodeProgramName" />
-            <button className="w-32 bg-green-500 mr-3 rounded-md hover:bg-green-400 cursor-pointer"
-                @click="verifyProgramName(nodeProgramName); nodeProgramName = ''">
-                Save
-            </button>
-            <select className="w-32 bg-blue-400 mr-3 rounded-md hover:bg-blue-300 cursor-pointer" @click="getData()"
-                @change="valueSelected($event)">
-                <option value="Select" className="text-center">Choose</option>
-                <option v-for="j in store.getters.programOptions" :key="j.id" :value="j.id">{{ `${j.programName}#${j.uid}`
-                }}
-                </option>
-            </select>
-            <button className="w-32 bg-red-400 mr-3 rounded-md hover:bg-red-300"
-                @click="cleanEditor(); getData()">Delete</button>
-        </div>
+        <div className="h-full w-full">
+            <div className="flex justify-end mb-3 text-lg text-gray-100">
+                <input className="text-sm mr-2 rounded-sm text-gray-700 hover:bg-gray-100" placeholder="Add program name"
+                    @input="addProgramName($event)" v-model="nodeProgramName" />
+                <button className="w-32 bg-green-500 mr-3 rounded-md hover:bg-green-400 cursor-pointer"
+                    @click="verifyProgramName(nodeProgramName); nodeProgramName = ''">
+                    Save
+                </button>
+                <select className="w-32 bg-blue-400 mr-3 rounded-md hover:bg-blue-300 cursor-pointer" @click="getData()"
+                    @change="valueSelected($event)">
+                    <option value="Select" className="text-center">Choose</option>
+                    <option v-for="j in store.getters.programOptions" :key="j.id" :value="j.id">{{ `${j.programName}#${j.uid}`
+                    }}
+                    </option>
+                </select>
+                <button className="w-32 bg-red-400 mr-3 rounded-md hover:bg-red-300"
+                    @click="cleanEditor(); getData()">Delete</button>
+            </div>
 
-        <div class="h-3/4 flex flex-row w-full">
-            <div className="w-[200px] mx-auto p-2 text-sm">
-                <div class="nodes-list" draggable="true" v-for="i in nodesList" :key="i.name" :node-item="i.item"
-                    @dragstart="drag($event)">
-                    <span class="node">{{ i.name }}</span>
+            <div class="h-3/4 flex flex-row w-full">
+                <div className="w-[200px] mx-auto p-2 text-sm">
+                    <div class="nodes-list" draggable="true" v-for="i in nodesList" :key="i.name" :node-item="i.item"
+                        @dragstart="drag($event)">
+                        <span class="node">{{ i.name }}</span>
+                    </div>
                 </div>
+                <div className="drawflow-container w-full mx-2 relative">
+                    <div id="drawflow" @drop="drop($event)" @dragover="allowDrop($event)"></div>
+                    <button
+                        className="absolute w-20 bg-blue-400 m-2 rounded-md text-white text-sm right-0 top-0 hover:bg-blue-300"
+                        @click="cleanEditor()">Clear</button>
+                </div>
+                <LanguagesCode />
             </div>
-            <div className="drawflow-container w-full mx-2 relative">
-                <div id="drawflow" @drop="drop($event)" @dragover="allowDrop($event)"></div>
-                <button
-                    className="absolute w-20 bg-blue-400 m-2 rounded-md text-white text-sm right-0 top-0 hover:bg-blue-300"
-                    @click="cleanEditor()">Clear</button>
-            </div>
-            <LanguagesCode />
         </div>
-    </div>
+    
 </template>
 
 <script lang="ts">
