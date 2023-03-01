@@ -4,7 +4,7 @@
             <input className="text-sm mr-2 rounded-sm text-gray-700 hover:bg-gray-100" placeholder="Add program name"
                 @input="addProgramName($event)" v-model="nodeProgramName" />
             <button className="w-32 bg-green-500 mr-3 rounded-md hover:bg-green-400 cursor-pointer"
-                @click="verifyProgramName(nodeProgramName); nodeProgramName = ''">
+                @click="insertJSONFile(nodeProgramName); nodeProgramName = ''">
                 Save
             </button>
             <select className="w-32 bg-blue-400 mr-3 rounded-md hover:bg-blue-300 cursor-pointer" @click="getData()"
@@ -24,7 +24,12 @@
                     @dragstart="drag($event)">
                     <span class="node">{{ i.name }}</span>
                 </div>
-            </div>
+                
+            </div><div>
+                    <div  id="json-files">
+                        
+                    </div>
+                </div>
             <div className="drawflow-container w-full mx-2 relative">
                 <div id="drawflow" @drop="drop($event)" @dragover="allowDrop($event)"></div>
                 <button
@@ -54,14 +59,21 @@ import { validationIf } from '../utils/validationIf'
 import { validationFor } from '../utils/validationFor'
 import { operationValues } from '../utils/operationValues'
 import { nodesList } from '../utils/nodesList'
+import { ipcRenderer } from 'electron';
 
 export default {
     name: "DrawflowDashboard",
+    inject: ['ipcRenderer'],
+     async mounted(){
+        
+          await this.loadJsonFiles();
+    },
     data() {
         return {
             nodeProgramName: "",
         };
     },
+    
     setup() {
         const store = useStore();
         const optionSelected = shallowRef(0);
@@ -124,83 +136,99 @@ export default {
         const addProgramName = (event: any) => {
             programName.value = event.target.value;
         };
+        
+ // Fonction pour ajouter un nouvel éditeur JSON
+ async function createNewEditor(): Promise<void> {
+  const name = prompt('Enter a name for the new editor:');
+  if (!name) {
+    return;
+  }
 
-        // function saveDrawflow() {
-        //     const drawflowData = {
-        //         nodes: [
-        //             {
-        //                 name: "Number",
-        //                 item: "number",
-        //                 input: 0,
-        //                 output: 1,
-        //             },
-        //             {
-        //                 name: "Addition",
-        //                 item: "addition",
-        //                 input: 2,
-        //                 output: 1,
-        //             },
-        //             {
-        //                 name: "Subtraction",
-        //                 item: "subtraction",
-        //                 input: 2,
-        //                 output: 1,
-        //             },
-        //             {
-        //                 name: "Multiplication",
-        //                 item: "multiplication",
-        //                 input: 2,
-        //                 output: 1,
-        //             },
-        //             {
-        //                 name: "Division",
-        //                 item: "division",
-        //                 input: 2,
-        //                 output: 1,
-        //             },
-        //             {
-        //                 name: "Assign",
-        //                 item: "assign",
-        //                 input: 1,
-        //                 output: 0
-        //             },
-        //             {
-        //                 name: "If-else",
-        //                 item: "if",
-        //                 input: 0,
-        //                 output: 1
-        //             },
-        //             {
-        //                 name: "For",
-        //                 item: "for",
-        //                 input: 0,
-        //                 output: 1
-        //             },
-        //             {
-        //                 name: "Condition result",
-        //                 item: "nodeCondition",
-        //                 input: 1,
-        //                 output: 0
-        //             },
-        //         ]
+  // Créer un nouvel éditeur JSON vide avec le nom spécifié
+  const drawflowContainer = document.getElementById('drawflow');
+  const nodeList = document.getElementById('node-list');
+  const edgeList = document.getElementById('edge-list');
+ 
+  if (!drawflowContainer || !nodeList || !edgeList ) {
+    console.error('Could not create new editor - missing HTML element(s)');
+    return;
+  }
 
-        //     };
-        //     saveDrawflowData(drawflowData, function(err, lastInsertId) {
-        //         if (err) {
-        //              console.error(err.message);
-        //         } else {
-        //           console.log(`Drawflow data saved to database with row id ${lastInsertId}`);
-        //         }
-        //     });
-        // }
+  const editor = new Drawflow(drawflowContainer, nodeList, edgeList);
 
-        function verifyProgramName(nodeProgramName: any) {
-            if (nodeProgramName.length == 0) {
-                return alert("Name your program");
+  // Enregistrer le nouveau fichier JSON vide dans la base de données
+  //const jsonString = JSON.stringify(editor.export());
+  //const result = await ipcRenderer.invoke('insertJsonFile', { name: name, data: jsonString });
+
+  // Mettre à jour la liste des fichiers JSON
+  //await updateJsonFiles();
+}
+
+
+// Fonction pour récupérer les fichiers JSON existants dans la base de données et générer des boutons pour chaque fichier
+    async function loadJsonFiles() {
+    // Récupérer les fichiers JSON existants dans la base de données
+    const response = await ipcRenderer.invoke('getJsonFiles');
+    const jsonFiles = response.map(file => file);
+
+    // Générer des boutons pour chaque fichier JSON avec le nom correspondant
+    const jsonFilesContainer = document.getElementById('json-files');
+    jsonFiles.forEach(file => {
+        const button = document.createElement('button');
+        button.innerHTML = file;
+        button.style.color = 'black';
+        button.style.margin = '5px';
+
+        button.addEventListener('click', async () => {
+        // Récupérer le contenu JSON correspondant dans la base de données
+        const response = await ipcRenderer.invoke('getJsonFile', { name: file });
+        const jsonData = JSON.parse(response);
+        console.log("filename:"+file);
+        console.log("jsonData Home:",JSON.parse(response).drawflow.Home.data);
+        const dataa=JSON.parse(response).drawflow.Home.data;
+        const ob = {
+                    drawflow: {
+                        Home: {
+                            data: dataa
+                        }
+                    }
+                };
+        // Afficher le contenu JSON dans l'éditeur
+        const exportdata = editor.value.export();
+        editor.value.import(ob);
+
+        });
+        jsonFilesContainer?.appendChild(button);
+        jsonFilesContainer?.insertAdjacentHTML('beforeend', '<br>');
+    });
+    }
+
+
+     
+async function insertJSONFile(nodeProgramName: string) {
+            if (nodeProgramName.length === 0) {
+                return alert('Name your program');
             }
-            return setData();
-        }
 
+            const editorState = editor.value.export();
+            const jsonString = JSON.stringify(editorState);
+
+            // Call insertJSONFile() to save the JSON file to the database
+            const result = await ipcRenderer.invoke('insertJsonFile', { name: nodeProgramName, data: jsonString });
+
+            if (result.error) {
+            alert('An error occurred while saving the program: ' + result.error);
+            } else {
+            // Download the JSON data as a file
+            const blob = new Blob([jsonString], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = nodeProgramName + '.json';
+            link.click();
+}
+            }
+ 
         onMounted(() => {
             var elements = document.getElementsByClassName('nodes-list');
             for (var i = 0; i < elements.length; i++) {
@@ -369,22 +397,10 @@ export default {
         }
 
         const setData = async () => {
-            // fetch("http://localhost:8080/setAllPrograms", {
-            //     method: "POST",
-            //     headers: {
-            //         "Content-type": "application/json",
-            //     },
-            //     body: JSON.stringify(editorData())
-            // })
+
         }
         const getData = async () => {
-            // fetch("http://localhost:8080/setAllPrograms", {
-            //     method: "POST",
-            //     headers: {
-            //         "Content-type": "application/json",
-            //     },
-            //     body: JSON.stringify(editorData())
-            // })
+
         }
 
         function showSelected() {
@@ -448,6 +464,8 @@ export default {
         }
 
         return {
+            createNewEditor,
+            loadJsonFiles,
             nodesList,
             drag,
             drop,
@@ -458,7 +476,7 @@ export default {
             store,
             addProgramName,
             editorData,
-            verifyProgramName
+            insertJSONFile
         };
     },
     components: { LanguagesCode }
@@ -500,6 +518,10 @@ export default {
 
 .node:hover {
     background-color: #649cce
+}
+.flow{
+    margin-top:15px;
+    margin-bottom: 15px;
 }
 
 #drawflow {

@@ -1,5 +1,6 @@
 <template>
-  <DrawflowDashboard />
+  <div class="flow">
+  <DrawflowDashboard /></div>
 </template>
 
 <script setup lang="ts">
@@ -7,6 +8,9 @@ import DrawflowDashboard from './components/Drawflow-dashboard.vue'
 </script>
 
 <style>
+.flow{
+  margin-top: 25px;
+}
 body {
   color: #cdcece;
   font-size: 20px;

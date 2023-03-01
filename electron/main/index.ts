@@ -31,7 +31,7 @@ const indexHtml = join(process.env.DIST, 'index.html')
 
 async function createWindow() {
   // Create a new instance of the database
-  let db = new sqlite3.Database('./db/db.db', sqlite3.OPEN_READWRITE, (err) => {
+  let db = new sqlite3.Database('./db/flows.db', sqlite3.OPEN_READWRITE, (err) => {
     if (err) {
       console.error(err.message);
     }
@@ -69,7 +69,15 @@ async function createWindow() {
     if (url.startsWith('https:')) shell.openExternal(url)
     return { action: 'deny' }
   })
-
+  ipcMain.handle('getJsonFiles', async (event, arg) => {
+    return await new Promise((resolve, reject) => {
+      db.all(`SELECT name FROM flow`, [], (err, rows) => {
+        if (err) reject(err)
+        resolve(rows.map(row => row.name))
+      })
+    })
+  })
+  
   // Handle the 'home' message from the renderer process
   ipcMain.handle('home', async (event, arg) => {
     return await new Promise((resolve,reject)=>{
@@ -104,7 +112,7 @@ async function createWindow() {
       })
     })
   });
-
+  
   // Handle the 'delete' message from the renderer process
   ipcMain.handle('delete', async (event, arg) => {
     return await new Promise((resolve,reject)=>{
@@ -116,8 +124,43 @@ async function createWindow() {
       })
     })
   });
-}
-
+  ipcMain.handle('getJsonFile', async (event, arg) => {
+    try {
+      const row: { data: any } = await new Promise((resolve, reject) => {
+        db.get(`SELECT data FROM flow WHERE name = ?`, [arg.name], (err, row) => {
+          if (err) reject(err);
+          resolve(row);
+        });
+      });
+      
+      return row.data;
+    } catch (error) {
+      console.error(error);
+      return null;
+    }
+  });
+  
+  // Handle the 'insertJsonFile' message from the renderer process
+  ipcMain.handle('insertJsonFile', async (event, arg) => {
+    return await new Promise((resolve, reject) => {
+      // Perform an INSERT query to add a new JSON file
+      win.reload();
+      const formattedData = JSON.stringify(arg.data).replace(/\\/g, '').slice(1, -1);
+      // const formattedData = JSON.stringify(arg.data).replace(/(?!\\)\\(?!n)/g, '')
+      // .replace(/\\n/g, '\n').replace(/\\/g, '').replace(/"(\w+)":/g, '$1:')
+      // .slice(1, -1);
+      //.replace(/[\s\\]/g, '')
+      db.run(`INSERT INTO flow (name, data) VALUES (?, ?)`, [arg.name, formattedData], (err) => {
+        if (err) reject(err);
+        console.log(err);
+      });
+    });
+  });
+  
+  
+  
+  
+  }
 
 app.whenReady().then(createWindow)
 
