@@ -1,5 +1,5 @@
 <template>
-    <div class="home">
+    <div class="Home">
         <div className="h-full w-full">
             <div className="flex justify-end mb-3 text-lg text-gray-100">
                 <input className="text-sm mr-2 rounded-sm text-gray-700 hover:bg-gray-100" placeholder="Add program name"
