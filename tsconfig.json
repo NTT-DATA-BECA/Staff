@@ -16,6 +16,10 @@
     "typeRoots": ["./node_modules/@types", "./src/types"],
     "noImplicitAny": false
   },
+  "paths":{
+    "@views/*": ["src/views/*"],
+    "@components/*": ["src/components/*"],
+  },
   "include": ["src"],
   "references": [
     { "path": "./tsconfig.node.json" }

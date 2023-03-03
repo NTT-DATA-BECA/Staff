@@ -1,40 +1,40 @@
 <template>
-    <div className="h-full w-full flex flex-col">
-        <div className="flex justify-end mb-3 text-lg text-gray-100">
-            <input className="text-sm mr-2 rounded-sm text-gray-700 hover:bg-gray-100" placeholder="Add program name"
+    <div className="h-full w-full flex flex-col p-4">
+        <div className="flex justify-end mb-3 text-gray-100">
+            <input className="input mr-2" placeholder="Add program name"
                 @input="addProgramName($event)" v-model="nodeProgramName" />
-            <button className="w-32 bg-green-500 mr-3 rounded-md hover:bg-green-400 cursor-pointer"
+            <button className="btn bg-green-500 hover:bg-green-400 mr-3 w-28"
                 @click="insertJSONFile(nodeProgramName); nodeProgramName = ''">
                 Save
             </button>
-            <select className="w-32 bg-blue-400 mr-3 rounded-md hover:bg-blue-300 cursor-pointer" @click="getData()"
+            <select className="btn bg-blue-400 hover:bg-blue-300 mr-3 w-28" @click="getData()"
                 @change="valueSelected($event)">
                 <option value="Select" className="text-center">Choose</option>
                 <option v-for="j in store.getters.programOptions" :key="j.id" :value="j.id">{{ `${j.programName}#${j.uid}`
                 }}
                 </option>
             </select>
-            <button className="w-32 bg-red-400 mr-3 rounded-md hover:bg-red-300"
+            <button className="btn bg-red-400 hover:bg-red-300 w-28 "
                 @click="cleanEditor(); getData()">Delete</button>
         </div>
 
         <div class="flex flex-row w-full h-full">
-            <div className="w-[200px] mx-auto p-2 text-sm">
+            <div className="flex flex-col gap-2 w-[200px] mx-auto mr-3">
                 <div class="nodes-list" draggable="true" v-for="i in nodesList" :key="i.name" :node-item="i.item"
                     @dragstart="drag($event)">
                     <span class="node">{{ i.name }}</span>
                 </div>
 
             </div>
-            <div>
+            <!-- <div>
                 <div id="json-files">
 
                 </div>
-            </div>
-            <div className="drawflow-container w-full h-full mx-2 relative">
+            </div> -->
+            <div className="drawflow-container border border-slate-400 rounded w-full h-full relative">
                 <div id="drawflow" @drop="drop($event)" @dragover="allowDrop($event)"></div>
                 <button
-                    className="absolute w-20 bg-blue-400 m-2 rounded-md text-white text-sm right-0 top-0 hover:bg-blue-300"
+                    className="btn absolute w-20 text-white bg-blue-400 m-2 right-0 top-0 hover:bg-blue-300"
                     @click="cleanEditor()">Clear</button>
             </div>
         </div>
@@ -45,12 +45,12 @@
 import { useStore } from 'vuex'
 import { h, getCurrentInstance, render, onMounted, shallowRef } from 'vue'
 import Drawflow from 'drawflow'
-import NodeNumber from './Node-number.vue'
-import NodeOperation from './Node-operation.vue'
-import NodeAssign from './Node-assign.vue'
-import NodeIf from './Node-if.vue'
-import NodeCondition from './Node-condition.vue'
-import NodeFor from './Node-for.vue'
+import NodeNumber from '../components/Node-number.vue'
+import NodeOperation from '../components/Node-operation.vue'
+import NodeAssign from '../components/Node-assign.vue'
+import NodeIf from '../components/Node-if.vue'
+import NodeCondition from '../components/Node-condition.vue'
+import NodeFor from '../components/Node-for.vue'
 import { javascriptToPython } from '../utils/javascriptToPython'
 import { javascriptToJava } from '../utils/javascriptToJava'
 import { javascriptToCplus } from '../utils/javascriptToCplus'
@@ -483,31 +483,7 @@ export default {
 
 <style scoped>
 .node {
-    background-color: #4a8ac2;
-    color: #f7f7f7;
-    padding: 5px;
-    border-radius: 8px;
-    border: 2px solid #4b769bc4;
-    display: block;
-    height: 50px;
-    margin: 10px 0px;
-    cursor: move;
-}
-
-@media only screen and (min-width: 350px) {
-    .node {
-        font-size: small;
-    }
-}
-
-@media only screen and (min-width: 600px) {
-    .node {
-        font-size: medium;
-    }
-}
-
-.node:hover {
-    background-color: #649cce
+    @apply block bg-sky-600 hover:bg-sky-400 text-white p-4 rounded w-full cursor-pointer sm:text-sm; 
 }
 
 .flow {

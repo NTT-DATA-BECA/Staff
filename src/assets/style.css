@@ -1,3 +1,11 @@
+.btn{
+    @apply py-2 px-4 cursor-pointer rounded;
+}
+.input{
+    @apply p-2 text-slate-700 border border-slate-400 hover:bg-gray-100 rounded;
+}
+
+/* Drawflow */
 .drawflow .drawflow-node {
     border-radius: 8px !important;
     background: #2b85c0 !important;
