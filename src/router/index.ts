@@ -1,33 +1,25 @@
 import { createRouter, createWebHashHistory } from 'vue-router';
-import HomeView from '../views/HomeView.vue';
 
 const routes = [
   {
     path: '/',
     name: 'Flow',
-    component: HomeView,
+    component: () => import('../views/Flow.vue'),
   },
   {
     path: '/word',
     name: 'Word',
-    // route level code-splitting
-    // this generates a separate chunk (about.[hash].js) for this route
-    // which is lazy-loaded when the route is visited.
-    component: () => import(/* webpackChunkName: "word" */ '../views/wordView.vue'),
+    component: () => import('../views/Editor.vue'),
   },
   {
     path: '/generator',
     name: 'generator',
-    // route level code-splitting
-    // this generates a separate chunk (about.[hash].js) for this route
-    // which is lazy-loaded when the route is visited.
-    component: () => import(/* webpackChunkName: "word" */ '../views/GeneratorView.vue'),
+    component: () => import('../views/Generator.vue'),
   },
 ];
 
 const router = createRouter({
-  history: createWebHashHistory(),
-  routes,
+  history: createWebHashHistory(), routes
 });
 
 export default router;
