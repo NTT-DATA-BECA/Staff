@@ -1,5 +1,6 @@
 <template>
-  <DrawflowDashboard />
+  <div class="h-screen">
+  <DrawflowDashboard /></div>
 </template>
 
 <script setup lang="ts">
