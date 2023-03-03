@@ -2,7 +2,7 @@
 process.env.DIST = join(__dirname, '../..')
 process.env.PUBLIC = app.isPackaged ? process.env.DIST : join(process.env.DIST, '../public')
 
-import { app, BrowserWindow, shell, ipcMain } from 'electron'
+import { app, BrowserWindow, shell, ipcMain, MenuItem, Menu } from 'electron'
 const sqlite3 = require('sqlite3').verbose();
 import { release } from 'os'
 import { join } from 'path'
@@ -30,6 +30,7 @@ const url = process.env.VITE_DEV_SERVER_URL as string
 const indexHtml = join(process.env.DIST, 'index.html')
 
 async function createWindow() {
+  Menu.setApplicationMenu(Menu.buildFromTemplate([]));
   // Create a new instance of the database
   let db = new sqlite3.Database('./db/flows.db', sqlite3.OPEN_READWRITE, (err) => {
     if (err) {
