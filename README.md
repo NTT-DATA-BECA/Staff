@@ -1,3 +1,3 @@
 # electron-vite-vue
 
-`Electron` + `Vue` + `Vite` + `sqlit3` boilerplate.
+`Electron` + `Vue` + `Vite` + `sqlite3` .
