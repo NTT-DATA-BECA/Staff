@@ -17,12 +17,10 @@ if (!app.requestSingleInstanceLock()) {
   app.quit()
   process.exit(0)
 }
-
 // Remove electron security warnings
 // This warning only shows in development mode
 // Read more on https://www.electronjs.org/docs/latest/tutorial/security
 // process.env['ELECTRON_DISABLE_SECURITY_WARNINGS'] = 'true'
-
 let win: BrowserWindow | null = null
 // Here, you can also use other preload
 const preload = join(__dirname, '../preload/index.js')
@@ -79,52 +77,30 @@ async function createWindow() {
     })
   })
   
-  // Handle the 'home' message from the renderer process
-  ipcMain.handle('home', async (event, arg) => {
-    return await new Promise((resolve,reject)=>{
-      // Perform a SELECT query to retrieve all playlists
-      db.all(`SELECT PlaylistId as id, Name as name FROM playlists`, [], (err, rows) => {
-        if (err) reject(err)
-        resolve(rows)
-      })
-    })
-  });
-
-  // Handle the 'insert' message from the renderer process
-  ipcMain.handle('insert', async (event, arg) => {
-    return await new Promise((resolve,reject)=>{
-      // Perform an INSERT query to add a new playlist
-      win.reload()
-      db.run(`INSERT INTO playlists (Name) VALUES (?)`, [arg.name], (err) => {
-        if (err) reject(err)
-        //resolve()
-      })
-    })
-  });
-
   // Handle the 'update' message from the renderer process
-  ipcMain.handle('update', async (event, arg) => {
-    return await new Promise((resolve,reject)=>{
-      // Perform an UPDATE query to update an existing playlist
+  ipcMain.handle('updateJsonFileName', async (event, arg) => {
+    return await new Promise((resolve, reject) => {
+      // Perform an UPDATE query to change the name of an existing JSON file
       win.reload()
-      db.run(`UPDATE playlists SET Name = ? WHERE PlaylistId = ?`, [arg.name, arg.id], (err) => {
-        if (err) reject(err)
-       // resolve()
-      })
-    })
+      db.run(`UPDATE flow SET name = ? WHERE name = ?`, [arg.newName, arg.oldName], (err) => {
+        if (err) reject(err);
+         //resolve();
+      });
+    });
   });
   
-  // Handle the 'delete' message from the renderer process
-  ipcMain.handle('delete', async (event, arg) => {
-    return await new Promise((resolve,reject)=>{
-      win.reload()
-      // Perform a DELETE query to delete an existing playlist
-      db.run(`DELETE FROM playlists WHERE PlaylistId = ?`, [arg.id], (err) => {
-        if (err) reject(err)
-       // resolve()
-      })
-    })
+  ipcMain.handle('updateJsonFile', async (event, arg) => {
+    return await new Promise((resolve, reject) => {
+      // Perform an UPDATE query to modify the data for a specific name
+      win.reload();
+      const formattedData = JSON.stringify(arg.data).replace(/\\/g, '').slice(1, -1);
+      db.run(`UPDATE flow SET data = ? WHERE name = ?`, [formattedData, arg.name], (err) => {
+        if (err) reject(err);
+        console.log(err);
+      });
+    });
   });
+  
   ipcMain.handle('getJsonFile', async (event, arg) => {
     try {
       const row: { data: any } = await new Promise((resolve, reject) => {
@@ -147,10 +123,6 @@ async function createWindow() {
       // Perform an INSERT query to add a new JSON file
       win.reload();
       const formattedData = JSON.stringify(arg.data).replace(/\\/g, '').slice(1, -1);
-      // const formattedData = JSON.stringify(arg.data).replace(/(?!\\)\\(?!n)/g, '')
-      // .replace(/\\n/g, '\n').replace(/\\/g, '').replace(/"(\w+)":/g, '$1:')
-      // .slice(1, -1);
-      //.replace(/[\s\\]/g, '')
       db.run(`INSERT INTO flow (name, data) VALUES (?, ?)`, [arg.name, formattedData], (err) => {
         if (err) reject(err);
         console.log(err);
@@ -158,11 +130,24 @@ async function createWindow() {
     });
   });
   
-  
-  
-  
+  ipcMain.handle('deleteJsonFile', async (event, arg) => {
+    try {
+      const result = await new Promise((resolve, reject) => {
+        win.reload();
+        db.run(`DELETE FROM flow WHERE name = ?`, [arg.name], function(err) {
+          if (err) reject(err);
+          resolve(this.changes);
+        });
+      });
+      
+      return result;
+    } catch (error) {
+      console.error(error);
+      return null;
+    }
+  });
   }
-
+  
 app.whenReady().then(createWindow)
 
 app.on('window-all-closed', () => {

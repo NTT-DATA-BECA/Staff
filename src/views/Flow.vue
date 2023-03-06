@@ -1,48 +1,46 @@
 <template>
     <div className="h-full w-full flex flex-col p-4">
-        <div className="flex justify-end mb-3 text-gray-100">
-            <input className="input mr-2" placeholder="Add program name"
-                @input="addProgramName($event)" v-model="nodeProgramName" />
+        <div className="flex justify-end mb-3 text-gray-100">   
+            <input id="program-name" className="input mr-2" placeholder="Add program name"
+                @input="addProgramName($event)" v-model="nodeProgramName"  />
+                <button id="new-flow-button" className="btn bg-amber-600 hover:bg-amber-400 mr-3 w-28"
+                @click="createNewFlow()">
+                New Flow
+               </button> 
             <button className="btn bg-green-500 hover:bg-green-400 mr-3 w-28"
-                @click="insertJSONFile(nodeProgramName); nodeProgramName = ''">
+                @click="insertJSONFile(nodeProgramName,test); nodeProgramName = ''">
                 Save
-            </button>
-            <select className="btn bg-blue-400 hover:bg-blue-300 mr-3 w-28" @click="getData()"
-                @change="valueSelected($event)">
-                <option value="Select" className="text-center">Choose</option>
-                <option v-for="j in store.getters.programOptions" :key="j.id" :value="j.id">{{ `${j.programName}#${j.uid}`
-                }}
-                </option>
+            </button>        
+            <select id="json-select" className="btn bg-blue-400 hover:bg-blue-300 mr-3 w-28">
+            <option value="Choose a flow">Choose</option>
             </select>
             <button className="btn bg-red-400 hover:bg-red-300 w-28 "
-                @click="cleanEditor(); getData()">Delete</button>
+                @click="delprograme()">Delete</button>
         </div>
-
         <div class="flex flex-row w-full h-full">
             <div className="flex flex-col gap-2 w-[200px] mx-auto mr-3">
+                <h4 className="border-b-4 p-2 text-center font-bold text-slate-500">Node Types</h4>
                 <div class="nodes-list" draggable="true" v-for="i in nodesList" :key="i.name" :node-item="i.item"
                     @dragstart="drag($event)">
-                    <span class="node">{{ i.name }}</span>
+                    <span class="node"><img className="m-1" src="../assets/add-music-collection-svgrepo-com.svg" style="width: 20px; height: 20px;" alt="" srcset=""> {{ i.name }}</span>
                 </div>
-
             </div>
-            <!-- <div>
-                <div id="json-files">
-
-                </div>
-            </div> -->
-            <div className="drawflow-container border border-slate-400 rounded w-full h-full relative">
-                <div id="drawflow" @drop="drop($event)" @dragover="allowDrop($event)"></div>
-                <button
-                    className="btn absolute w-20 text-white bg-blue-400 m-2 right-0 top-0 hover:bg-blue-300"
-                    @click="cleanEditor()">Clear</button>
+            <div class="drawflow-container border border-slate-400 rounded w-full h-full relative">
+            <div id="drawflow" @drop="drop($event)" @dragover="allowDrop($event)">
+                <div class="ml-0 mr-auto mb-4 h-7 flex"> 
+                <button id="btnn"  @click="showinput()" class="pl-2 bg-gray-400 "> <img class="transform hover:-rotate-12" style="width: 50px; height: 25px;" src="../assets/editb.png" alt=""> </button>
+                <input id="prog-name" class="w-28 inline-block rounded-r-xl bg-gray-400 py-1 text-sm font-semibold text-slate-100 mr-2 text-center" type="text" readonly>
+                </div> 
+            </div>
+            <a className="absolute w-10 m-2 right-0 top-0" @click="cleanEditor()" title="Press to clear">
+            <img src="../assets/erase-svgrepo-com.svg" style="width: 30px; height: 30px;">
+            </a>
             </div>
         </div>
     </div>
 </template>
 
 <script lang="ts">
-import { useStore } from 'vuex'
 import { h, getCurrentInstance, render, onMounted, shallowRef } from 'vue'
 import Drawflow from 'drawflow'
 import NodeNumber from '../components/Node-number.vue'
@@ -51,9 +49,6 @@ import NodeAssign from '../components/Node-assign.vue'
 import NodeIf from '../components/Node-if.vue'
 import NodeCondition from '../components/Node-condition.vue'
 import NodeFor from '../components/Node-for.vue'
-import { javascriptToPython } from '../utils/javascriptToPython'
-import { javascriptToJava } from '../utils/javascriptToJava'
-import { javascriptToCplus } from '../utils/javascriptToCplus'
 import { validationIf } from '../utils/validationIf'
 import { validationFor } from '../utils/validationFor'
 import { operationValues } from '../utils/operationValues'
@@ -64,21 +59,31 @@ export default {
     name: "DrawflowDashboard",
     inject: ['ipcRenderer'],
     async mounted() {
-
         await this.loadJsonFiles();
+        const inputp = document.querySelector('input#prog-name');
+        (inputp as HTMLSelectElement).style.display = 'none';
+        const btn = document.querySelector('button#btnn');
+        (btn as HTMLSelectElement).style.display = 'none';
+    }, methods:{
+            showinput(){
+                this.test=true;
+            const input = document.querySelector('input#program-name');
+            const Button = document.querySelector('#btnn');
+              Button?.addEventListener('click', () => {
+            (input as HTMLSelectElement).style.display = 'block';
+            });
+        }
     },
     data() {
-        return {
+        return {      
             nodeProgramName: "",
+            test:false,
+            iconColor:'red',
         };
     },
-
     setup() {
-        const store = useStore();
-        const optionSelected = shallowRef(0);
         const programName = shallowRef("");
         const editor: any = shallowRef({});
-
         const Vue = { version: 3, h, render };
         const internalInstance: any = getCurrentInstance();
         internalInstance.appContext.app._context.config.globalProperties.$df = editor;
@@ -125,109 +130,90 @@ export default {
             const nodeSelected: any = nodesList.find(object => object.item === name);
             editor.value.addNode(name, nodeSelected.input, nodeSelected.output, pos_x, pos_y, name, { number: 0, num1: 0, num2: 0 }, name, "vue");
         };
-
-        const valueSelected = (event: any) => {
-            optionSelected.value = event.target.value;
-            store.commit("setProgramUid", store.getters.programOptions[optionSelected.value].uid);
-            showSelected();
-        };
-
         const addProgramName = (event: any) => {
             programName.value = event.target.value;
         };
-
-        // Fonction pour ajouter un nouvel éditeur JSON
-        async function createNewEditor(): Promise<void> {
-            const name = prompt('Enter a name for the new editor:');
-            if (!name) {
-                return;
-            }
-
-            // Créer un nouvel éditeur JSON vide avec le nom spécifié
-            const drawflowContainer = document.getElementById('drawflow');
-            const nodeList = document.getElementById('node-list');
-            const edgeList = document.getElementById('edge-list');
-
-            if (!drawflowContainer || !nodeList || !edgeList) {
-                console.error('Could not create new editor - missing HTML element(s)');
-                return;
-            }
-
-            const editor = new Drawflow(drawflowContainer, nodeList, edgeList);
-
-            // Enregistrer le nouveau fichier JSON vide dans la base de données
-            //const jsonString = JSON.stringify(editor.export());
-            //const result = await ipcRenderer.invoke('insertJsonFile', { name: name, data: jsonString });
-
-            // Mettre à jour la liste des fichiers JSON
-            //await updateJsonFiles();
-        }
-
-
         // Fonction pour récupérer les fichiers JSON existants dans la base de données et générer des boutons pour chaque fichier
         async function loadJsonFiles() {
-            // Récupérer les fichiers JSON existants dans la base de données
-            const response = await ipcRenderer.invoke('getJsonFiles');
-            const jsonFiles = response.map(file => file);
-
-            // Générer des boutons pour chaque fichier JSON avec le nom correspondant
-            const jsonFilesContainer = document.getElementById('json-files');
-            jsonFiles.forEach(file => {
-                const button = document.createElement('button');
-                button.innerHTML = file;
-                button.style.color = 'black';
-                button.style.margin = '5px';
-
-                button.addEventListener('click', async () => {
-                    // Récupérer le contenu JSON correspondant dans la base de données
-                    const response = await ipcRenderer.invoke('getJsonFile', { name: file });
-                    const jsonData = JSON.parse(response);
-                    console.log("filename:" + file);
-                    console.log("jsonData Home:", JSON.parse(response).drawflow.Home.data);
-                    const dataa = JSON.parse(response).drawflow.Home.data;
-                    const ob = {
-                        drawflow: {
-                            Home: {
-                                data: dataa
-                            }
-                        }
-                    };
-                    // Afficher le contenu JSON dans l'éditeur
-                    const exportdata = editor.value.export();
-                    editor.value.import(ob);
-
-                });
-                jsonFilesContainer?.appendChild(button);
-                jsonFilesContainer?.insertAdjacentHTML('beforeend', '<br>');
-            });
-        }
-
-
-
-        async function insertJSONFile(nodeProgramName: string) {
-            if (nodeProgramName.length === 0) {
-                return alert('Name your program');
+        // Récupérer les fichiers JSON existants dans la base de données
+        const response = await ipcRenderer.invoke('getJsonFiles');
+        const jsonFiles = response.map(file => file);
+        // Récupérer le select existant
+        const select = document.querySelector('select#json-select');
+        const inputp = document.querySelector('input#prog-name');
+        const btn = document.querySelector('button#btnn');
+        // Ajouter une option pour chaque fichier JSON
+        jsonFiles.forEach(file => {
+            const option = document.createElement('option');
+            option.value = file;
+            option.text = file;
+            select?.appendChild(option);
+        });
+        // Ajouter un événement de changement au select
+        select?.addEventListener('change', async () => { 
+           // (input as HTMLSelectElement).disabled = true;
+        const selectedFile = (select as HTMLSelectElement).value;
+              // Récupérer l'input pour le nom du programme
+         const programNameInput = document.querySelector('input[placeholder="Add program name"]');
+           // Mettre à jour la valeur de l'input avec le nom du programme sélectionné
+          (programNameInput as HTMLSelectElement).value= selectedFile;
+          (programNameInput as HTMLSelectElement).style.display = 'none';
+          (inputp as HTMLSelectElement).style.display = 'block';
+          (btn as HTMLSelectElement).style.display = 'block';
+            (inputp as HTMLSelectElement).value= selectedFile;
+            // Récupérer le contenu JSON correspondant dans la base de données
+            const response = await ipcRenderer.invoke('getJsonFile', { name: selectedFile });
+            const jsonData = JSON.parse(response);
+            // Exécuter le code approprié pour le fichier JSON sélectionné
+            if (jsonData?.drawflow) {
+            const dataa = jsonData.drawflow.Home.data;
+            const ob = {
+            drawflow: {
+                Home: {
+                data: dataa
+                }
             }
+            };
+            editor.value.export();
+            editor.value.import(ob);
+                } else {
+                console.log('Invalid JSON data format');
+                }
+        });
+   }
+    
+   async function insertJSONFile(nodeProgramName: string,test:boolean) {
+    const inputp = document.querySelector('input#prog-name');
+    const editorState = editor.value.export();
+    const jsonString = JSON.stringify(editorState);
+ if((inputp as HTMLSelectElement).value && test===false){
+        const namen=(inputp as HTMLSelectElement).value
+        const result = await ipcRenderer.invoke('updateJsonFile', { name: namen, data: jsonString });
+    }
+    else if((inputp as HTMLSelectElement).value && test===true) {
+        if (nodeProgramName.length === 0) {
+        return alert('Name your program');
+    }
+        const namen=(inputp as HTMLSelectElement).value
+        const result = await ipcRenderer.invoke('updateJsonFileName', { oldName:namen , newName: nodeProgramName });
+       
+    } else {
+        if (nodeProgramName.length === 0) {
+        return alert('Name your program');
+    }
+    const result = await ipcRenderer.invoke('insertJsonFile', { name: nodeProgramName, data: jsonString });
+   
+    }
 
-            const editorState = editor.value.export();
-            const jsonString = JSON.stringify(editorState);
-
-            // Call insertJSONFile() to save the JSON file to the database
-            const result = await ipcRenderer.invoke('insertJsonFile', { name: nodeProgramName, data: jsonString });
-
-            if (result.error) {
-                alert('An error occurred while saving the program: ' + result.error);
-            } else {
-                // Download the JSON data as a file
-                const blob = new Blob([jsonString], { type: 'application/json' });
-                const url = URL.createObjectURL(blob);
-                const link = document.createElement('a');
-                link.href = url;
-                link.download = nodeProgramName + '.json';
-                link.click();
-            }
+}
+      async function delprograme(){
+            const inputp = document.querySelector('input#prog-name');
+            const namp=(inputp as HTMLSelectElement).value;
+            const result = await ipcRenderer.invoke('deleteJsonFile', { name:namp });
+             if (result.error) {
+        alert('An error occurred while deleting the program: ' + result.error);
         }
-
+        }
         onMounted(() => {
             var elements = document.getElementsByClassName('nodes-list');
             for (var i = 0; i < elements.length; i++) {
@@ -257,11 +243,7 @@ export default {
                 let variableName = "";
                 if (nodeData.name === "assign") {
                     variableName = nodeData.data.variable;
-                    if (nodeData.inputs.input_1.connections.length > 0) {
-                        javascriptToPython(variableName, editor.value.export(), num1, num2);
-                        javascriptToJava(variableName, editor.value.export(), num1, num2);
-                        javascriptToCplus(variableName, editor.value.export(), num1, num2);
-                    }
+                    
                 }
                 else {
                     const outputNode = nodeData.outputs.output_1.connections;
@@ -282,9 +264,7 @@ export default {
                         }
                         updateNodeCondition(nodeData, inputNodeData, nodeData.name);
 
-                        javascriptToPython(variableName, editor.value.export(), num1, num2);
-                        javascriptToJava(variableName, editor.value.export(), num1, num2);
-                        javascriptToCplus(variableName, editor.value.export(), num1, num2);
+                       
                     }
                 }
             });
@@ -311,9 +291,6 @@ export default {
                 }
                 updateNodeCondition(outputData, inputNodeData, conditionName);
 
-                javascriptToPython(variableName, editor.value.export(), num1, num2);
-                javascriptToJava(variableName, editor.value.export(), num1, num2);
-                javascriptToCplus(variableName, editor.value.export(), num1, num2);
             });
             editor.value.on("import", () => {
                 const editorData = editor.value.export().drawflow.Home.data;
@@ -331,9 +308,7 @@ export default {
                         }
                     }
                 });
-                javascriptToPython(variableName, editor.value.export(), num1, num2);
-                javascriptToJava(variableName, editor.value.export(), num1, num2);
-                javascriptToCplus(variableName, editor.value.export(), num1, num2);
+              
             });
             editor.value.on("nodeRemoved", () => {
                 const editorData = editor.value.export().drawflow.Home.data;
@@ -349,12 +324,9 @@ export default {
                         variableName = editorData[i].data.variable;
                         editor.value.updateNodeDataFromId(editorData[i].id, { ...editorData[i].data, assign: result });
                     }
-                    javascriptToPython(variableName, editor.value.export(), num1, num2);
-                    javascriptToJava(variableName, editor.value.export(), num1, num2);
-                    javascriptToCplus(variableName, editor.value.export(), num1, num2);
+                   
                 });
             });
-
             const updateNodeOperation = (output_class: any, outputNumber: any, inputNodeName: any, inputNodeData: any) => {
                 if (output_class == "input_1") {
                     num1 = outputNumber;
@@ -366,11 +338,9 @@ export default {
                 const input_id = inputNodeData.id;
                 editor.value.updateNodeDataFromId(input_id, { result: result });
             }
-
             const updateNodeAssign = (nodeId: any, nodeData: any, result: any) => {
                 editor.value.updateNodeDataFromId(nodeId, { ...nodeData, assign: result });
             }
-
             const updateNodeCondition = (outputData: any, inputNodeData: any, conditionName: any) => {
                 if (conditionName === "if") {
                     const conditionResult = validationIf(parseFloat(outputData.data.num1), parseFloat(outputData.data.num2), outputData.data.option);
@@ -384,97 +354,33 @@ export default {
                 }
             }
         });
-
-        function editorData() {
-            const exportdata = editor.value.export();
-            const nodes = exportdata.drawflow.Home.data;
-            let nodesData: any = [];
-            Object.keys(nodes).forEach(function (i) {
-                nodesData.push(nodes[i]);
-            });
-            return { programName: programName.value, nodesData };
-        }
-
-        const setData = async () => {
-
-        }
-        const getData = async () => {
-
-        }
-
-        function showSelected() {
-            const validate = store.getters.jsImport;
-            if (!!validate === true) {
-                const jsonOption = validate.get[optionSelected.value].nodesData;
-                const arrayOfNodesNew: any = [];
-                jsonOption.forEach((value: any) => {
-                    let newData;
-                    if (!value.inputs) {
-                        newData = {
-                            ...value,
-                            inputs: {}
-                        };
-                    }
-                    else if (!value.outputs) {
-                        newData = {
-                            ...value,
-                            outputs: {}
-                        };
-                    }
-                    else if (!value.data) {
-                        newData = {
-                            ...value,
-                            data: {}
-                        };
-                    }
-                    else {
-                        newData = {
-                            ...value
-                        };
-                    }
-                    arrayOfNodesNew.push(newData);
-                });
-                let newObject: any = {};
-                arrayOfNodesNew.forEach((element: any, index: any) => {
-                    let id = arrayOfNodesNew[index].id;
-                    newObject[id] = arrayOfNodesNew[index];
-                });
-
-                const ob = {
-                    drawflow: {
-                        Home: {
-                            data: newObject
-                        }
-                    }
-                };
-                editor.value.import(ob);
-            }
-        }
-
         function cleanEditor() {
             editor.value.clear();
-            store.commit("setJsToPython", "");
-            store.commit("setJsToPythonPrint", "");
-            store.commit("setJsToPythonBucle", []);
-            store.commit("setJsToJava", "");
-            store.commit("setJsToJavaPrintln", "");
-            store.commit("setJsToCplus", "");
-            store.commit("setJsToCplusCout", "");
         }
-
+        function createNewFlow () {
+            const newFlowButton = document.querySelector('#new-flow-button');
+            const programNameInput = document.querySelector('input#program-name');
+            const inputp = document.querySelector('input#prog-name');
+            const btn = document.querySelector('button#btnn');
+            newFlowButton?.addEventListener('click', () => {
+                (inputp as HTMLSelectElement).style.display = 'none';
+                (btn as HTMLSelectElement).style.display = 'none';
+                (programNameInput as HTMLSelectElement).style.display = 'block';
+                (programNameInput as HTMLSelectElement).disabled = false;
+                (programNameInput as HTMLSelectElement).value="";
+                cleanEditor();
+            });
+        }
         return {
-            createNewEditor,
+            delprograme,
+            createNewFlow,
             loadJsonFiles,
             nodesList,
             drag,
             drop,
             allowDrop,
-            valueSelected,
             cleanEditor,
-            getData,
-            store,
             addProgramName,
-            editorData,
             insertJSONFile
         };
     }
@@ -483,12 +389,8 @@ export default {
 
 <style scoped>
 .node {
-    @apply block bg-sky-600 hover:bg-sky-400 text-white p-4 rounded w-full cursor-pointer sm:text-sm; 
-}
-
-.flow {
-    margin-top: 15px;
-    margin-bottom: 15px;
+    @apply bg-sky-600 border border-collapse hover:bg-sky-400 text-white p-3 rounded w-full cursor-pointer sm:text-sm flex; 
+    background-image: linear-gradient(to bottom, #2f6690, #3a7ca5);
 }
 
 #drawflow {

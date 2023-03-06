@@ -7,15 +7,18 @@
 
 /* Drawflow */
 .drawflow .drawflow-node {
-    border-radius: 8px !important;
-    background: #2b85c0 !important;
+    border-radius: 25px !important;
+    background: linear-gradient(to bottom right, #36d1dc , #5b86e5) !important;
     border: 2px solid #2d495c9a !important;
     color: rgb(27, 26, 26) !important;
     min-width: 100px !important;
 }
 
 .drawflow .drawflow-node .drawflow_content_node #node-title {
-    color: rgb(255, 255, 255) !important;
+    color: #ffffff !important;
+    text-align: center;
+    margin-bottom: 5px;
+    font-weight: bold;
 }
 
 .drawflow .drawflow-node.selected {
@@ -24,21 +27,24 @@
 }
 
 .drawflow .drawflow-node .input, .drawflow .drawflow-node .output {
-    background: #f0068e !important;
-    border: 3px solid hsla(321, 96%, 40%, 0.733) !important;
+    background: #1d5ce3 !important;;
+    border: 2px solid #2d495c9a !important;
+    width: 20px;
+    height: 20px;
+    margin-top: 14px;
+    margin-bottom: 14px;
 }
-
-
 .drawflow .drawflow-node .output:hover, .drawflow .drawflow-node .input:hover {
-    background: #e4b417 !important;
-    border: 2px solid rgb(250, 0, 175) !important;
+    background: #ed6a5a !important;
+    border: 2px solid #ff463c !important;
 }
 
 .drawflow .connection .main-path {
     stroke-width: 2px !important;
-    stroke: #e4b417 !important;
+    stroke: #ed6a5a !important;
+    
 }
 
 .drawflow .connection .main-path:hover {
-    stroke: rgb(250, 0, 175) !important;
+    stroke: #ff463c !important;
 }
