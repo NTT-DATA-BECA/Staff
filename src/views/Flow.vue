@@ -191,9 +191,6 @@ export default {
         const result = await ipcRenderer.invoke('updateJsonFile', { name: namen, data: jsonString });
     }
     else if((inputp as HTMLSelectElement).value && test===true) {
-        if (nodeProgramName.length === 0) {
-        return alert('Name your program');
-    }
         const namen=(inputp as HTMLSelectElement).value
         const result = await ipcRenderer.invoke('updateJsonFileName', { oldName:namen , newName: nodeProgramName });
        
