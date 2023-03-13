@@ -11,9 +11,13 @@
                 @click="insertJSONFile(nodeProgramName,test); nodeProgramName = ''">
                 Save
             </button>        
-            <select id="json-select" className="btn bg-blue-400 hover:bg-blue-300 mr-3 w-28">
-            <option value="Choose a flow">Choose</option>
-            </select>
+            <v-select
+            v-model="selectedOption"
+            :options="programs" 
+            label="name"
+            class="btn bg-blue-400 hover:bg-blue-300 mr-3 w-52 text-blue-600 hover:text-blue-400"
+            @option:selected="onchangeSelect()"
+            ></v-select>
             <button className="btn bg-red-400 hover:bg-red-300 w-28 "
                 @click="delprograme()">Delete</button>
         </div>
@@ -22,7 +26,7 @@
                 <h4 className="border-b-4 p-2 text-center font-bold text-slate-500">Node Types</h4>
                 <div class="nodes-list" draggable="true" v-for="i in nodesList" :key="i.name" :node-item="i.item"
                     @dragstart="drag($event)">
-                    <span class="node"><img className="m-1" src="../assets/add-music-collection-svgrepo-com.svg" style="width: 20px; height: 20px;" alt="" srcset=""> {{ i.name }}</span>
+                    <span class="node"><img className="m-1" src="../assets/product-request-line-item-svgrepo-com.svg" style="width: 20px; height: 20px;" alt="" srcset=""> {{ i.name }}</span>
                 </div>
             </div>
             <div class="drawflow-container border border-slate-400 rounded w-full h-full relative">
@@ -72,17 +76,21 @@ export default {
               Button?.addEventListener('click', () => {
             (input as HTMLSelectElement).style.display = 'block';
             });
-        }
+        } ,
+   
     },
     data() {
         return {      
             nodeProgramName: "",
             test:false,
-            iconColor:'red',
+            
+      
         };
     },
     setup() {
         const programName = shallowRef("");
+        const programs = shallowRef([]); 
+        const selectedOption :any = shallowRef(null);
         const editor: any = shallowRef({});
         const Vue = { version: 3, h, render };
         const internalInstance: any = getCurrentInstance();
@@ -137,22 +145,50 @@ export default {
         async function loadJsonFiles() {
         // Récupérer les fichiers JSON existants dans la base de données
         const response = await ipcRenderer.invoke('getJsonFiles');
-        const jsonFiles = response.map(file => file);
-        // Récupérer le select existant
-        const select = document.querySelector('select#json-select');
+         programs.value=response;   
+   }
+    
+   async function insertJSONFile(nodeProgramName: string,test:boolean) {
+    const inputp = document.querySelector('input#prog-name');
+    const input = document.querySelector('input#program-name');
+    const editorState = editor.value.export();
+    const jsonString = JSON.stringify(editorState);
+   if(!(input as HTMLSelectElement).value && test===false){
+        console.log("update")
+        const namen=(inputp as HTMLSelectElement).value
+        const result = await ipcRenderer.invoke('updateJsonFile', { name: namen, data: jsonString });
+    }
+    else if((inputp as HTMLSelectElement).value && test===true) {
+        console.log("updateName")
+        if (nodeProgramName.length === 0) {
+        return alert('Name your program');
+    }
+        const namen=(inputp as HTMLSelectElement).value
+        const result = await ipcRenderer.invoke('updateJsonFileName', { oldName:namen , newName: nodeProgramName });
+       
+    } else {
+        if (nodeProgramName.length === 0) {
+        return alert('Name your program');
+    }
+    console.log("insert")
+    const result = await ipcRenderer.invoke('insertJsonFile', { name: nodeProgramName, data: jsonString });
+   
+    }
+
+}
+      async function delprograme(){
+            const inputp = document.querySelector('input#prog-name');
+            const namp=(inputp as HTMLSelectElement).value;
+            const result = await ipcRenderer.invoke('deleteJsonFile', { name:namp });
+             if (result.error) {
+        alert('An error occurred while deleting the program: ' + result.error);
+        }
+        }
+     async function onchangeSelect(){
+        console.log("hi")
         const inputp = document.querySelector('input#prog-name');
         const btn = document.querySelector('button#btnn');
-        // Ajouter une option pour chaque fichier JSON
-        jsonFiles.forEach(file => {
-            const option = document.createElement('option');
-            option.value = file;
-            option.text = file;
-            select?.appendChild(option);
-        });
-        // Ajouter un événement de changement au select
-        select?.addEventListener('change', async () => { 
-           // (input as HTMLSelectElement).disabled = true;
-        const selectedFile = (select as HTMLSelectElement).value;
+        const selectedFile = selectedOption.value;
               // Récupérer l'input pour le nom du programme
          const programNameInput = document.querySelector('input[placeholder="Add program name"]');
            // Mettre à jour la valeur de l'input avec le nom du programme sélectionné
@@ -179,37 +215,6 @@ export default {
                 } else {
                 console.log('Invalid JSON data format');
                 }
-        });
-   }
-    
-   async function insertJSONFile(nodeProgramName: string,test:boolean) {
-    const inputp = document.querySelector('input#prog-name');
-    const editorState = editor.value.export();
-    const jsonString = JSON.stringify(editorState);
- if((inputp as HTMLSelectElement).value && test===false){
-        const namen=(inputp as HTMLSelectElement).value
-        const result = await ipcRenderer.invoke('updateJsonFile', { name: namen, data: jsonString });
-    }
-    else if((inputp as HTMLSelectElement).value && test===true) {
-        const namen=(inputp as HTMLSelectElement).value
-        const result = await ipcRenderer.invoke('updateJsonFileName', { oldName:namen , newName: nodeProgramName });
-       
-    } else {
-        if (nodeProgramName.length === 0) {
-        return alert('Name your program');
-    }
-    const result = await ipcRenderer.invoke('insertJsonFile', { name: nodeProgramName, data: jsonString });
-   
-    }
-
-}
-      async function delprograme(){
-            const inputp = document.querySelector('input#prog-name');
-            const namp=(inputp as HTMLSelectElement).value;
-            const result = await ipcRenderer.invoke('deleteJsonFile', { name:namp });
-             if (result.error) {
-        alert('An error occurred while deleting the program: ' + result.error);
-        }
         }
         onMounted(() => {
             var elements = document.getElementsByClassName('nodes-list');
@@ -360,6 +365,7 @@ export default {
             const inputp = document.querySelector('input#prog-name');
             const btn = document.querySelector('button#btnn');
             newFlowButton?.addEventListener('click', () => {
+                selectedOption.value = null;
                 (inputp as HTMLSelectElement).style.display = 'none';
                 (btn as HTMLSelectElement).style.display = 'none';
                 (programNameInput as HTMLSelectElement).style.display = 'block';
@@ -369,6 +375,9 @@ export default {
             });
         }
         return {
+            onchangeSelect,
+            selectedOption,
+            programs,
             delprograme,
             createNewFlow,
             loadJsonFiles,
@@ -386,8 +395,7 @@ export default {
 
 <style scoped>
 .node {
-    @apply bg-sky-600 border border-collapse hover:bg-sky-400 text-white p-3 rounded w-full cursor-pointer sm:text-sm flex; 
-    background-image: linear-gradient(to bottom, #2f6690, #3a7ca5);
+    @apply bg-sky-700 border border-collapse text-white p-3 rounded w-full cursor-pointer sm:text-sm flex hover:bg-sky-400 hover:border hover:border-gray-800; 
 }
 
 #drawflow {
