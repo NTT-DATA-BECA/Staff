@@ -79,8 +79,6 @@ async function createWindow() {
   // Handle the 'update' message from the renderer process
   ipcMain.handle('updateJsonFileName', async (event, arg) => {
     return await new Promise((resolve, reject) => {
-      // Perform an UPDATE query to change the name of an existing JSON file
-      win.reload()
       db.run(`UPDATE flow SET name = ? WHERE name = ?`, [arg.newName, arg.oldName], (err) => {
         if (err) reject(err);
          //resolve();
@@ -90,8 +88,6 @@ async function createWindow() {
   
   ipcMain.handle('updateJsonFile', async (event, arg) => {
     return await new Promise((resolve, reject) => {
-      // Perform an UPDATE query to modify the data for a specific name
-      win.reload();
       const formattedData = JSON.stringify(arg.data).replace(/\\/g, '').slice(1, -1);
       db.run(`UPDATE flow SET data = ? WHERE name = ?`, [formattedData, arg.name], (err) => {
         if (err) reject(err);
@@ -119,8 +115,6 @@ async function createWindow() {
   // Handle the 'insertJsonFile' message from the renderer process
   ipcMain.handle('insertJsonFile', async (event, arg) => {
     return await new Promise((resolve, reject) => {
-      // Perform an INSERT query to add a new JSON file
-      win.reload();
       const formattedData = JSON.stringify(arg.data).replace(/\\/g, '').slice(1, -1);
       db.run(`INSERT INTO flow (name, data) VALUES (?, ?)`, [arg.name, formattedData], (err) => {
         if (err) reject(err);

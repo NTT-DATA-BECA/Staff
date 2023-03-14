@@ -10,13 +10,15 @@
             <button className="btn bg-green-500 hover:bg-green-400 mr-3 w-28"
                 @click="insertJSONFile(nodeProgramName,test); nodeProgramName = ''">
                 Save
-            </button>        
+            </button>      
             <v-select
-            v-model="selectedOption"
-            :options="programs" 
-            label="name"
-            class="btn bg-blue-400 hover:bg-blue-300 mr-3 w-52 text-blue-600 hover:text-blue-400"
-            @option:selected="onchangeSelect()"
+                v-model="selectedOption"
+                :options="programs" 
+                label="name"
+                class="h-9 hover:bg-blue-200 rounded w-52 mr-3 text-blue-600 hover:text-blue-400"
+                style="border: 2px solid blue; border-radius: 5px;"
+                @click="() => loadJsonFiles()"
+                @option:selected="onchangeSelect()"          
             ></v-select>
             <button className="btn bg-red-400 hover:bg-red-300 w-28 "
                 @click="delprograme()">Delete</button>
@@ -61,9 +63,9 @@ import { ipcRenderer } from 'electron';
 
 export default {
     name: "DrawflowDashboard",
+
     inject: ['ipcRenderer'],
     async mounted() {
-        await this.loadJsonFiles();
         const inputp = document.querySelector('input#prog-name');
         (inputp as HTMLSelectElement).style.display = 'none';
         const btn = document.querySelector('button#btnn');
@@ -88,9 +90,9 @@ export default {
         };
     },
     setup() {
-        const programName = shallowRef("");
-        const programs = shallowRef([]); 
-        const selectedOption :any = shallowRef(null);
+        var selectedOption :any = shallowRef(null);
+         const programName = shallowRef("");
+        var programs = shallowRef([]); 
         const editor: any = shallowRef({});
         const Vue = { version: 3, h, render };
         const internalInstance: any = getCurrentInstance();
@@ -141,12 +143,10 @@ export default {
         const addProgramName = (event: any) => {
             programName.value = event.target.value;
         };
-        // Fonction pour récupérer les fichiers JSON existants dans la base de données et générer des boutons pour chaque fichier
         async function loadJsonFiles() {
-        // Récupérer les fichiers JSON existants dans la base de données
         const response = await ipcRenderer.invoke('getJsonFiles');
-         programs.value=response;   
-   }
+        programs.value=response;   
+        }
     
    async function insertJSONFile(nodeProgramName: string,test:boolean) {
     const inputp = document.querySelector('input#prog-name');
@@ -154,25 +154,24 @@ export default {
     const editorState = editor.value.export();
     const jsonString = JSON.stringify(editorState);
    if(!(input as HTMLSelectElement).value && test===false){
-        console.log("update")
         const namen=(inputp as HTMLSelectElement).value
-        const result = await ipcRenderer.invoke('updateJsonFile', { name: namen, data: jsonString });
+        const result = await ipcRenderer.invoke('updateJsonFile', { name: namen, data: jsonString }); 
     }
     else if((inputp as HTMLSelectElement).value && test===true) {
-        console.log("updateName")
         if (nodeProgramName.length === 0) {
         return alert('Name your program');
     }
-        const namen=(inputp as HTMLSelectElement).value
-        const result = await ipcRenderer.invoke('updateJsonFileName', { oldName:namen , newName: nodeProgramName });
-       
+        const namen=(input as HTMLSelectElement).value;
+        selectedOption.value=namen;
+        (inputp as HTMLSelectElement).value=namen;
+        const result = await ipcRenderer.invoke('updateJsonFileName', { oldName:namen , newName: nodeProgramName });   
     } else {
         if (nodeProgramName.length === 0) {
         return alert('Name your program');
-    }
-    console.log("insert")
+      }
+      cleanEditor();
     const result = await ipcRenderer.invoke('insertJsonFile', { name: nodeProgramName, data: jsonString });
-   
+    
     }
 
 }
@@ -185,22 +184,17 @@ export default {
         }
         }
      async function onchangeSelect(){
-        console.log("hi")
         const inputp = document.querySelector('input#prog-name');
         const btn = document.querySelector('button#btnn');
         const selectedFile = selectedOption.value;
-              // Récupérer l'input pour le nom du programme
          const programNameInput = document.querySelector('input[placeholder="Add program name"]');
-           // Mettre à jour la valeur de l'input avec le nom du programme sélectionné
           (programNameInput as HTMLSelectElement).value= selectedFile;
           (programNameInput as HTMLSelectElement).style.display = 'none';
           (inputp as HTMLSelectElement).style.display = 'block';
           (btn as HTMLSelectElement).style.display = 'block';
             (inputp as HTMLSelectElement).value= selectedFile;
-            // Récupérer le contenu JSON correspondant dans la base de données
             const response = await ipcRenderer.invoke('getJsonFile', { name: selectedFile });
             const jsonData = JSON.parse(response);
-            // Exécuter le code approprié pour le fichier JSON sélectionné
             if (jsonData?.drawflow) {
             const dataa = jsonData.drawflow.Home.data;
             const ob = {
@@ -212,9 +206,7 @@ export default {
             };
             editor.value.export();
             editor.value.import(ob);
-                } else {
-                console.log('Invalid JSON data format');
-                }
+                } 
         }
         onMounted(() => {
             var elements = document.getElementsByClassName('nodes-list');

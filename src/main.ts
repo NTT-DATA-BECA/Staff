@@ -8,6 +8,7 @@ import VueSimpleAlert from "vue3-simple-alert-next";
 import App from './App.vue';
 import router from './router';
 import vSelect from 'vue-select'
+
 createApp(App)
 .use(router)
 .use(VueSimpleAlert)
