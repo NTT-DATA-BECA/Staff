@@ -21,7 +21,7 @@
                 @option:selected="onchangeSelect()"          
             ></v-select>
             <button className="btn bg-red-400 hover:bg-red-300 w-28 "
-                @click="delprograme()">Delete</button>
+                @click="delprograme();createNewFlow()">Delete</button>
         </div>
         <div class="flex flex-row w-full h-full">
             <div className="flex flex-col gap-2 w-[200px] mx-auto mr-3">
@@ -148,30 +148,32 @@ export default {
         programs.value=response;   
         }
     
-   async function insertJSONFile(nodeProgramName: string,test:boolean) {
+    async function insertJSONFile(nodeProgramName: string,test:boolean) {
     const inputp = document.querySelector('input#prog-name');
     const input = document.querySelector('input#program-name');
     const editorState = editor.value.export();
     const jsonString = JSON.stringify(editorState);
    if(!(input as HTMLSelectElement).value && test===false){
         const namen=(inputp as HTMLSelectElement).value
-        const result = await ipcRenderer.invoke('updateJsonFile', { name: namen, data: jsonString }); 
+        const result = await ipcRenderer.invoke('updateJsonFile', { name: namen, data: jsonString });
     }
     else if((inputp as HTMLSelectElement).value && test===true) {
         if (nodeProgramName.length === 0) {
         return alert('Name your program');
     }
-        const namen=(input as HTMLSelectElement).value;
-        selectedOption.value=namen;
-        (inputp as HTMLSelectElement).value=namen;
-        const result = await ipcRenderer.invoke('updateJsonFileName', { oldName:namen , newName: nodeProgramName });   
+        const namen=(inputp as HTMLSelectElement).value
+        selectedOption.value=nodeProgramName;
+        (inputp as HTMLSelectElement).value=nodeProgramName;
+        (input as HTMLSelectElement).style.display = 'none';
+        const result = await ipcRenderer.invoke('updateJsonFileName', { oldName:namen , newName: nodeProgramName }); 
     } else {
         if (nodeProgramName.length === 0) {
         return alert('Name your program');
-      }
-      cleanEditor();
+    }
+    console.log("insert")
+    cleanEditor();
     const result = await ipcRenderer.invoke('insertJsonFile', { name: nodeProgramName, data: jsonString });
-    
+     
     }
 
 }
@@ -182,16 +184,17 @@ export default {
              if (result.error) {
         alert('An error occurred while deleting the program: ' + result.error);
         }
+          
         }
      async function onchangeSelect(){
         const inputp = document.querySelector('input#prog-name');
         const btn = document.querySelector('button#btnn');
         const selectedFile = selectedOption.value;
          const programNameInput = document.querySelector('input[placeholder="Add program name"]');
-          (programNameInput as HTMLSelectElement).value= selectedFile;
           (programNameInput as HTMLSelectElement).style.display = 'none';
           (inputp as HTMLSelectElement).style.display = 'block';
           (btn as HTMLSelectElement).style.display = 'block';
+          (programNameInput as HTMLSelectElement).value= selectedFile;
             (inputp as HTMLSelectElement).value= selectedFile;
             const response = await ipcRenderer.invoke('getJsonFile', { name: selectedFile });
             const jsonData = JSON.parse(response);

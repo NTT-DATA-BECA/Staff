@@ -126,7 +126,6 @@ async function createWindow() {
   ipcMain.handle('deleteJsonFile', async (event, arg) => {
     try {
       const result = await new Promise((resolve, reject) => {
-        win.reload();
         db.run(`DELETE FROM flow WHERE name = ?`, [arg.name], function(err) {
           if (err) reject(err);
           resolve(this.changes);
