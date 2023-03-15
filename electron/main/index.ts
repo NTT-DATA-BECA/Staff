@@ -78,23 +78,30 @@ async function createWindow() {
   
   // Handle the 'update' message from the renderer process
   ipcMain.handle('updateJsonFileName', async (event, arg) => {
-    return await new Promise((resolve, reject) => {
+    return new Promise<void>((resolve, reject) => {
       db.run(`UPDATE flow SET name = ? WHERE name = ?`, [arg.newName, arg.oldName], (err) => {
         if (err) reject(err);
-         //resolve();
+        resolve();
       });
     });
   });
   
+  
+  
   ipcMain.handle('updateJsonFile', async (event, arg) => {
-    return await new Promise((resolve, reject) => {
+    return new Promise<void>((resolve, reject) => {
       const formattedData = JSON.stringify(arg.data).replace(/\\/g, '').slice(1, -1);
       db.run(`UPDATE flow SET data = ? WHERE name = ?`, [formattedData, arg.name], (err) => {
-        if (err) reject(err);
-        console.log(err);
+        if (err) {
+          console.error(err);
+          reject(err);
+        } else {
+          resolve();
+        }
       });
     });
   });
+  
   
   ipcMain.handle('getJsonFile', async (event, arg) => {
     try {
@@ -114,31 +121,39 @@ async function createWindow() {
   
   // Handle the 'insertJsonFile' message from the renderer process
   ipcMain.handle('insertJsonFile', async (event, arg) => {
-    return await new Promise((resolve, reject) => {
+    return new Promise<void>((resolve, reject) => {
       const formattedData = JSON.stringify(arg.data).replace(/\\/g, '').slice(1, -1);
       db.run(`INSERT INTO flow (name, data) VALUES (?, ?)`, [arg.name, formattedData], (err) => {
-        if (err) reject(err);
-        console.log(err);
+        if (err) {
+          console.error(err);
+          reject(err);
+        } else {
+          resolve();
+        }
       });
     });
-  });
+  });  
   
   ipcMain.handle('deleteJsonFile', async (event, arg) => {
     try {
-      const result = await new Promise((resolve, reject) => {
+      const result = await new Promise<number>((resolve, reject) => {
         db.run(`DELETE FROM flow WHERE name = ?`, [arg.name], function(err) {
-          if (err) reject(err);
-          resolve(this.changes);
+          if (err) {
+            console.error(err);
+            reject(err);
+          } else {
+            resolve(this.changes);
+          }
         });
       });
-      
+  
       return result;
     } catch (error) {
       console.error(error);
-      return null;
+      throw error;
     }
   });
-  }
+}  
   
 app.whenReady().then(createWindow)
 

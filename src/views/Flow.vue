@@ -15,7 +15,7 @@
                 v-model="selectedOption"
                 :options="programs" 
                 label="name"
-                class="h-9 hover:bg-blue-200 rounded w-52 mr-3 text-blue-600 hover:text-blue-400"
+                class="h-9 hover:bg-blue-200 rounded w-60 mr-3 text-blue-600 hover:text-blue-400"
                 style="border: 2px solid blue; border-radius: 5px;"
                 @click="() => loadJsonFiles()"
                 @option:selected="onchangeSelect()"          
@@ -60,6 +60,8 @@ import { validationFor } from '../utils/validationFor'
 import { operationValues } from '../utils/operationValues'
 import { nodesList } from '../utils/nodesList'
 import { ipcRenderer } from 'electron';
+import { toast } from 'vue3-toastify';
+import 'vue3-toastify/dist/index.css';
 
 export default {
     name: "DrawflowDashboard",
@@ -75,6 +77,14 @@ export default {
         };
     },
     setup() {
+     const notify = (message) => {
+        toast.success(message, {
+            autoClose:2000,
+            theme: 'colored',
+            position: toast.POSITION.BOTTOM_LEFT,
+  });
+     
+    }
         var selectedOption :any = shallowRef(null);
          const programName = shallowRef("");
          const test = shallowRef(false);
@@ -139,9 +149,15 @@ export default {
     const input = document.querySelector('input#program-name');
     const editorState = editor.value.export();
     const jsonString = JSON.stringify(editorState);
+    const btn = document.querySelector('button#btnn');
    if(!(input as HTMLSelectElement).value && test.value===false){
         const namen=(inputp as HTMLSelectElement).value
+        try {
         const result = await ipcRenderer.invoke('updateJsonFile', { name: namen, data: jsonString });
+        notify("The modification has been completed")
+        } catch (e) {
+        console.error('La méthode a échoué avec l\'erreur suivante :', e);
+        }
     }
     else if((inputp as HTMLSelectElement).value && test.value===true) {
         if (nodeProgramName.length === 0) {
@@ -152,14 +168,29 @@ export default {
         (inputp as HTMLSelectElement).value=nodeProgramName;
         (input as HTMLSelectElement).style.display = 'none';
         test.value=false;
-        const result = await ipcRenderer.invoke('updateJsonFileName', { oldName:namen , newName: nodeProgramName }); 
+        try {
+        const result = await ipcRenderer.invoke('updateJsonFileName', { oldName:namen , newName: nodeProgramName });
+        notify("The modification has been completed")
+        } catch (e) {
+        console.error('La méthode a échoué avec l\'erreur suivante :', e);
+        }
     } else {
         if (nodeProgramName.length === 0) {
         return alert('Name your program');
     }
-    cleanEditor();
-    const result = await ipcRenderer.invoke('insertJsonFile', { name: nodeProgramName, data: jsonString });
-     }
+        (input as HTMLSelectElement).style.display = 'none';
+        (inputp as HTMLSelectElement).style.display = 'block';
+        (btn as HTMLSelectElement).style.display = 'block';
+        (inputp as HTMLSelectElement).value=nodeProgramName;
+        selectedOption.value=nodeProgramName
+        //await notify();
+        try {
+      const result = await ipcRenderer.invoke('insertJsonFile', { name: nodeProgramName, data: jsonString });
+      notify("The insertion has been completed")
+        } catch (e) {
+        console.error('La méthode a échoué avec l\'erreur suivante :', e);
+        }
+    }
 }
       async function delprograme(){
             const inputp = document.querySelector('input#prog-name');
@@ -172,11 +203,12 @@ export default {
                 (programNameInput as HTMLSelectElement).style.display = 'block';
                 (programNameInput as HTMLSelectElement).value="";
                 cleanEditor();
+                try {
             const result = await ipcRenderer.invoke('deleteJsonFile', { name:namp });
-             if (result.error) {
-        alert('An error occurred while deleting the program: ' + result.error);
-        }
-         
+            notify("The deletion has been completed")
+            } catch (e) {
+            console.error('La méthode a échoué avec l\'erreur suivante :', e);
+            }
         }
      async function onchangeSelect(){
         const inputp = document.querySelector('input#prog-name');
@@ -386,7 +418,8 @@ export default {
             allowDrop,
             cleanEditor,
             addProgramName,
-            insertJSONFile
+            insertJSONFile,
+            notify
         };
     }
 }
