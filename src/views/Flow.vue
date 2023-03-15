@@ -8,7 +8,7 @@
                 New Flow
                </button> 
             <button className="btn bg-green-500 hover:bg-green-400 mr-3 w-28"
-                @click="insertJSONFile(nodeProgramName,test); nodeProgramName = ''">
+                @click="insertJSONFile(nodeProgramName); nodeProgramName = ''">
                 Save
             </button>      
             <v-select
@@ -21,7 +21,7 @@
                 @option:selected="onchangeSelect()"          
             ></v-select>
             <button className="btn bg-red-400 hover:bg-red-300 w-28 "
-                @click="delprograme();createNewFlow()">Delete</button>
+                @click="delprograme();">Delete</button>
         </div>
         <div class="flex flex-row w-full h-full">
             <div className="flex flex-col gap-2 w-[200px] mx-auto mr-3">
@@ -39,7 +39,7 @@
                 </div> 
             </div>
             <a className="absolute w-10 m-2 right-0 top-0" @click="cleanEditor()" title="Press to clear">
-            <img src="../assets/erase-svgrepo-com.svg" style="width: 30px; height: 30px;">
+            <img src="../assets/reload-circle-svgrepo-com.svg" style="width: 40px; height: 40px;">
             </a>
             </div>
         </div>
@@ -65,26 +65,11 @@ export default {
     name: "DrawflowDashboard",
 
     inject: ['ipcRenderer'],
-    async mounted() {
-        const inputp = document.querySelector('input#prog-name');
-        (inputp as HTMLSelectElement).style.display = 'none';
-        const btn = document.querySelector('button#btnn');
-        (btn as HTMLSelectElement).style.display = 'none';
-    }, methods:{
-            showinput(){
-                this.test=true;
-            const input = document.querySelector('input#program-name');
-            const Button = document.querySelector('#btnn');
-              Button?.addEventListener('click', () => {
-            (input as HTMLSelectElement).style.display = 'block';
-            });
-        } ,
    
-    },
     data() {
         return {      
             nodeProgramName: "",
-            test:false,
+          
             
       
         };
@@ -92,6 +77,7 @@ export default {
     setup() {
         var selectedOption :any = shallowRef(null);
          const programName = shallowRef("");
+         const test = shallowRef(false);
         var programs = shallowRef([]); 
         const editor: any = shallowRef({});
         const Vue = { version: 3, h, render };
@@ -148,16 +134,16 @@ export default {
         programs.value=response;   
         }
     
-    async function insertJSONFile(nodeProgramName: string,test:boolean) {
+    async function insertJSONFile(nodeProgramName: string) {
     const inputp = document.querySelector('input#prog-name');
     const input = document.querySelector('input#program-name');
     const editorState = editor.value.export();
     const jsonString = JSON.stringify(editorState);
-   if(!(input as HTMLSelectElement).value && test===false){
+   if(!(input as HTMLSelectElement).value && test.value===false){
         const namen=(inputp as HTMLSelectElement).value
         const result = await ipcRenderer.invoke('updateJsonFile', { name: namen, data: jsonString });
     }
-    else if((inputp as HTMLSelectElement).value && test===true) {
+    else if((inputp as HTMLSelectElement).value && test.value===true) {
         if (nodeProgramName.length === 0) {
         return alert('Name your program');
     }
@@ -165,26 +151,32 @@ export default {
         selectedOption.value=nodeProgramName;
         (inputp as HTMLSelectElement).value=nodeProgramName;
         (input as HTMLSelectElement).style.display = 'none';
+        test.value=false;
         const result = await ipcRenderer.invoke('updateJsonFileName', { oldName:namen , newName: nodeProgramName }); 
     } else {
         if (nodeProgramName.length === 0) {
         return alert('Name your program');
     }
-    console.log("insert")
     cleanEditor();
     const result = await ipcRenderer.invoke('insertJsonFile', { name: nodeProgramName, data: jsonString });
-     
-    }
-
+     }
 }
       async function delprograme(){
             const inputp = document.querySelector('input#prog-name');
             const namp=(inputp as HTMLSelectElement).value;
+            const programNameInput = document.querySelector('input#program-name');
+            const btn = document.querySelector('button#btnn');
+                selectedOption.value = null;
+                (inputp as HTMLSelectElement).style.display = 'none';
+                (btn as HTMLSelectElement).style.display = 'none';
+                (programNameInput as HTMLSelectElement).style.display = 'block';
+                (programNameInput as HTMLSelectElement).value="";
+                cleanEditor();
             const result = await ipcRenderer.invoke('deleteJsonFile', { name:namp });
              if (result.error) {
         alert('An error occurred while deleting the program: ' + result.error);
         }
-          
+         
         }
      async function onchangeSelect(){
         const inputp = document.querySelector('input#prog-name');
@@ -212,6 +204,10 @@ export default {
                 } 
         }
         onMounted(() => {
+            const inputp = document.querySelector('input#prog-name');
+            (inputp as HTMLSelectElement).style.display = 'none';
+            const btn = document.querySelector('button#btnn');
+            (btn as HTMLSelectElement).style.display = 'none';
             var elements = document.getElementsByClassName('nodes-list');
             for (var i = 0; i < elements.length; i++) {
                 elements[i].addEventListener('touchend', drop, false);
@@ -354,7 +350,7 @@ export default {
         function cleanEditor() {
             editor.value.clear();
         }
-        function createNewFlow () {
+       async function createNewFlow () {
             const newFlowButton = document.querySelector('#new-flow-button');
             const programNameInput = document.querySelector('input#program-name');
             const inputp = document.querySelector('input#prog-name');
@@ -364,12 +360,20 @@ export default {
                 (inputp as HTMLSelectElement).style.display = 'none';
                 (btn as HTMLSelectElement).style.display = 'none';
                 (programNameInput as HTMLSelectElement).style.display = 'block';
-                (programNameInput as HTMLSelectElement).disabled = false;
                 (programNameInput as HTMLSelectElement).value="";
                 cleanEditor();
             });
         }
+       function showinput(){
+                test.value=true;
+            const input = document.querySelector('input#program-name');
+            const Button = document.querySelector('#btnn');
+              Button?.addEventListener('click', () => {
+            (input as HTMLSelectElement).style.display = 'block';
+            });
+        }
         return {
+            showinput,
             onchangeSelect,
             selectedOption,
             programs,
