@@ -24,6 +24,8 @@ import 'quill/dist/quill.snow.css'
 import ResizeModule from "@ssumo/quill-resize-module";
 import html2pdf from 'html2pdf.js';
 import * as pdfjsLib from "pdfjs-dist/build/pdf"
+import { pdfExporter } from "quill-to-pdf";
+import { saveAs } from "file-saver";
 import { ipcRenderer } from 'electron';
 
 Quill.register("modules/resize", ResizeModule);
@@ -90,8 +92,11 @@ export default {
       // const text = content.items.map(item => item.str).join(' ');
      // this.editor.root.innerHTML=html;
     },
-    downloadPdf(){
-      html2pdf().from( this.editor.root.innerHTML).save('editor-content.pdf');
+   async downloadPdf(){
+      //html2pdf().from( this.editor.root.innerHTML).save('editor-content.pdf');
+      const pdfAsBlob = await pdfExporter.generatePdf(this.editor.getContents()); // converts to PDF
+       saveAs(pdfAsBlob, "pdf-export.pdf");
+       console.log("je suis là")
     },
     saveToDatabase(){
   ipcRenderer.invoke('insertQuillcontent', { name: this.fileName, data: this.editor.root.innerHTML })
