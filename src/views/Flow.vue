@@ -79,12 +79,17 @@ export default {
     setup() {
      const notify = (message) => {
         toast.success(message, {
-            autoClose:2000,
+            autoClose:3000,
             theme: 'colored',
             position: toast.POSITION.BOTTOM_LEFT,
-  });
-     
+  });    
     }
+    const emptyName = () => {
+        toast.error("Name you program", {
+            autoClose:3000,
+            theme: 'colored',
+            position: toast.POSITION.BOTTOM_LEFT,
+  });}
         var selectedOption :any = shallowRef(null);
          const programName = shallowRef("");
          const test = shallowRef(false);
@@ -161,8 +166,8 @@ export default {
     }
     else if((inputp as HTMLSelectElement).value && test.value===true) {
         if (nodeProgramName.length === 0) {
-        return alert('Name your program');
-    }
+            emptyName()
+       } else {
         const namen=(inputp as HTMLSelectElement).value
         selectedOption.value=nodeProgramName;
         (inputp as HTMLSelectElement).value=nodeProgramName;
@@ -174,23 +179,22 @@ export default {
         } catch (e) {
         console.error('La méthode a échoué avec l\'erreur suivante :', e);
         }
-    } else {
+    } } else {
         if (nodeProgramName.length === 0) {
-        return alert('Name your program');
-    }
+            emptyName()
+    } else {
         (input as HTMLSelectElement).style.display = 'none';
         (inputp as HTMLSelectElement).style.display = 'block';
         (btn as HTMLSelectElement).style.display = 'block';
         (inputp as HTMLSelectElement).value=nodeProgramName;
         selectedOption.value=nodeProgramName
-        //await notify();
         try {
       const result = await ipcRenderer.invoke('insertJsonFile', { name: nodeProgramName, data: jsonString });
       notify("The insertion has been completed")
         } catch (e) {
         console.error('La méthode a échoué avec l\'erreur suivante :', e);
         }
-    }
+    }}
 }
       async function delprograme(){
             const inputp = document.querySelector('input#prog-name');
@@ -419,7 +423,8 @@ export default {
             cleanEditor,
             addProgramName,
             insertJSONFile,
-            notify
+            notify,
+            emptyName
         };
     }
 }
