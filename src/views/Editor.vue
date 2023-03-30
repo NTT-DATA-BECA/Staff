@@ -5,31 +5,33 @@
         v-model="selectedOption"
         :options="files" 
         label="name"
-        class="left-3/4 ml-3 mb-5 h-9 hover:bg-blue-200 rounded w-60 text-blue-600 hover:text-blue-400"
+        class="left-1 mb-5 h-9 hover:bg-blue-200 rounded w-60 text-blue-600 hover:text-blue-400"
         @click="() => loadNameFiles()"  
         @option:selected="onchangeSelect()"        
       ></v-select>  
     <div ref="editor"></div>
-    <input type="file" class="mt-5 mr-5 w-30 p-2 " @input="ImportDocument">
+    <input type="file" class="mt-5 mr-5 w-30 p-2 " @input="ImportDoc" accept=".doc, .docx">
     <input className="input mr-5" placeholder="Add File name"
                  v-model="fileName"  /> 
     <button class="mt-5 mr-5 w-30 p-2 border-2 border-cyan-600 hover:bg-orange-500 hover:text-white" @click="saveToDatabase">Save</button>
     <button class="mt-5 w-30 p-2 border-2 border-cyan-600 hover:bg-orange-500 hover:text-white" @click="downloadPdf">Generate PDF</button>
   </div>
+ 
 </template>
 
 <script lang="ts">
 import Quill from 'quill' 
 import 'quill/dist/quill.snow.css' 
 import ResizeModule from "@ssumo/quill-resize-module";
-import html2pdf from 'html2pdf.js';
-import * as pdfjsLib from "pdfjs-dist/build/pdf"
-import { pdfExporter } from "quill-to-pdf";
-import { saveAs } from "file-saver";
+//import * as pdfjsLib from "pdfjs-dist/build/pdf"
+import beautify from 'js-beautify'
+import mammoth from 'mammoth/mammoth.browser.js'
+import { jsPDF } from "jspdf"
+
 import { ipcRenderer } from 'electron';
 
 Quill.register("modules/resize", ResizeModule);
-pdfjsLib.GlobalWorkerOptions.workerSrc = '../../node_modules/pdfjs-dist/build/pdf.worker.js'
+//pdfjsLib.GlobalWorkerOptions.workerSrc = '../../node_modules/pdfjs-dist/build/pdf.worker.js'
 export default {
   inject: ['ipcRenderer'],
   name: 'Editor', 
@@ -79,25 +81,34 @@ export default {
     })
   },
   methods: {
-   async ImportDocument(event: Event){
-   
+   async ImportDoc(event: Event){
        const file = (event.target as HTMLInputElement).files?.[0];
       if (!file) {
         return;
-      }   
-      // const buffer = await file.arrayBuffer();
-      // const pdf = await pdfjsLib.getDocument({ data: buffer }).promise;
-      // const page = await pdf.getPage(1);
-      // const content = await page.getTextContent();
-      // const text = content.items.map(item => item.str).join(' ');
-     // this.editor.root.innerHTML=html;
+      }  
+      const arrayBuffer = await file.arrayBuffer()
+      const rawHtml = await mammoth.convertToHtml({ arrayBuffer })
+      const httml=rawHtml.value
+      const html =beautify.html(
+        httml.replace(/\u00A0/g, ' '));
+      this.editor.root.innerHTML=html;
     },
    async downloadPdf(){
-      //html2pdf().from( this.editor.root.innerHTML).save('editor-content.pdf');
-      const pdfAsBlob = await pdfExporter.generatePdf(this.editor.getContents()); // converts to PDF
-       saveAs(pdfAsBlob, "pdf-export.pdf");
-       console.log("je suis là")
+    var doc = new jsPDF();
+    doc.html(this.editor.root.innerHTML, {
+      callback: function(doc) {
+            // Save the PDF
+            doc.save('document-html.pdf');
+        },
+        margin: [3, 3, 3, 3],
+        autoPaging: 'text',
+        x: 0,
+        y: 0,
+        width: 190, //target width in the PDF document
+        windowWidth: 775 //window width in CSS pixels
+});
     },
+
     saveToDatabase(){
   ipcRenderer.invoke('insertQuillcontent', { name: this.fileName, data: this.editor.root.innerHTML })
     .catch((error) => {
@@ -121,6 +132,3 @@ export default {
 }
 </script>
 
-<style>
-
-</style>
