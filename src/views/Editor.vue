@@ -9,12 +9,12 @@
         @click="() => loadNameFiles()"  
         @option:selected="onchangeSelect()"        
       ></v-select>  
-    <div ref="editor"></div>
+    <div id="editor" ref="editor" cl></div>
     
     <input type="file" class="mt-5 mr-5 w-30 p-2 " @input="ImportDoc" accept=".doc, .docx">
     <input className="input mr-5" placeholder="Add File name"
                  v-model="fileName"  /> 
-    <button class="mt-5 mr-5 w-30 p-2 border-2 border-cyan-600 hover:bg-orange-500 hover:text-white" @click="saveToDatabase">Save</button>
+    <button class=" mt-5 mr-5 w-30 p-2 border-2 border-cyan-600 hover:bg-orange-500 hover:text-white" @click="saveToDatabase">Save</button>
     <button id="btn" class="mt-5 w-30 p-2 border-2 border-cyan-600 hover:bg-orange-500 hover:text-white" @click="downloadPdf">Generate PDF</button>
     </div>
     <iframe id="main-iframe" style="width: 100%; height: 100%; z-index: 2; border: none; margin-top: 40px;"></iframe>
@@ -25,17 +25,14 @@
 
 <script lang="ts">
 import Quill from 'quill' 
-import 'quill/dist/quill.snow.css' 
+import 'quill/dist/quill.snow.css'
+import quillCss from 'quill/dist/quill.snow.css'
 import ResizeModule from "@ssumo/quill-resize-module";
-//import * as pdfjsLib from "pdfjs-dist/build/pdf"
 import beautify from 'js-beautify'
 import mammoth from 'mammoth/mammoth.browser.js'
-import jsPDF from 'jspdf'
 import { ipcRenderer } from 'electron';
-//import html2pdf from "html2pdf.js";
 Quill.register("modules/resize", ResizeModule);
 
-//pdfjsLib.GlobalWorkerOptions.workerSrc = '../../node_modules/pdfjs-dist/build/pdf.worker.js'
 export default {
   inject: ['ipcRenderer'],
   name: 'Editor', 
@@ -56,9 +53,8 @@ export default {
       [{ 'list': 'ordered'}, { 'list': 'bullet' }],
       [{ 'script': 'sub'}, { 'script': 'super' }],      // superscript/subscript
       [{ 'indent': '-1'}, { 'indent': '+1' }],          // outdent/indent
-      [{ 'direction': 'rtl' }],                         // text direction
-
-      [{ 'size': ['small', false, 'large', 'huge'] }],  // custom dropdown
+      [{ 'direction': 'rtl' }], 
+      [{ 'size': ['small', false, 'large', 'huge'] }],                        // text direction
       [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
 
       [{ 'color': [] }, { 'background': [] }],          // dropdown with defaults from theme
@@ -97,25 +93,23 @@ export default {
       this.editor.root.innerHTML=html;
     },
     async downloadPdf(){
-      var doc = new jsPDF();
-          var name = this.selectedOption
+       
           var htmleditor = this.editor.root.innerHTML;
           htmleditor = htmleditor.replace(/>\s+|\s+</g, function(match) {
             return match.includes('>') ? '>' + '&nbsp;'.repeat(match.length-2) + ' ' : ' ' + '&nbsp;'.repeat(match.length-2) + '<'; 
           }); 
-          doc.html(htmleditor, {
-            callback: function(doc) {
-                  // Save the PDF
-                  doc.save(name+'.pdf');
-              },
-              margin: [3, 3, 3, 3],
-              autoPaging: 'text',
-              x: 0,
-              y: 0,
-              width: 190, 
-              windowWidth: 1200 ,
-      });  
-   // document.getElementById('main-iframe')?.setAttribute('src', doc.output('datauristring'));
+        var pdf = require('html-pdf');
+        var options = { 
+    format: 'A4',
+    
+}; 
+         var name = this.selectedOption 
+        var html='<html><head><style>'+quillCss+'</style></head><body><div class="ql-editor">'+htmleditor+'</div></body></html>'
+        pdf.create(html, options).toFile('src/assets/pdfs/'+name+'.pdf', function(err, res) {
+  if (err) return console.log(err);
+  console.log(res); 
+});
+
     }
    ,
     saveToDatabase(){
@@ -140,4 +134,6 @@ export default {
   },
 }
 </script>
+
+
 
