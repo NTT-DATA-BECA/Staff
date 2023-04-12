@@ -34,7 +34,7 @@
                   
 
                       <ul class="ml-5">
-                        <li draggable="true"  v-for="(column, index) in columns" :key="index" @click="selectColumn(column)" @dragstart="drag($event)" 
+                        <li draggable="true"  v-for="(column, index) in columns" :key="index" @click="selectColumn(column)"  
 >
                         <div class="node"><span>{{ column }}</span></div>
                         </li>
@@ -214,32 +214,32 @@ export default {
     format: 'A4',
     
 };
-         var name = this.selectedOption 
+     var name = this.selectedOption 
         var html='<html><head><style>'+quillCss+'</style></head><body><div class="ql-editor">'+htmleditor+'</div></body></html>'
         pdf.create(html, options).toFile('src/assets/pdfs/'+name+'.pdf', function(err, res) {
-  if (err) return console.log(err);
-  console.log(res); 
-});
+            if (err) return console.log(err);
+            console.log(res); 
+          });
 
     }
    ,
     saveToDatabase(){
-  ipcRenderer.invoke('insertQuillcontent', { name: this.fileName, data: this.editor.root.innerHTML })
-    .catch((error) => {
-      console.error(`Error insert: ${error}`);
-    });
-    this.selectedOption=this.fileName;
+      ipcRenderer.invoke('insertQuillcontent', { name: this.fileName, data: this.editor.root.innerHTML })
+        .catch((error) => {
+          console.error(`Error insert: ${error}`);
+        });
+        this.selectedOption=this.fileName;
     },
     async loadNameFiles(){
       const response = await ipcRenderer.invoke('getQuillContentName');
-        this.files=response;   
+      this.files=response;   
 
     },
    async onchangeSelect(){
       const selectedFile = this.selectedOption;
-            const response = await ipcRenderer.invoke('getQuillContentData', { name: selectedFile });
-            this.fileName="";
-            this.editor.root.innerHTML =response;
+      const response = await ipcRenderer.invoke('getQuillContentData', { name: selectedFile });
+      this.fileName="";
+      this.editor.root.innerHTML =response;
     }
 
   },
