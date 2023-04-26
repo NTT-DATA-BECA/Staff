@@ -97,13 +97,14 @@ export default {
         const Vue = { version: 3, h, render };
         const internalInstance: any = getCurrentInstance();
         internalInstance.appContext.app._context.config.globalProperties.$df = editor;
-
+        
         let node_select = "", node_last_move: any = null;
         function touchScreenPosition(ev: any) {
             node_last_move = ev;
         }
 
         const drag = (ev: any) => {
+            
             if (ev.type === "touchstart") {
                 node_select = ev.target.closest(".nodes-list").getAttribute('node-item');
             }
@@ -273,6 +274,17 @@ export default {
                 editor.value.import(ob);
             }
         }
+        function searchStart(){        
+            const editorData = editor.value.export().drawflow.Home.data;
+                let variableName = "";
+                Object.keys(editorData).forEach(function (i) {
+                    if (editorData[i].name === "Start") {
+                        variableName = editorData[i].data.variable;
+                    }
+                   
+                });
+            return variableName
+        }
         onMounted(() => {
             const inputp = document.querySelector('input#prog-name');
             (inputp as HTMLSelectElement).style.display = 'none';
@@ -295,135 +307,8 @@ export default {
             editor.value.registerNode("file-input", NodeFileInput, {}, {});
             editor.value.registerNode("start", NodeStart, {}, {});
             editor.value.registerNode("end", NodeEnd, {}, {});       
-             //  editor.value.registerNode("number", NodeNumber, {}, {});
-            // editor.value.registerNode("addition", NodeOperation, { title: "Addition" }, {});
-            // editor.value.registerNode("subtraction", NodeOperation, { title: "Subtraction" }, {});
-            // editor.value.registerNode("multiplication", NodeOperation, { title: "Multiplication" }, {});
-            // editor.value.registerNode("division", NodeOperation, { title: "Division" }, {});
-            // editor.value.registerNode("assign", NodeAssign, {}, {});
-            // editor.value.registerNode("if", NodeIf, { title: "If statement" }, {});
-            // editor.value.registerNode("for", NodeFor, { title: "For statement" }, {});
-            // editor.value.registerNode("nodeCondition", NodeCondition, {}, {});
 
-            let num1 = 0;
-            let num2 = 0;
-            let result = 0;
-            editor.value.on("nodeDataChanged", (data: any) => {
-                const nodeData = editor.value.getNodeFromId(data);
-                let variableName = "";
-                if (nodeData.name === "assign") {
-                    variableName = nodeData.data.variable;
-
-                }
-                else {
-                    const outputNode = nodeData.outputs.output_1.connections;
-                    if (outputNode.length > 0) {
-                        const outputNumber = parseFloat(nodeData.data.number);
-                        const output_class = nodeData.outputs.output_1.connections[0].output;
-                        const inputNodeId = nodeData.outputs.output_1.connections[0].node;
-                        const inputNodeData = editor.value.getNodeFromId(inputNodeId);
-                        const inputNodeName = inputNodeData.name;
-
-                        if (inputNodeName !== "nodeCondition") {
-                            updateNodeOperation(output_class, outputNumber, inputNodeName, inputNodeData)
-
-                            if (inputNodeData.outputs.output_1.connections.length > 0) {
-                                const nodeAssignId = inputNodeData.outputs.output_1.connections[0].node;
-                                updateNodeAssign(nodeAssignId, editor.value.getNodeFromId(nodeAssignId).data, result)
-                            }
-                        }
-                        updateNodeCondition(nodeData, inputNodeData, nodeData.name);
-
-
-                    }
-                }
-            });
-            editor.value.on("connectionCreated", (data: any) => {
-                const outputData = editor.value.getNodeFromId(data.output_id);
-                const outputNumber = parseFloat(outputData.data.number);
-                const output_class = data.input_class;
-                const inputNodeData = editor.value.getNodeFromId(data.input_id);
-                const inputNodeName = inputNodeData.name;
-                const conditionName = outputData.name;
-                let variableName = "";
-
-                if (inputNodeName !== "assign" && inputNodeName !== "nodeCondition") {
-                    updateNodeOperation(output_class, outputNumber, inputNodeName, inputNodeData)
-
-                    if (inputNodeData.outputs.output_1.connections.length > 0) {
-                        const nodeAssignId = inputNodeData.outputs.output_1.connections[0].node;
-                        updateNodeAssign(nodeAssignId, editor.value.getNodeFromId(nodeAssignId).data, result)
-                    }
-                }
-                else {
-                    variableName = inputNodeData.data.variable;
-                    updateNodeAssign(inputNodeData.id, inputNodeData.data, result)
-                }
-                updateNodeCondition(outputData, inputNodeData, conditionName);
-
-            });
-            editor.value.on("import", () => {
-                const editorData = editor.value.export().drawflow.Home.data;
-                let variableName = "";
-                Object.keys(editorData).forEach(function (i) {
-                    if (editorData[i].name === "assign") {
-                        variableName = editorData[i].data.variable;
-                    }
-                    if (editorData[i].name === "number") {
-                        if (editorData[i].outputs.output_1.connections[0].output === "input_1") {
-                            num1 = parseFloat(editorData[i].data.number);
-                        }
-                        if (editorData[i].outputs.output_1.connections[0].output === "input_2") {
-                            num2 = parseFloat(editorData[i].data.number);
-                        }
-                    }
-                });
-
-            });
-            editor.value.on("nodeRemoved", () => {
-                const editorData = editor.value.export().drawflow.Home.data;
-                let variableName = "";
-                let result: any = "";
-                Object.keys(editorData).forEach(function (i) {
-                    if (editorData[i].name === "addition" || editorData[i].name === "subtraction" || editorData[i].name === "division" || editorData[i].name === "multiplication") {
-                        result = operationValues(num1, num2, editorData[i].name, editorData[i]);
-                        const input_id = editorData[i].id;
-                        editor.value.updateNodeDataFromId(input_id, { result });
-                    }
-                    if (editorData[i].name === "assign") {
-                        variableName = editorData[i].data.variable;
-                        editor.value.updateNodeDataFromId(editorData[i].id, { ...editorData[i].data, assign: result });
-                    }
-
-                });
-            });
-            const updateNodeOperation = (output_class: any, outputNumber: any, inputNodeName: any, inputNodeData: any) => {
-                if (output_class == "input_1") {
-                    num1 = outputNumber;
-                }
-                else if (output_class === "input_2") {
-                    num2 = outputNumber;
-                }
-                result = operationValues(num1, num2, inputNodeName, inputNodeData);
-                const input_id = inputNodeData.id;
-                editor.value.updateNodeDataFromId(input_id, { result: result });
-            }
-            const updateNodeAssign = (nodeId: any, nodeData: any, result: any) => {
-                editor.value.updateNodeDataFromId(nodeId, { ...nodeData, assign: result });
-            }
-            const updateNodeCondition = (outputData: any, inputNodeData: any, conditionName: any) => {
-                if (conditionName === "if") {
-                    const conditionResult = validationIf(parseFloat(outputData.data.num1), parseFloat(outputData.data.num2), outputData.data.option);
-                    const input_id = inputNodeData.id;
-                    editor.value.updateNodeDataFromId(input_id, { conditionResult });
-                }
-                else if (conditionName === "for") {
-                    const conditionResult = validationFor(parseFloat(outputData.data.num1), parseFloat(outputData.data.num2));
-                    const input_id = inputNodeData.id;
-                    editor.value.updateNodeDataFromId(input_id, { conditionResult });
-                }
-            }
-        });
+         });
         function cleanEditor() {
             editor.value.clear();
         }
@@ -463,6 +348,7 @@ export default {
             nodesList,
             drag,
             drop,
+            searchStart,
             allowDrop,
             cleanEditor,
             addProgramName,
