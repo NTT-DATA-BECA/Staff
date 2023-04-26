@@ -85,8 +85,15 @@ async function createWindow() {
       });
     });
   });
-  
-  
+
+  ipcMain.handle('updateQuillFileName', async (event, arg) => {
+    return new Promise<void>((resolve, reject) => {
+      db.run(`UPDATE files SET name = ? WHERE name = ?`, [arg.newName, arg.oldName], (err) => {
+        if (err) reject(err);
+        resolve();
+      });
+    });
+  });
   
   ipcMain.handle('updateJsonFile', async (event, arg) => {
     return new Promise<void>((resolve, reject) => {
@@ -100,9 +107,20 @@ async function createWindow() {
         }
       });
     });
+  });  
+  ipcMain.handle('updateContentFile', async (event, arg) => {
+    return new Promise<void>((resolve, reject) => {
+      db.run(`UPDATE files SET data = ? WHERE name = ?`, [arg.data, arg.name], (err) => {
+        if (err) {
+          console.error(err);
+          reject(err);
+        } else {
+          resolve();
+        }
+      });
+    });
   });
-  
-  
+
   ipcMain.handle('getJsonFile', async (event, arg) => {
     try {
       const row: { data: any } = await new Promise((resolve, reject) => {
@@ -153,6 +171,85 @@ async function createWindow() {
       throw error;
     }
   });
+
+  ipcMain.handle('deleteQuillFile', async (event, arg) => {
+    try {
+      const result = await new Promise<number>((resolve, reject) => {
+        db.run(`DELETE FROM files WHERE name = ?`, [arg.name], function(err) {
+          if (err) {
+            console.error(err);
+            reject(err);
+          } else {
+            resolve(this.changes);
+          }
+        });
+      });
+  
+      return result;
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  });
+
+  ipcMain.handle('insertQuillcontent', async (event, data) => {
+    return new Promise((resolve, reject) => {
+      db.run('INSERT INTO files (name, data) VALUES (?, ?)', [data.name, data.data], (err) => {
+        if (err) {
+          console.error(`Error inserting data into file table: ${err}`);
+          reject(err);
+        } else {
+          const result = 'Data inserted successfully';
+          resolve(result); // pass the resolved value here
+        }
+      });
+    });
+  });
+  
+  ipcMain.handle('getQuillContentData', async (event, arg) => {
+    try {
+      const row: { data: any } = await new Promise((resolve, reject) => {
+        db.get(`SELECT data FROM files WHERE name = ?`, [arg.name], (err, row) => {
+          if (err) reject(err);
+          resolve(row);
+        });
+      });
+      
+      return row.data;
+    } catch (error) {
+      console.error(error);
+      return null;
+    }
+  })
+  
+  ipcMain.handle('checkFileNameExists', async (event, arg) => {
+    try {
+      const row = await new Promise((resolve, reject) => {
+        db.get(`SELECT * FROM files WHERE name = ?`, [arg.name], (err, row) => {
+          if (err) reject(err);
+          resolve(row);
+        });
+      });
+      if (row) {
+        return true;
+      } else {
+        return false;
+      }
+    } catch (error) {
+      console.error(error);
+      return false;
+    }
+  });  
+
+  ipcMain.handle('getQuillContentName', async (event, arg) => {
+    return await new Promise((resolve, reject) => {
+      db.all(`SELECT name FROM files`, [], (err, rows) => {
+        if (err) reject(err)
+        resolve(rows.map(row => row.name))
+      })
+    })
+  })
+  
 }  
   
 app.whenReady().then(createWindow)
