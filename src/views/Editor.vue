@@ -1,77 +1,66 @@
 <template>
   <div className="h-full w-full flex flex-col p-4">
 
-    <div className="mt-2 flex justify-end mb-3 text-gray-100">
-      <v-select v-model="selectedOption" :options="files" label="name"
-        class=" mb-5 hover:bg-blue-200 rounded w-60 text-blue-600 hover:text-blue-400"
-        style="border: 2px solid blue; border-radius: 5px;" @click="() => loadNameFiles()"
-        @option:selected="onchangeSelect()">
+    <div className="flex justify-between mb-3 text-gray-100">
+
+      <v-select v-model="selectedOption" :options="files" label="name" class="h-9 text-primary-dark rounded w-60 mr-3"
+        @click="() => loadNameFiles()" @option:selected="onchangeSelect()">
       </v-select>
+      <div class="flex justify-end text-gray-100">
+        <input id="file_n"
+          className="input focus:ring-2 focus:outline-none focus:ring-cyan-300  font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2 mb-2 heught"
+          placeholder="Add File Name" v-model="fileName" />
+        <!-- <button id="filebtn" class=" mr-2 mb-3"> <img class="rounded-md " style="width: 60px; height: 38px;"
+            title="Press to edit a file name" @click="EditName" src="../assets/editfile.png" alt=""> </button> -->
+        <button class="btn w-36 rounded-lg 
+                px-5 py-2.5 text-center mr-2 mb-3" @click="saveToDatabase">Save File</button>
+        <button class="btn w-28" @click="newFile">New file</button>
+      </div>
       <button id="deletebtn" class="ml-2 mb-4" @click="deleteFile"> <img class="rounded-md "
           style="width: 50px; height: 38px;" title="Delete" @click="EditName" src="../assets/delete.png" alt=""> </button>
     </div>
-
     <div class="flex flex-row w-full h-full">
-      <div className="flex flex-col gap-2 w-[200px] mx-auto mr-3">
-        <h2 className="border-b-4 p-2 border-green-300 text-center font-bold text-emerald-700  ">Node Excel</h2>
-        <div>
-          <div class="file_upload p-1 relative border-4 border-dotted border-green-500 rounded-lg"
-            style="width: 190px; height: 130px;">
-            <svg class="text-green-500 w-24 mx-auto mb-2" style="width: 100px; height: 70px;"
-              xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-            </svg>
-            <div class="input_field flex flex-col w-max mx-auto text-center">
-              <label>
-                <input class="text-sm cursor-pointer w-36 hidden" type="file" @change="loadExcelFile" />
-                <div
-                  class="text-gray-900 bg-gradient-to-r from-teal-200 to-lime-200 hover:bg-gradient-to-l hover:from-teal-200 hover:to-lime-200 focus:ring-4 focus:outline-none focus:ring-lime-200 dark:focus:ring-teal-700 font-medium rounded-lg text-sm px-5 py-2 text-center mr-2 mb-2">
-                  Select Excel file</div>
-              </label>
+      <div className="flex flex-col gap-2 w-[200px] mx-auto mr-3 h-full">
+        <label>
+          <input id="input-file" class="text-sm cursor-pointer w-36 hidden" type="file" @input="ImportDoc"
+            accept=".doc, .docx">
+          <div class="btn w-full rounded-lg px-5 py-2.5 text-center mr-2 mb-2 cursor-pointer">
+            Open docx file</div>
+        </label>
+        <button class="btn mr-3 w-full " @click="downloadPdf">Generate pdf</button>
+        <h2 className="border-b-4 p-2 border-primary-dark text-center font-bold text-black-700  ">Node Excel</h2>
 
+        <div class="file_upload p-1 relative border-4 border-dotted border-primary-dark rounded-lg"
+          style="width: 190px; height: 130px;">
+          <svg class="text-primary-dark w-24 mx-auto mb-2" style="width: 100px; height: 70px;"
+            xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+          </svg>
+          <div class="input_field flex flex-col w-max mx-auto text-center">
+            <label>
+              <input class="text-sm cursor-pointer w-36 hidden" type="file" @change="loadExcelFile" />
+              <div class="btn text-sm rounded-lg text-center m-auto" style="height: unset;">
+                Select Excel file</div>
+            </label>
+          </div>
+        </div>
+        <div class="mt-2 flex flex-col h-full" v-if="columns.length > 0">
+          <h3 class="text-center ml-1 text-black-500 font-bold mb-3">Headers :</h3>
+          <div id="sidebar" class="flex flex-col overflow-auto h-[300px]">
+            <div class="" v-for="column in columns">
+              <div class="customEmbed" dragabble="true" @drop="onDrop">{{ column }}</div>
             </div>
           </div>
-          <div v-if="columns.length > 0">
-            <h3 class="text-center ml-1 text-black-500 font-bold mb-3">Headers :</h3>
-            <div id="sidebar">
-            <span >
-              <span class="p-4" v-for="column in columns">
-                <span  class="flex flex-col customEmbed" dragabble="true" @drop="onDrop">{{ column }}</span>  
-              </span>
-            </span>
-          </div>
-          </div>
         </div>
-      </div>
-      <div class="w-full h-full">
-        <div  id="editor" ref="editor" >
+      </div> 
+      <div class="flex flex-col w-full h-full">
+        <div id="editor" ref="editor">
         </div>
       </div>
     </div>
 
-    <div class="flex justify-end mt-16 text-gray-100">
-      <input id="file_n"
-        className="mt-1 input focus:ring-2 focus:outline-none focus:ring-cyan-300  font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2 mb-2 heught"
-        placeholder="Add File Name" v-model="fileName" />
-      <button id="filebtn" class=" mr-2 mb-3"> <img class="rounded-md " style="width: 60px; height: 38px;"
-          title="Press to edit a file name" @click="EditName" src="../assets/editfile.png" alt=""> </button>
-      <button class="w-36 text-white bg-gradient-to-r from-cyan-500 to-blue-500 hover:bg-gradient-to-bl focus:ring-4 focus:outline-none focus:ring-cyan-300 dark:focus:ring-cyan-800 font-bold rounded-lg text-sm 
-                px-5 py-2.5 text-center mr-2 mb-3" @click="saveToDatabase">Save File</button>
-      <label>
-        <input id="input-file" class="text-sm cursor-pointer w-36 hidden" type="file" @input="ImportDoc"
-          accept=".doc, .docx">
-        <div
-          class="w-30 text-white bg-gradient-to-br from-green-400 to-blue-600 hover:bg-gradient-to-bl focus:ring-4 focus:outline-none focus:ring-green-200 dark:focus:ring-green-800 font-bold rounded-lg text-sm px-5 py-2.5 text-center mr-2 mb-2 cursor-pointer">
-          Open docx file</div>
-      </label>
-      <button
-        class="w-36 text-white bg-gradient-to-r from-emerald-300 via-emerald-500 to-emerald-600 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-emerald-300 dark:focus:ring-emerald-800 font-bold rounded-lg text-sm px-5 py-2.5 text-center mr-2 mb-3"
-        @click="newFile">New file</button>
-      <button
-        class="w-36 text-white bg-gradient-to-r from-red-400 via-red-500 to-red-600 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-red-300 dark:focus:ring-red-800 font-bold rounded-lg text-sm px-5 py-2.5 text-center mr-2 mb-3"
-        @click="downloadPdf">GENERATE PDF</button>
-    </div>
+
   </div>
 </template>
 
@@ -84,21 +73,22 @@ import ResizeModule from "@ssumo/quill-resize-module"
 import beautify from 'js-beautify'
 import mammoth from 'mammoth-style/mammoth.browser.js'
 import Swal from 'sweetalert2'
+import { Fragment } from 'vue';
 
 import { ipcRenderer } from 'electron';
 const Embed = Quill.import('blots/embed')
 Quill.register(class extends Embed {
-  static create (key) {
+  static create(key) {
     let node = super.create()
     node.setAttribute('data-key', key)
     node.innerHTML = `${key}`
     return node
   }
-  
-  static value (node) {
+
+  static value(node) {
     return node.dataset.key
   }
-  
+
   static blotName = 'customEmbed'
   static className = 'customEmbed'
   static tagName = 'span'
@@ -125,11 +115,11 @@ export default {
     }
   },
   mounted() {
-    
+
     const dbtn = document.querySelector('button#deletebtn');
     (dbtn as HTMLSelectElement).style.display = 'none';
     const btn = document.querySelector('button#filebtn');
-    (btn as HTMLSelectElement).style.display = 'none';
+    //(btn as HTMLSelectElement).style.display = 'none';
     const input = document.querySelector('input#file_n');
     (input as HTMLSelectElement).style.display = 'block';
 
@@ -166,22 +156,22 @@ export default {
       },
 
     })
-    this.editor.root.innerHTML=""
+    this.editor.root.innerHTML = ""
     document.getElementById('sidebar')?.querySelectorAll('.customEmbed')
-  .forEach((e: any) => {
-    e.setAttribute('draggable', 'true')
-    e.ondragstart = (ev: any)  => {
-      ev.dropEffect = 'copy'
-      ev.effectAllowed = 'copy'
-      ev.dataTransfer.setData('text/html', `${ev.target.innerHTML.slice(1)}`)
-    }
-    e.ondragend = ev => {
-      var data = ev.dataTransfer.getData("text/html");
-      var index = this.editor.getSelection(true).index;
-      this.editor.insertEmbed(index, 'customEmbed', data)
-      
-    }
-  })
+      .forEach((e: any) => {
+        e.setAttribute('draggable', 'true')
+        e.ondragstart = (ev: any) => {
+          ev.dropEffect = 'copy'
+          ev.effectAllowed = 'copy'
+          ev.dataTransfer.setData('text/html', `${ev.target.innerHTML.slice(1)}`)
+        }
+        e.ondragend = ev => {
+          var data = ev.dataTransfer.getData("text/html");
+          var index = this.editor.getSelection(true).index;
+          this.editor.insertEmbed(index, 'customEmbed', data)
+
+        }
+      })
   },
   methods: {
     deleteFile() {
@@ -279,7 +269,7 @@ export default {
       const htmlResult = updatedHtml.replace(/<\/font>/g, '</span>');
       const html = beautify.html(
         htmlResult.replace(/\u00A0/g, ' '));
-      this.editor.root.innerHTML = this.editor.root.innerHTML+html;
+      this.editor.root.innerHTML = this.editor.root.innerHTML + html;
     },
     async downloadPdf() {
       var longueurMax = 5400;
@@ -288,25 +278,26 @@ export default {
       while (contenu.length > 0) {
         var partie = contenu.substring(0, longueurMax);
         if (!partie.includes('<img')) {
-          longueurMax=6300
+          longueurMax = 6300
           partie = contenu.substring(0, longueurMax);
         }
         contenu = contenu.substring(longueurMax);
         if (partie.endsWith('>') && contenu.length > 5299) {
-            partie = '<div>'+partie + '</div>';
+          partie = '<div>' + partie + '</div>';
         } else {
           var indexBaliseFermante = partie.lastIndexOf('>');
-          console.log("indexBaliseFermante "+indexBaliseFermante)
+          console.log("indexBaliseFermante " + indexBaliseFermante)
           if (indexBaliseFermante !== -1) {
             if (!partie.includes('<img')) {
-              if(partie.includes('<')) {
-            var contenuAvant = partie.substring(0, indexBaliseFermante + 1);
-            var contenuApres = partie.substring(indexBaliseFermante + 1);
-            if((contenuApres.substring(partie.lastIndexOf('<') + 1)+contenuAvant)>5399)
-            contenuApres=contenuApres.substring(0,partie.lastIndexOf('<') + 1)+'<div>'+contenuApres.substring(partie.lastIndexOf('<') + 1)
-              partie = contenuAvant+'</div>' + contenuApres ;
-               }
-          } }
+              if (partie.includes('<')) {
+                var contenuAvant = partie.substring(0, indexBaliseFermante + 1);
+                var contenuApres = partie.substring(indexBaliseFermante + 1);
+                if ((contenuApres.substring(partie.lastIndexOf('<') + 1) + contenuAvant) > 5399)
+                  contenuApres = contenuApres.substring(0, partie.lastIndexOf('<') + 1) + '<div>' + contenuApres.substring(partie.lastIndexOf('<') + 1)
+                partie = contenuAvant + '</div>' + contenuApres;
+              }
+            }
+          }
         }
 
         parties.push(partie);
@@ -395,9 +386,9 @@ export default {
       })
     },
     onDrop(event) {
-  this.editor.setSelection(0);
-  
-}
+      this.editor.setSelection(0);
+
+    }
     ,
     async loadNameFiles() {
       const response = await ipcRenderer.invoke('getQuillContentName');
@@ -422,19 +413,12 @@ export default {
 </script>
 <style scoped>
 .node {
-  @apply text-white bg-gradient-to-br from-green-400 to-blue-600 hover:bg-gradient-to-bl focus:ring-4 focus:outline-none focus:ring-green-200 dark:focus:ring-green-800 font-bold rounded-lg text-sm px-1 py-3 text-center mr-4 ml-4 mb-2;
-}
-.customEmbed {
-  background-color:  #3182ce;
-  color:black;
-  border-radius: 7px;
-  padding: 10px;
-  cursor: pointer;
-  font-family: Arial, Helvetica, sans-serif;
-  text-align: center;
-  font-weight: bold;
+  @apply text-white bg-primary-light hover:bg-primary-dark font-bold rounded-lg text-sm px-1 py-3 text-center mr-4 ml-4 mb-2;
 }
 
+.customEmbed {
+  @apply p-2 mb-2 block text-white bg-primary-light hover:bg-primary-dark rounded-lg w-full text-center;
+}
 </style>
 
 

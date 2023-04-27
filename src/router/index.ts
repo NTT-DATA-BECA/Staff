@@ -2,12 +2,12 @@ import { createRouter, createWebHashHistory } from 'vue-router';
 
 const routes = [
   {
-    path: '/',
+    path: '/flow',
     name: 'Flow',
     component: () => import('../views/Flow.vue'),
   },
   {
-    path: '/Editor',
+    path: '/',
     name: 'Editor',
     component: () => import('../views/Editor.vue'),
   },

@@ -1,5 +1,5 @@
 .btn{
-    @apply h-9 py-1 px-3 cursor-pointer rounded;
+    @apply h-9 py-1 px-3 cursor-pointer rounded bg-primary-dark hover:bg-primary-light text-white;
 }
 .input{
     @apply h-9 p-2 text-slate-700 border border-slate-400 hover:bg-gray-100 rounded;

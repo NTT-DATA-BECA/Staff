@@ -1,35 +1,35 @@
 <template>
     <div className="h-full w-full flex flex-col p-4">
-        <div className="flex justify-end mb-3 text-gray-100">
-            <input id="program-name" className="input mr-2" placeholder="Add program name" @input="addProgramName($event)"
-                v-model="nodeProgramName" />
-            <button id="new-flow-button" className="btn bg-amber-600 hover:bg-amber-400 mr-3 w-28" @click="createNewFlow()">
-                New Flow
-            </button>
-            <button className="btn bg-green-500 hover:bg-green-400 mr-3 w-28"
-                @click="insertJSONFile(nodeProgramName); nodeProgramName = ''">
-                Save
-            </button>
+        <div class="flex justify-between">
             <v-select v-model="selectedOption" :options="programs" label="name"
-                class="h-9 hover:bg-blue-200 rounded w-60 mr-3 text-blue-600 hover:text-blue-400"
-                style="border: 2px solid blue; border-radius: 5px;" @click="() => loadJsonFiles()"
+                class="h-9 text-primary-dark rounded w-60 mr-3" @click="() => loadJsonFiles()"
                 @option:selected="onchangeSelect()"></v-select>
-            <button className="btn bg-red-400 hover:bg-red-300 w-28 " @click="delprograme();">Delete</button>
+            <div className="flex justify-end mb-3 text-gray-100">
+                <input id="program-name" className="input mr-2" placeholder="Add program name"
+                    @input="addProgramName($event)" v-model="nodeProgramName" />
+                <button id="new-flow-button" className="btn mr-3 w-28" @click="createNewFlow()">
+                    New Flow 
+                </button>
+                <button className="btn  mr-3 w-28" @click="insertJSONFile(nodeProgramName); nodeProgramName = ''">
+                    Save
+                </button>
+                <button className="btn bg-red-400 hover:bg-red-300 w-28 " @click=" delprograme(); ">Delete</button>
+            </div>
         </div>
         <div class="flex flex-row w-full h-full">
             <div className="flex flex-col gap-2 w-[200px] mx-auto mr-3">
                 <h4 className="border-b-4 p-2 text-center font-bold text-slate-500">Node Types</h4>
-                <div class="nodes-list" draggable="true" v-for="i in nodesList" :key="i.name" :node-item="i.item"
-                    @dragstart="drag($event)">
+                <div class="nodes-list" draggable="true" v-for=" i  in  nodesList " :key=" i.name " :node-item=" i.item "
+                    @dragstart=" drag($event) ">
                     <span class="node"><img className="m-1" src="../assets/product-request-line-item-svgrepo-com.svg"
                             style="width: 20px; height: 20px;" alt="" srcset=""> {{ i.name }}</span>
                 </div>
             </div>
             <div class="drawflow-container border border-slate-400 rounded w-full h-full relative">
-                <div id="drawflow" @drop="drop($event)" @dragover="allowDrop($event)">
+                <div id="drawflow" @drop=" drop($event) " @dragover=" allowDrop($event) ">
                     <div id="ring">
                         <div class="bg-stone-300  ring-offset-2 ring-2 ring-blue-500 rounded-br-lg ml-0 mr-auto h-8 flex">
-                            <button id="btnn" @click="showinput()" class="pl-2 "> <img class="transform hover:-rotate-12"
+                            <button id="btnn" @click=" showinput() " class="pl-2 "> <img class="transform hover:-rotate-12"
                                     style="width: 70px; height: 30px;" src="../assets/editb.png" alt=""> </button>
                             <input id="prog-name"
                                 class=" w-28 inline-block bg-stone-300 py-1 tracking-widest text-sm italic font-bold font-sans text-gray-800 mr-2 text-center"
@@ -37,7 +37,7 @@
                         </div>
                     </div>
                 </div>
-                <a className="absolute w-10 m-2 right-0 top-0" @click="cleanEditor()" title="Press to clear">
+                <a className="absolute w-10 m-2 right-0 top-0" @click=" cleanEditor() " title="Press to clear">
                     <img src="../assets/reload.png" style="width: 40px; height: 40px;">
                 </a>
             </div>
@@ -48,13 +48,21 @@
 <script lang="ts">
 import { h, getCurrentInstance, render, onMounted, shallowRef } from 'vue'
 import Drawflow from 'drawflow'
-import GeneratePdf from '../components/Node-GeneratePdf.vue'
+//import NodeNumber from '../components/Node-number.vue'
+// import NodeOperation from '../components/Node-operation.vue'
+// import NodeAssign from '../components/Node-assign.vue'
+// import NodeIf from '../components/Node-if.vue'
+// import NodeCondition from '../components/Node-condition.vue'
+// import NodeFor from '../components/Node-for.vue'
 import ImportCsv from '../components/ImportCsv.vue'
 import NodeFileInput from '../components/Node-file-input.vue'
 import NodeStart from '../components/Node-start.vue'
 import NodeEnd from '../components/Node-end.vue'
 import NodeGeneratePdf from '../components/Node-GeneratePdf.vue'
 import Swal from 'sweetalert2'
+import { validationIf } from '../utils/validationIf'
+import { validationFor } from '../utils/validationFor'
+import { operationValues } from '../utils/operationValues'
 import { nodesList } from '../utils/nodesList'
 import { ipcRenderer } from 'electron';
 import { toast } from 'vue3-toastify';
@@ -90,14 +98,14 @@ export default {
         const Vue = { version: 3, h, render };
         const internalInstance: any = getCurrentInstance();
         internalInstance.appContext.app._context.config.globalProperties.$df = editor;
-        
+
         let node_select = "", node_last_move: any = null;
         function touchScreenPosition(ev: any) {
             node_last_move = ev;
         }
 
-        const drag = (ev: any) => {          
-            
+        const drag = (ev: any) => {
+
             if (ev.type === "touchstart") {
                 node_select = ev.target.closest(".nodes-list").getAttribute('node-item');
             }
@@ -111,7 +119,6 @@ export default {
         };
 
         const drop = (ev: any) => {
-          
             if (ev.type === "touchend") {
                 let clientX: number = node_last_move.touches[0].clientX;
                 let clientY: number = node_last_move.touches[0].clientY;
@@ -149,25 +156,26 @@ export default {
             const editorState = editor.value.export();
             const jsonString = JSON.stringify(editorState);
             const btn = document.querySelector('button#btnn');
-            const divv = document.querySelector('div#ring'); 
-                if (!(input as HTMLSelectElement).value && test.value === false) {
-                    if (nodeProgramName.length === 0 && selectedOption.value===null) {
-                Swal.fire('Empty Name', 'The field cannot be left empty, please input a name.', 'error')
-            }    else {
-                   
+            const divv = document.querySelector('div#ring');
+            if (!(input as HTMLSelectElement).value && test.value === false) {
+                if (nodeProgramName.length === 0 && selectedOption.value === null) {
+                    Swal.fire('Empty Name', 'The field cannot be left empty, please input a name.', 'error')
+                } else {
+                    console.log("updateJsonFile");
                     const namen = (inputp as HTMLSelectElement).value
                     try {
                         await ipcRenderer.invoke('updateJsonFile', { name: namen, data: jsonString });
                         notify("The modification has been completed")
                     } catch (e) {
                         console.error('La méthode a échoué avec l\'erreur suivante :', e);
-                    } }
+                    }
                 }
-                else if ((inputp as HTMLSelectElement).value && test.value === true) {
-                    if ( nodeProgramName.length === 0) {
-                Swal.fire('Empty Name', 'The field cannot be left empty, please input a name.', 'error')
-            }    else {
-                   
+            }
+            else if ((inputp as HTMLSelectElement).value && test.value === true) {
+                if (nodeProgramName.length === 0) {
+                    Swal.fire('Empty Name', 'The field cannot be left empty, please input a name.', 'error')
+                } else {
+                    console.log("updateJsonFileName");
                     const namen = (inputp as HTMLSelectElement).value
                     selectedOption.value = nodeProgramName;
                     (inputp as HTMLSelectElement).value = nodeProgramName;
@@ -178,13 +186,14 @@ export default {
                         notify("The modification has been completed")
                     } catch (e) {
                         console.error('La méthode a échoué avec l\'erreur suivante :', e);
-                    }}
+                    }
+                }
 
+            } else {
+                if (nodeProgramName.length === 0) {
+                    Swal.fire('Empty Name', 'The field cannot be left empty, please input a name.', 'error')
                 } else {
-                    if ( nodeProgramName.length === 0) {
-                Swal.fire('Empty Name', 'The field cannot be left empty, please input a name.', 'error')
-                 } else {
-                    
+                    console.log("insert");
                     (input as HTMLSelectElement).style.display = 'none';
                     (inputp as HTMLSelectElement).style.display = 'block';
                     (btn as HTMLSelectElement).style.display = 'block';
@@ -197,7 +206,8 @@ export default {
                     } catch (e) {
                         console.error('La méthode a échoué avec l\'erreur suivante :', e);
                     }
-            }}
+                }
+            }
         }
         async function delprograme() {
             Swal.fire({
@@ -268,15 +278,15 @@ export default {
                 editor.value.import(ob);
             }
         }
-        function searchStart(){        
+        function searchStart() {
             const editorData = editor.value.export().drawflow.Home.data;
-                let variableName = "";
-                Object.keys(editorData).forEach(function (i) {
-                    if (editorData[i].name === "Start") {
-                        variableName = editorData[i].data.variable;
-                    }
-                   
-                });
+            let variableName = "";
+            Object.keys(editorData).forEach(function (i) {
+                if (editorData[i].name === "Start") {
+                    variableName = editorData[i].data.variable;
+                }
+
+            });
             return variableName
         }
         onMounted(() => {
@@ -296,13 +306,15 @@ export default {
             editor.value = new Drawflow(id, Vue, internalInstance.appContext.app._context);
             editor.value.start();
 
-            editor.value.registerNode("GeneratePdf", GeneratePdf, {}, {});
+
             editor.value.registerNode("ImportCsv", ImportCsv, {}, {});
             editor.value.registerNode("file-input", NodeFileInput, {}, {});
             editor.value.registerNode("start", NodeStart, {}, {});
             editor.value.registerNode("end", NodeEnd, {}, {});
-            editor.value.registerNode("generatepdf", NodeGeneratePdf, {}, {});  
-         });
+            editor.value.registerNode("generatepdf", NodeGeneratePdf, {}, {});
+
+
+        });
         function cleanEditor() {
             editor.value.clear();
         }
@@ -356,7 +368,7 @@ export default {
 
 <style scoped>
 .node {
-    @apply bg-sky-700 border border-collapse text-white p-3 rounded w-full cursor-pointer sm:text-sm flex hover:bg-sky-400 hover:border hover:border-gray-800;
+    @apply bg-primary-light border border-collapse text-white p-3 rounded w-full cursor-pointer sm:text-sm flex hover:bg-primary-dark hover:border hover:border-gray-800;
 }
 
 #drawflow {
