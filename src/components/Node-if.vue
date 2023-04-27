@@ -3,7 +3,7 @@
     <p className="text-xs">Condition</p>
     <div className="w-64 space-between text-black">
         <input className="w-10 mr-2 h-7" type="number" df-num1>
-            <select df-option className="h-7" name="" id="">
+            <select  df-option className="h-7" name="" id="">
                 <option value="-">-</option>
                 <option value="<">&lt;</option>
                 <option value=">">&gt;</option>
