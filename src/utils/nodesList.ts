@@ -4,9 +4,11 @@ export const nodesList = readonly([
     {
          name: "End",
          item: "end",
+         color: 'gray',
          input: 1,
          output: 0,
-         },{
+         },
+         {
              name: "Start",
              item: "start",
              input: 0,
@@ -25,12 +27,12 @@ export const nodesList = readonly([
         input: 1,
         output: 1,
      },
-    // {
-    //     name: "Number",
-    //     item: "number",
-    //     input: 0,
-    //     output: 1,
-    // },
+    {
+        name: "GeneratePdf",
+        item: "GeneratePdf",
+        input: 1,
+        output: 1,
+    },
     // {
     //     name: "Addition",
     //     item: "addition",

@@ -48,20 +48,12 @@
 <script lang="ts">
 import { h, getCurrentInstance, render, onMounted, shallowRef } from 'vue'
 import Drawflow from 'drawflow'
-//import NodeNumber from '../components/Node-number.vue'
-// import NodeOperation from '../components/Node-operation.vue'
-// import NodeAssign from '../components/Node-assign.vue'
-// import NodeIf from '../components/Node-if.vue'
-// import NodeCondition from '../components/Node-condition.vue'
-// import NodeFor from '../components/Node-for.vue'
+import GeneratePdf from '../components/Node-GeneratePdf.vue'
 import ImportCsv from '../components/ImportCsv.vue'
 import NodeFileInput from '../components/Node-file-input.vue'
 import NodeStart from '../components/Node-start.vue'
 import NodeEnd from '../components/Node-end.vue'
 import Swal from 'sweetalert2'
-import { validationIf } from '../utils/validationIf'
-import { validationFor } from '../utils/validationFor'
-import { operationValues } from '../utils/operationValues'
 import { nodesList } from '../utils/nodesList'
 import { ipcRenderer } from 'electron';
 import { toast } from 'vue3-toastify';
@@ -103,7 +95,7 @@ export default {
             node_last_move = ev;
         }
 
-        const drag = (ev: any) => {
+        const drag = (ev: any) => {          
             
             if (ev.type === "touchstart") {
                 node_select = ev.target.closest(".nodes-list").getAttribute('node-item');
@@ -118,6 +110,7 @@ export default {
         };
 
         const drop = (ev: any) => {
+          
             if (ev.type === "touchend") {
                 let clientX: number = node_last_move.touches[0].clientX;
                 let clientY: number = node_last_move.touches[0].clientY;
@@ -160,7 +153,7 @@ export default {
                     if (nodeProgramName.length === 0 && selectedOption.value===null) {
                 Swal.fire('Empty Name', 'The field cannot be left empty, please input a name.', 'error')
             }    else {
-                    console.log("updateJsonFile");
+                   
                     const namen = (inputp as HTMLSelectElement).value
                     try {
                         await ipcRenderer.invoke('updateJsonFile', { name: namen, data: jsonString });
@@ -173,7 +166,7 @@ export default {
                     if ( nodeProgramName.length === 0) {
                 Swal.fire('Empty Name', 'The field cannot be left empty, please input a name.', 'error')
             }    else {
-                    console.log("updateJsonFileName");
+                   
                     const namen = (inputp as HTMLSelectElement).value
                     selectedOption.value = nodeProgramName;
                     (inputp as HTMLSelectElement).value = nodeProgramName;
@@ -190,7 +183,7 @@ export default {
                     if ( nodeProgramName.length === 0) {
                 Swal.fire('Empty Name', 'The field cannot be left empty, please input a name.', 'error')
                  } else {
-                    console.log("insert");
+                    
                     (input as HTMLSelectElement).style.display = 'none';
                     (inputp as HTMLSelectElement).style.display = 'block';
                     (btn as HTMLSelectElement).style.display = 'block';
@@ -302,11 +295,12 @@ export default {
             editor.value = new Drawflow(id, Vue, internalInstance.appContext.app._context);
             editor.value.start();
 
-
+            editor.value.registerNode("GeneratePdf", GeneratePdf, {}, {});
             editor.value.registerNode("ImportCsv", ImportCsv, {}, {});
             editor.value.registerNode("file-input", NodeFileInput, {}, {});
             editor.value.registerNode("start", NodeStart, {}, {});
-            editor.value.registerNode("end", NodeEnd, {}, {});       
+            editor.value.registerNode("end", NodeEnd, {}, {});  
+         
 
          });
         function cleanEditor() {

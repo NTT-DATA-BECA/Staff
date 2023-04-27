@@ -1,80 +1,131 @@
 <template>
-    <v-select v-model="selectedOption" :options="files" label="name"
-        class="mb-5 hover:bg-blue-200 rounded text-black-600 font-bold hover:text-blue-400"
-        style="border: 2px solid white; border-radius: 5px;" @option:selected="onOptionSelected"></v-select>
-</template>
-<script>
-
-import { ref } from 'vue'
-
+    <div class="modal-backdrop">
+      <div class="modal">
+        <header class="modal-header">
+          <slot name="header">
+            Editor template
+          </slot>
+          <button
+            type="button"
+            class="btn-close"
+            @click="close"
+          >
+            x
+          </button>
+        </header>
+  
+        <section class="modal-body">
+          <slot name="body">
+            <v-select id="mySelect" v-model="selectedOption" :options="files"
+                     class="w-60"  />
+          </slot>
+         </section>
+  
+        <footer class="modal-footer">
+          
+          <button
+            type="button"
+            class="btn-green"
+            @click="confirm"
+          >
+            Choose
+          </button>
+        </footer>
+      </div>
+    </div>
+  </template>
+  <script lang="ts">
+  import { ref } from 'vue'
 import { ipcRenderer } from 'electron';
+  export default {
+    name: 'Modal',
+    setup() {
 
-export default {
-
-    name: 'FileSelect',
-
-
-
-    props: {
-
-        value: String
-
-    },
-
-
-
-    emits: ['input'],
-
-
-
-    setup(props, { emit }) {
-
-        const files = ref([]);
-
-        const selectedOption = ref(props.value);
-
-
-
-        const loadFiles = async () => {
-
-            const response = await ipcRenderer.invoke('getQuillContentName');
-
-            files.value = response;
-
-        };
-
-
-
-        const onOptionSelected = async () => {
-
-            const selectedFile = selectedOption.value;
-
-            const response = await ipcRenderer.invoke('getQuillContentData', { name: selectedFile });
-
-            emit('input', selectedFile);
-
-            emit('htmlData', response);
-
-        };
-
-
-
-        loadFiles();
-
-
-
-        return {
-
-            files,
-
-            selectedOption,
-
-            onOptionSelected
-
-        };
-
-    }
+const files = ref([]);
+const selectedOption = ref("");
+const loadFiles = async () => {
+const response = await ipcRenderer.invoke('getQuillContentName');
+files.value = response;
 
 };
 
+loadFiles();
+
+return {
+    files,
+    selectedOption,
+};
+},
+    methods: {
+      close() {
+        this.$emit('close');
+      },
+      confirm() {}
+    },
+  };
 </script>
+<style>
+  .modal-backdrop {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: rgba(0, 0, 0, 0.3);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .modal {
+    background: #FFFFFF;
+    box-shadow: 2px 2px 20px 1px;
+    overflow-x: auto;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .modal-header,
+  .modal-footer {
+    padding: 15px;
+    display: flex;
+  }
+
+  .modal-header {
+    position: relative;
+    border-bottom: 1px solid #eeeeee;
+    color: blue;
+    justify-content: space-between;
+  }
+
+  .modal-footer {
+    border-top: 1px solid #eeeeee;
+    flex-direction: column;
+    justify-content: flex-end;
+  }
+
+  .modal-body {
+    position: relative;
+    padding: 20px 10px;
+  }
+
+  .btn-close {
+    position: absolute;
+    top: 0;
+    right: 0;
+    border: none;
+    font-size: 20px;
+    padding: 10px;
+    cursor: pointer;
+    font-weight: bold;
+    color: blue;
+    background: transparent;
+  }
+
+  .btn-green {
+    color: white;
+    background: blue;
+    border: 1px solid blue;
+    border-radius: 2px;
+  }
+</style>

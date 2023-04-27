@@ -1,37 +1,38 @@
 <template>
-    <div class="node-file">
-      <p id="node-title" class="text-sm">Choose Template</p>
-      <FileSelect v-model="selectedFile" @htmlData="onHtmlData" />
+    <div>
+      <button @click="allowSelect" id="node-title" cli class="pl-4 text-white text-sm">Choose a Template</button>
+    <FileSelect
+      class="w-full"
+      v-show="isModalVisible"
+      @close="closeModal"
+    />
     </div>
-  </template>
+</template>
   
-  <script>
+  <script lang="ts" >
   import FileSelect from './FileSelect.vue';
-  
   export default {
     name: 'NodeFileInput',
   
-    props: {
-      nodeId: String,
-      port: String
-    },
-  
     components: {
-      FileSelect
+      FileSelect ,
     },
-    
-    emits: ['htmlData'], // declare the "htmlData" event 
-  
     data() {
       return {
+        fileN:'',
         selectedFile: '',
-        htmlData: ''
+        isModalVisible: false,
       };
     },
-  
     methods: {
-      onHtmlData(data) {
-        this.htmlData = data;
+      allowSelect (){
+        this.isModalVisible = true;
+      },     
+       showModal() {
+       
+      },
+      closeModal() {
+        this.isModalVisible = false;
       }
     }
   };

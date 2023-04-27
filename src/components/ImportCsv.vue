@@ -1,7 +1,7 @@
 <template>
        <div class="input_field flex flex-col w-max mx-auto text-center">
   <label id="node-title">
-    <input class="text-sm cursor-pointer w-36 hidden" type="file" @change="loadExcelFile" />
+    <input for="myinputf" class="text-sm cursor-pointer w-36 hidden" type="file" @change="loadExcelFile" df-myinputf/>
     <div class="text-white bg-blue font-bold rounded-lg text-sm px-2 py-2 text-center">
       {{ fileName || 'Import Excel' }}</div>
   </label>
