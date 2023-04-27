@@ -53,6 +53,7 @@ import ImportCsv from '../components/ImportCsv.vue'
 import NodeFileInput from '../components/Node-file-input.vue'
 import NodeStart from '../components/Node-start.vue'
 import NodeEnd from '../components/Node-end.vue'
+import NodeGeneratePdf from '../components/Node-GeneratePdf.vue'
 import Swal from 'sweetalert2'
 import { nodesList } from '../utils/nodesList'
 import { ipcRenderer } from 'electron';
@@ -299,9 +300,8 @@ export default {
             editor.value.registerNode("ImportCsv", ImportCsv, {}, {});
             editor.value.registerNode("file-input", NodeFileInput, {}, {});
             editor.value.registerNode("start", NodeStart, {}, {});
-            editor.value.registerNode("end", NodeEnd, {}, {});  
-         
-
+            editor.value.registerNode("end", NodeEnd, {}, {});
+            editor.value.registerNode("generatepdf", NodeGeneratePdf, {}, {});  
          });
         function cleanEditor() {
             editor.value.clear();
