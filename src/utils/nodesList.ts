@@ -25,6 +25,12 @@ export const nodesList = readonly([
         input: 1,
         output: 1,
      },
+     {
+        name: "GeneratePdf",
+        item: "generatepdf",
+        input: 1,
+        output: 1,
+        },
     // {
     //     name: "Number",
     //     item: "number",
