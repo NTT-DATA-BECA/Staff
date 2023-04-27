@@ -7,8 +7,8 @@ const routes = [
     component: () => import('../views/Flow.vue'),
   },
   {
-    path: '/word',
-    name: 'Word',
+    path: '/Editor',
+    name: 'Editor',
     component: () => import('../views/Editor.vue'),
   },
   {

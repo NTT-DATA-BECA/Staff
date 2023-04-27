@@ -11,7 +11,7 @@
     background: linear-gradient(to bottom right, #36d1dc , #5b86e5) !important;
     border: 2px solid #2d495c9a !important;
     color: rgb(27, 26, 26) !important;
-    min-width: 100px !important;
+    min-width: 180px !important;
 }
 
 .drawflow .drawflow-node .drawflow_content_node #node-title {
