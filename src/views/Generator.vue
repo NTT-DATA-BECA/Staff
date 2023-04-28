@@ -1,6 +1,5 @@
 <template>
   <div className="h-full w-full flex flex-col p-4">
-      <div>
         <div class="flex items-center flex-end mb-2">
             <v-select v-model="selectedOption" :options="flows" label="name"
                 class="h-9 text-primary-dark rounded w-60 mr-3" @click="() => loadJsonFiles()"
@@ -27,7 +26,6 @@
                 </a>
             </div>
         </div>
-    </div>
   </div>
 
 </template>

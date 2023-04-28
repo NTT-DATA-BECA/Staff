@@ -1,33 +1,68 @@
 <template>
   <div className="h-full w-full flex flex-col p-4">
-
     <div className="flex justify-between mb-3 text-gray-100">
-
       <v-select v-model="selectedOption" :options="files" label="name" class="h-9 text-primary-dark rounded w-60 mr-3"
-        @click="() => loadNameFiles()" @option:selected="onchangeSelect()">
+        @click="() => loadNameFiles()" @option:selected="onChangeFile()">
       </v-select>
       <div class="flex justify-end text-gray-100">
-        <input id="file_n"
-          className="input focus:ring-2 focus:outline-none focus:ring-cyan-300  font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2 mb-2 heught"
-          placeholder="Add File Name" v-model="fileName" />
-        <!-- <button id="filebtn" class=" mr-2 mb-3"> <img class="rounded-md " style="width: 60px; height: 38px;"
-            title="Press to edit a file name" @click="EditName" src="../assets/editfile.png" alt=""> </button> -->
-        <button class="btn w-36 rounded-lg 
-                px-5 py-2.5 text-center mr-2 mb-3" @click="saveToDatabase">Save File</button>
-        <button class="btn w-28" @click="newFile">New file</button>
+        <input className="input mr-2"
+          v-bind:placeholder="(action == 'edit' || isEditName) ? 'Edit filename' : 'Add filename'" v-model="fileName"
+          v-if="action == 'add' || isEditName" />
+        <button v-if="action == 'edit'" class="btn flex items-center mr-2 mb-3" @click="editName">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="mr-2 bi bi-pen-fill"
+            viewBox="0 0 16 16">
+            <path
+              d="m13.498.795.149-.149a1.207 1.207 0 1 1 1.707 1.708l-.149.148a1.5 1.5 0 0 1-.059 2.059L4.854 14.854a.5.5 0 0 1-.233.131l-4 1a.5.5 0 0 1-.606-.606l1-4a.5.5 0 0 1 .131-.232l9.642-9.642a.5.5 0 0 0-.642.056L6.854 4.854a.5.5 0 1 1-.708-.708L9.44.854A1.5 1.5 0 0 1 11.5.796a1.5 1.5 0 0 1 1.998-.001z" />
+          </svg>
+          Edit name
+        </button>
+        <button class="btn rounded-lg px-5 py-2.5 text-center mr-2 mb-3 flex items-center" @click="saveToDatabase">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+            class="mr-2 bi bi-file-earmark-arrow-up-fill" viewBox="0 0 16 16">
+            <path
+              d="M9.293 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V4.707A1 1 0 0 0 13.707 4L10 .293A1 1 0 0 0 9.293 0zM9.5 3.5v-2l3 3h-2a1 1 0 0 1-1-1zM6.354 9.854a.5.5 0 0 1-.708-.708l2-2a.5.5 0 0 1 .708 0l2 2a.5.5 0 0 1-.708.708L8.5 8.707V12.5a.5.5 0 0 1-1 0V8.707L6.354 9.854z" />
+          </svg>
+          Save File
+        </button>
+        <button class="btn flex items-center" @click="newFile">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="mr-2 bi bi-plus-lg"
+            viewBox="0 0 16 16">
+            <path fill-rule="evenodd"
+              d="M8 2a.5.5 0 0 1 .5.5v5h5a.5.5 0 0 1 0 1h-5v5a.5.5 0 0 1-1 0v-5h-5a.5.5 0 0 1 0-1h5v-5A.5.5 0 0 1 8 2Z" />
+          </svg>
+          New file
+        </button>
+        <button v-if="action == 'edit'" class="btn ml-2 flex items-center" @click="deleteFile">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="mr-2 bi bi-trash-fill"
+            viewBox="0 0 16 16">
+            <path
+              d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1H2.5zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5zM8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5zm3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0z" />
+          </svg>
+          delete
+        </button>
       </div>
-      <button id="deletebtn" class="ml-2 mb-4" @click="deleteFile"> <img class="rounded-md "
-          style="width: 50px; height: 38px;" title="Delete" @click="EditName" src="../assets/delete.png" alt=""> </button>
     </div>
     <div class="flex flex-row w-full h-full">
       <div className="flex flex-col gap-2 w-[200px] mx-auto mr-3 h-full">
         <label>
-          <input id="input-file" class="text-sm cursor-pointer w-36 hidden" type="file" @input="ImportDoc"
-            accept=".doc, .docx">
-          <div class="btn w-full rounded-lg px-5 py-2.5 text-center mr-2 mb-2 cursor-pointer">
-            Open docx file</div>
+          <input class="text-sm cursor-pointer w-36 hidden" type="file" @input="importDocument" accept=".doc, .docx">
+          <div class="btn w-full mr-2 mb-2 cursor-pointer flex items-center justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+              class="mr-2 bi bi-cloud-arrow-up-fill" viewBox="0 0 16 16">
+              <path
+                d="M8 2a5.53 5.53 0 0 0-3.594 1.342c-.766.66-1.321 1.52-1.464 2.383C1.266 6.095 0 7.555 0 9.318 0 11.366 1.708 13 3.781 13h8.906C14.502 13 16 11.57 16 9.773c0-1.636-1.242-2.969-2.834-3.194C12.923 3.999 10.69 2 8 2zm2.354 5.146a.5.5 0 0 1-.708.708L8.5 6.707V10.5a.5.5 0 0 1-1 0V6.707L6.354 7.854a.5.5 0 1 1-.708-.708l2-2a.5.5 0 0 1 .708 0l2 2z" />
+            </svg>
+            Open docx file
+          </div>
         </label>
-        <button class="btn mr-3 w-full " @click="downloadPdf">Generate pdf</button>
+        <button class="btn mr-3 w-full flex items-center justify-center" @click="downloadPdf">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+            class="mr-2 bi bi-cloud-arrow-down-fill" viewBox="0 0 16 16">
+            <path
+              d="M8 2a5.53 5.53 0 0 0-3.594 1.342c-.766.66-1.321 1.52-1.464 2.383C1.266 6.095 0 7.555 0 9.318 0 11.366 1.708 13 3.781 13h8.906C14.502 13 16 11.57 16 9.773c0-1.636-1.242-2.969-2.834-3.194C12.923 3.999 10.69 2 8 2zm2.354 6.854-2 2a.5.5 0 0 1-.708 0l-2-2a.5.5 0 1 1 .708-.708L7.5 9.293V5.5a.5.5 0 0 1 1 0v3.793l1.146-1.147a.5.5 0 0 1 .708.708z" />
+          </svg>
+          Generate pdf
+        </button>
         <h2 className="border-b-4 p-2 border-primary-dark text-center font-bold text-black-700  ">Node Excel</h2>
 
         <div class="file_upload p-1 relative border-4 border-dotted border-primary-dark rounded-lg"
@@ -48,19 +83,18 @@
         <div class="mt-2 flex flex-col h-full" v-if="columns.length > 0">
           <h3 class="text-center ml-1 text-black-500 font-bold mb-3">Headers :</h3>
           <div id="sidebar" class="flex flex-col overflow-auto h-[300px]">
-            <div class="" v-for="column in columns">
-              <div class="customEmbed" dragabble="true" @drop="onDrop">{{ column }}</div>
+            <div class="relative header cursor-pointer pointer-events-none text-center font-semibold mb-1"
+              dragabble="true" @drop="onDrop" v-for="column in columns">
+              {{ '{' + column + '}' }}
             </div>
           </div>
         </div>
-      </div> 
+      </div>
       <div class="flex flex-col w-full h-full">
         <div id="editor" ref="editor">
         </div>
       </div>
     </div>
-
-
   </div>
 </template>
 
@@ -68,15 +102,16 @@
 import * as XLSX from 'xlsx'
 import Quill from 'quill'
 import 'quill/dist/quill.snow.css'
-import quillCss from 'quill/dist/quill.snow.css'
+import quillCSS from 'quill/dist/quill.snow.css'
 import ResizeModule from "@ssumo/quill-resize-module"
 import beautify from 'js-beautify'
 import mammoth from 'mammoth-style/mammoth.browser.js'
 import Swal from 'sweetalert2'
-import { Fragment } from 'vue';
-
 import { ipcRenderer } from 'electron';
-const Embed = Quill.import('blots/embed')
+
+
+// Quil configuration
+const Embed = Quill.import('blots/embed');
 Quill.register(class extends Embed {
   static create(key) {
     let node = super.create()
@@ -93,7 +128,7 @@ Quill.register(class extends Embed {
   static className = 'customEmbed'
   static tagName = 'span'
 
-})
+});
 Quill.register("modules/resize", ResizeModule);
 
 export default {
@@ -102,31 +137,23 @@ export default {
   data() {
     return {
       editor: null as Quill,
-      selectedOption: "",
+      selectedOption: '',
       files: [],
-      fileName: "",
+      fileName: '',
       columns: [] as string[],
       selectedColumn: '',
       selectedColumnValues: [] as any[],
       dataRows: [] as any[],
       workbook: null,
       worksheet: null,
-      test: false
+      isEditName: false,
+      action: 'add'
     }
   },
   mounted() {
-
-    const dbtn = document.querySelector('button#deletebtn');
-    (dbtn as HTMLSelectElement).style.display = 'none';
-    const btn = document.querySelector('button#filebtn');
-    //(btn as HTMLSelectElement).style.display = 'none';
-    const input = document.querySelector('input#file_n');
-    (input as HTMLSelectElement).style.display = 'block';
-
     var toolbarOptions = [
       ['bold', 'italic', 'underline', 'strike'],        // toggled buttons
       ['image', 'blockquote', 'code-block'],
-
       [{ 'header': 1 }, { 'header': 2 }],               // custom button values
       [{ 'list': 'ordered' }, { 'list': 'bullet' }],
       [{ 'script': 'sub' }, { 'script': 'super' }],      // superscript/subscript
@@ -134,7 +161,6 @@ export default {
       [{ 'direction': 'rtl' }],
       [{ 'size': ['small', false, 'large', 'huge'] }],                        // text direction
       [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
-
       [{ 'color': [] }, { 'background': [] }],          // dropdown with defaults from theme
       [{ 'font': [] }],
       [{ 'align': [] }],
@@ -156,8 +182,8 @@ export default {
       },
 
     })
-    this.editor.root.innerHTML = ""
-    document.getElementById('sidebar')?.querySelectorAll('.customEmbed')
+    this.editor.root.innerHTML = ''
+    document.getElementById('sidebar')?.querySelectorAll('.header')
       .forEach((e: any) => {
         e.setAttribute('draggable', 'true')
         e.ondragstart = (ev: any) => {
@@ -168,14 +194,12 @@ export default {
         e.ondragend = ev => {
           var data = ev.dataTransfer.getData("text/html");
           var index = this.editor.getSelection(true).index;
-          this.editor.insertEmbed(index, 'customEmbed', data)
-
+          this.editor.insertEmbed(index, 'customEmbed', data);
         }
-      })
+      });
   },
   methods: {
     deleteFile() {
-
       Swal.fire({
         title: 'Are you sure?',
         text: "You won't be able to revert this!",
@@ -188,41 +212,44 @@ export default {
         reverseButtons: true
       }).then((result) => {
         if (result.isConfirmed) {
-          Swal.fire(
-            'Deleted!',
-            'Your file has been deleted.',
-            'success'
-          )
-          this.fileName = ""
-          ipcRenderer.invoke('deleteQuillFile', { name: this.selectedOption });
-          this.newFile();
-        } else if (
-          result.dismiss === Swal.DismissReason.cancel
-        ) {
+          this.fileName = ''
+          ipcRenderer.invoke('deleteQuillFile', { name: this.selectedOption })
+            .then(() => {
+              Swal.fire(
+                'Deleted!',
+                'Your file has been deleted.',
+                'success'
+              );
+              this.newFile();
+            })
+            .catch(() => {
+              Swal.fire(
+                'Error!',
+                'Something wrong.',
+                'error'
+              );
+              this.newFile();
+            });
+        } 
+        else if (result.dismiss === Swal.DismissReason.cancel) {
           Swal.fire(
             'Cancelled',
             'Your imaginary file is safe :)',
             'error'
-          )
+          );
         }
       })
 
     },
     newFile() {
-      this.editor.root.innerHTML = ""
-      this.selectedOption = ""
-      const dbtn = document.querySelector('button#deletebtn');
-      (dbtn as HTMLSelectElement).style.display = 'none';
-      const btn = document.querySelector('button#filebtn');
-      (btn as HTMLSelectElement).style.display = 'none';
-      const input = document.querySelector('input#file_n');
-      (input as HTMLSelectElement).value = "";
-      (input as HTMLSelectElement).style.display = 'block';
+      this.action = 'add';
+      this.editor.root.innerHTML = '';
+      this.selectedOption = '';
+      this.fileName = '';
+      this.isEditName = false;
     },
-    EditName() {
-      const input = document.querySelector('input#file_n');
-      (input as HTMLSelectElement).style.display = 'block';
-      this.test = true;
+    editName() {
+      this.isEditName = true;
     },
     loadExcelFile(event) {
       const file = event.target.files[0];
@@ -257,7 +284,7 @@ export default {
       };
       reader.readAsBinaryString(file);
     },
-    async ImportDoc(event: Event) {
+    async importDocument(event: Event) {
       const file = (event.target as HTMLInputElement).files?.[0];
       if (!file) {
         return;
@@ -299,66 +326,56 @@ export default {
             }
           }
         }
-
         parties.push(partie);
       }
       var htmleditor = parties.join('');
       console.log(htmleditor)
       var name = this.selectedOption
-      var html = '<html><head><style> div { page-break-before: auto; max-height:3000px;}' + quillCss + '</style></head><body><div class="ql-editor">' + htmleditor + '</div></body></html>'
+      var html = '<html><head><style> div { page-break-before: auto; max-height:3000px;}' + quillCSS + '</style></head><body><div class="ql-editor">' + htmleditor + '</div></body></html>'
       var pdf = require('hm-html-pdf');
       var options = { format: 'A4' };
       pdf.create(html, options).toFile('src/assets/pdfs/' + name + '.pdf', function (err, res) {
         if (err) return console.log(err);
         console.log(res);
       });
-    }
-    ,
+    },
     async saveToDatabase() {
-      const btn = document.querySelector('button#filebtn');
-      const input = document.querySelector('input#file_n');
-      const dbtn = document.querySelector
-        ('button#deletebtn');
-      if ((input as HTMLSelectElement).value && this.test === false) {
-        if (this.fileName.length === 0) {
-          Swal.fire('Empty Name', 'The field cannot be left empty, please input a name.', 'error')
-        }
-        else {
-          var exist = await ipcRenderer.invoke('checkFileNameExists', { name: this.fileName })
-          if (exist) {
-            Swal.fire('Duplicate Name', 'The name already exists in the database, please choose a different name.', 'error');
+      if (this.fileName) {
+        if (this.isEditName) {
+          if (this.fileName.length === 0) {
+            Swal.fire('Empty Name', 'The field cannot be left empty, please input a name.', 'error')
           }
           else {
-
-            ipcRenderer.invoke('insertQuillcontent', { name: this.fileName, data: this.editor.root.innerHTML })
-              .catch((error) => {
-                console.error(`Error insert: ${error}`);
-              });
-            this.toastmessage()
-            this.selectedOption = this.fileName;
-            (dbtn as HTMLSelectElement).style.display = 'block';
-            (btn as HTMLSelectElement).style.display = 'block';
-            (input as HTMLSelectElement).style.display = 'none';
+            var exist = await ipcRenderer.invoke('checkFileNameExists', { name: this.fileName })
+            if (exist) {
+              Swal.fire('Duplicate Name', 'The name already exists in the database, please choose a different name.', 'error');
+            }
+            else {
+              ipcRenderer.invoke('updateQuillFileName', { oldName: this.selectedOption, newName: this.fileName });
+              this.selectedOption = this.fileName;
+              this.isEditName = false;
+              this.showSucess();
+            }
           }
-        }
-      }
-      else if ((input as HTMLSelectElement).value && this.test === true) {
-        if (this.fileName.length === 0) {
-          Swal.fire('Empty Name', 'The field cannot be left empty, please input a name.', 'error')
         }
         else {
-          var exist = await ipcRenderer.invoke('checkFileNameExists', { name: this.fileName })
-          if (exist) {
-            Swal.fire('Duplicate Name', 'The name already exists in the database, please choose a different name.', 'error');
+          if (this.fileName.length === 0) {
+            Swal.fire('Empty Name', 'The field cannot be left empty, please input a name.', 'error')
           }
           else {
-
-            (input as HTMLSelectElement).value = ""
-            ipcRenderer.invoke('updateQuillFileName', { oldName: this.selectedOption, newName: this.fileName });
-            this.selectedOption = this.fileName;
-            this.test = false;
-            (input as HTMLSelectElement).style.display = 'none';
-            this.toastmessage()
+            var exist = await ipcRenderer.invoke('checkFileNameExists', { name: this.fileName })
+            if (exist) {
+              Swal.fire('Duplicate Name', 'The name already exists in the database, please choose a different name.', 'error');
+            }
+            else {
+              ipcRenderer.invoke('insertQuillcontent', { name: this.fileName, data: this.editor.root.innerHTML })
+                .catch((error) => {
+                  console.error(`Error insert: ${error}`);
+                });
+              this.showSucess();
+              this.selectedOption = this.fileName;
+              this.action = 'edit';
+            }
           }
         }
       }
@@ -367,14 +384,12 @@ export default {
           Swal.fire('Empty Name', 'The field cannot be left empty, please input a name.', 'error')
         }
         else {
-
           ipcRenderer.invoke('updateContentFile', { name: this.selectedOption, data: this.editor.root.innerHTML });
-          this.toastmessage()
+          this.showSucess();
         }
       }
-
     },
-    toastmessage() {
+    showSucess() {
       Swal.fire({
         toast: true,
         icon: 'success',
@@ -388,29 +403,23 @@ export default {
     onDrop(event) {
       this.editor.setSelection(0);
 
-    }
-    ,
+    },
     async loadNameFiles() {
       const response = await ipcRenderer.invoke('getQuillContentName');
       this.files = response;
 
     },
-    async onchangeSelect() {
-      const input = document.querySelector('input#file_n');
-      (input as HTMLSelectElement).style.display = 'none';
-      const btn = document.querySelector('button#filebtn');
-      (btn as HTMLSelectElement).style.display = 'block';
-      const dbtn = document.querySelector('button#deletebtn');
-      (dbtn as HTMLSelectElement).style.display = 'block';
+    async onChangeFile() {
       const selectedFile = this.selectedOption;
       const response = await ipcRenderer.invoke('getQuillContentData', { name: selectedFile });
-      this.fileName = "";
+      this.fileName = '';
       this.editor.root.innerHTML = response;
+      this.action = 'edit';
     }
-
   },
 }
 </script>
+
 <style scoped>
 .node {
   @apply text-white bg-primary-light hover:bg-primary-dark font-bold rounded-lg text-sm px-1 py-3 text-center mr-4 ml-4 mb-2;
