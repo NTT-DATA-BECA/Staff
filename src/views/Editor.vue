@@ -234,7 +234,7 @@ export default {
         else if (result.dismiss === Swal.DismissReason.cancel) {
           Swal.fire(
             'Cancelled',
-            'Your imaginary file is safe :)',
+            'Your file is safe :)',
             'error'
           );
         }

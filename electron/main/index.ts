@@ -235,11 +235,30 @@ async function createWindow() {
       } else {
         return false;
       }
+    } catch (error) {+
+      console.error(error);
+      return false;
+    }
+  }); 
+  
+  ipcMain.handle('checkFlowNameExists', async (event, arg) => {
+    try {
+      const row = await new Promise((resolve, reject) => {
+        db.get(`SELECT * FROM flow WHERE name = ?`, [arg.name], (err, row) => {
+          if (err) reject(err);
+          resolve(row);
+        });
+      });
+      if (row) {
+        return true;
+      } else {
+        return false;
+      }
     } catch (error) {
       console.error(error);
       return false;
     }
-  });  
+  }); 
 
   ipcMain.handle('getQuillContentName', async (event, arg) => {
     return await new Promise((resolve, reject) => {
