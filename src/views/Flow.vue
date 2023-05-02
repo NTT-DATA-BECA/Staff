@@ -1,19 +1,36 @@
 <template>
     <div className="h-full w-full flex flex-col p-4">
-        <div class="flex justify-between">
-            <v-select v-model="selectedOption" :options="programs" label="name"
-                class="h-9 text-primary-dark rounded w-60 mr-3" @click="() => loadJsonFiles()"
-                @option:selected="onchangeSelect()"></v-select>
-            <div className="flex justify-end mb-3 text-gray-100">
+        <div class="flex justify-between mb-3 text-gray-100">
+            <v-select v-model="selectedOption" :options="programs" label="name" class="h-9 text-primary-dark rounded w-60 mr-3" 
+               @click="() => loadJsonFiles()" @option:selected="onchangeSelect()">
+            </v-select>
+            <div className="flex justify-end text-gray-100">
                 <input id="program-name" className="input mr-2" placeholder="Add program name"
                     @input="addProgramName($event)" v-model="nodeProgramName" />
-                <button id="new-flow-button" className="btn mr-3 w-28" @click="createNewFlow()">
+                <button id="new-flow-button" className="btn mr-3 flex items-center" @click="createNewFlow()">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="mr-2 bi bi-plus-lg"
+                        viewBox="0 0 16 16">
+                        <path fill-rule="evenodd"
+                        d="M8 2a.5.5 0 0 1 .5.5v5h5a.5.5 0 0 1 0 1h-5v5a.5.5 0 0 1-1 0v-5h-5a.5.5 0 0 1 0-1h5v-5A.5.5 0 0 1 8 2Z" />
+                    </svg>
                     New Flow
                 </button>
-                <button className="btn  mr-3 w-28" @click="insertJSONFile(nodeProgramName); nodeProgramName = ''">
-                    Save
+                <button className="btn  mr-3 flex items-center" @click="insertJSONFile(nodeProgramName); nodeProgramName = ''">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                        class="mr-2 bi bi-file-earmark-arrow-up-fill" viewBox="0 0 16 16">
+                        <path
+                        d="M9.293 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V4.707A1 1 0 0 0 13.707 4L10 .293A1 1 0 0 0 9.293 0zM9.5 3.5v-2l3 3h-2a1 1 0 0 1-1-1zM6.354 9.854a.5.5 0 0 1-.708-.708l2-2a.5.5 0 0 1 .708 0l2 2a.5.5 0 0 1-.708.708L8.5 8.707V12.5a.5.5 0 0 1-1 0V8.707L6.354 9.854z" />
+                    </svg>
+                    Save Flow
                 </button>
-                <button className="btn bg-red-400 hover:bg-red-300 w-28 " @click=" delprograme(); ">Delete</button>
+                <button className="btn flex items-center" @click=" delprograme(); ">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="mr-2 bi bi-trash-fill"
+                        viewBox="0 0 16 16">
+                        <path
+                        d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1H2.5zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5zM8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5zm3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0z" />
+                    </svg>
+                    Delete
+                </button>
             </div>
         </div>
         <div class="flex flex-row w-full h-full">
@@ -97,6 +114,7 @@ export default {
                 theme: 'colored',
                 position: toast.POSITION.BOTTOM_LEFT,
             });
+        
         }
 
         var selectedOption: any = shallowRef(null);
@@ -160,7 +178,7 @@ export default {
         }
 
         async function insertJSONFile(nodeProgramName: string) {
-            const inputp = document.querySelector('label#prog-name');
+            const inputp = document.querySelector('#prog-name');
             const input = document.querySelector('input#program-name');
             const editorState = editor.value.export();
             const jsonString = JSON.stringify(editorState);
@@ -170,7 +188,6 @@ export default {
                 if (nodeProgramName.length === 0 && selectedOption.value === null) {
                     Swal.fire('Empty Name', 'The field cannot be left empty, please input a name.', 'error')
                 } else {
-                    console.log("updateJsonFile");
                     const namen = (inputp as HTMLSelectElement).innerText
                     try {
                         await ipcRenderer.invoke('updateJsonFile', { name: namen, data: jsonString });
@@ -248,7 +265,7 @@ export default {
                         'Deleted!',
                         'Your file has been deleted.',
                         'success'
-                    )
+                    );
                 } else if (
                     result.dismiss === Swal.DismissReason.cancel
                 ) {
@@ -270,6 +287,7 @@ export default {
             (btn as HTMLSelectElement).style.display = 'block';
             (programNameInput as HTMLSelectElement).value = selectedFile;
             (inputp as HTMLSelectElement).innerText = selectedFile;
+            (inputp as HTMLSelectElement).value = selectedFile;
             const divv = document.querySelector('div#ring');
             (divv as HTMLSelectElement).style.display = 'block';
             const response = await ipcRenderer.invoke('getJsonFile', { name: selectedFile });
