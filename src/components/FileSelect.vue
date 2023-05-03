@@ -45,7 +45,10 @@ export default {
     close() {
       this.$emit('close');
     },
-    confirm() { }
+    confirm() {
+      this.$emit('select', this.selectedOption);
+      this.close();
+     }
   },
 };
 </script>
