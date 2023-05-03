@@ -45,10 +45,15 @@ export default {
     close() {
       this.$emit('close');
     },
-    confirm() {
-      this.$emit('select', this.selectedOption);
-      this.close();
-     }
+    async confirm() {
+      try {
+        const data = await ipcRenderer.invoke('getQuillContentData', { name: this.selectedOption });
+        this.$emit('select', this.selectedOption);
+        this.close();
+      } catch (error) {
+        console.error(error);
+      }
+    },
   },
 };
 </script>
