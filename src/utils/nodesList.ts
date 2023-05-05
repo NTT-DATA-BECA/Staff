@@ -29,7 +29,7 @@ export const nodesList = readonly([
     },
     {
         name: "GeneratePdf",
-        item: "generatepdf",
+        item: "Generatepdf",
         input: 1,
         output: 1,
     },

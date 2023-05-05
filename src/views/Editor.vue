@@ -230,7 +230,7 @@ export default {
               );
               this.newFile();
             });
-        } 
+        }
         else if (result.dismiss === Swal.DismissReason.cancel) {
           Swal.fire(
             'Cancelled',
@@ -313,7 +313,6 @@ export default {
           partie = '<div>' + partie + '</div>';
         } else {
           var indexBaliseFermante = partie.lastIndexOf('>');
-          console.log("indexBaliseFermante " + indexBaliseFermante)
           if (indexBaliseFermante !== -1) {
             if (!partie.includes('<img')) {
               if (partie.includes('<')) {
@@ -329,7 +328,6 @@ export default {
         parties.push(partie);
       }
       var htmleditor = parties.join('');
-      console.log(htmleditor)
       var name = this.selectedOption
       var html = '<html><head><style> div { page-break-before: auto; max-height:3000px;}' + quillCSS + '</style></head><body><div class="ql-editor">' + htmleditor + '</div></body></html>'
       var pdf = require('hm-html-pdf');
