@@ -15,7 +15,7 @@
                     New Flow
                 </button>
                 <button className="btn mr-2 flex items-center"
-                    @click="insertJSONFile(nodeProgramName); nodeProgramName = ''">
+                    @click="addEditFlow(nodeProgramName); nodeProgramName = ''">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
                         class="mr-2 bi bi-file-earmark-arrow-up-fill" viewBox="0 0 16 16">
                         <path
@@ -246,7 +246,7 @@ export default {
             const response = await ipcRenderer.invoke('getJsonFiles');
             this.programs = response;
         },
-        async insertJSONFile(nodeProgramName: string) {
+        async addEditFlow(nodeProgramName: string) {
             var exist = await ipcRenderer.invoke('checkFileNameExists', { name: nodeProgramName })
             const editorState = this.editor.value.export();
             const jsonString = JSON.stringify(editorState);
@@ -368,7 +368,8 @@ export default {
                         }
                     }
                 };
-                this.editor.value.export();
+                // this.editor.value.export();
+                this.editor.value.import(ob);
                 this.editor.value.import(ob);
             }
         },

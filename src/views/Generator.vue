@@ -129,37 +129,37 @@ export default {
             return variableName
         },
         async downloadPdf(htmlforpdf: any) {
-            var longueurMax = 5400;
-            var contenu = htmlforpdf;
-            var parties: string[] = [];
-            while (contenu.length > 0) {
-                var partie = contenu.substring(0, longueurMax);
-                if (!partie.includes('<img')) {
-                    longueurMax = 6300
-                    partie = contenu.substring(0, longueurMax);
-                }
-                contenu = contenu.substring(longueurMax);
-                if (partie.endsWith('>') && contenu.length > 5299) {
-                    partie = '<div>' + partie + '</div>';
-                } else {
-                    var indexBaliseFermante = partie.lastIndexOf('>');
-                    if (indexBaliseFermante !== -1) {
-                        if (!partie.includes('<img')) {
-                            if (partie.includes('<')) {
-                                var contenuAvant = partie.substring(0, indexBaliseFermante + 1);
-                                var contenuApres = partie.substring(indexBaliseFermante + 1);
-                                if ((contenuApres.substring(partie.lastIndexOf('<') + 1) + contenuAvant) > 5399)
-                                    contenuApres = contenuApres.substring(0, partie.lastIndexOf('<') + 1) + '<div>' + contenuApres.substring(partie.lastIndexOf('<') + 1)
-                                partie = contenuAvant + '</div>' + contenuApres;
-                            }
-                        }
-                    }
-                }
-                parties.push(partie);
-            }
-            var htmleditor = parties.join('');
+            // var longueurMax = 5400;
+            // var contenu = htmlforpdf;
+            // var parties: string[] = [];
+            // while (contenu.length > 0) {
+            //     var partie = contenu.substring(0, longueurMax);
+            //     if (!partie.includes('<img')) {
+            //         longueurMax = 6300
+            //         partie = contenu.substring(0, longueurMax);
+            //     }
+            //     contenu = contenu.substring(longueurMax);
+            //     if (partie.endsWith('>') && contenu.length > 5299) {
+            //         partie = '<div>' + partie + '</div>';
+            //     } else {
+            //         var indexBaliseFermante = partie.lastIndexOf('>');
+            //         if (indexBaliseFermante !== -1) {
+            //             if (!partie.includes('<img')) {
+            //                 if (partie.includes('<')) {
+            //                     var contenuAvant = partie.substring(0, indexBaliseFermante + 1);
+            //                     var contenuApres = partie.substring(indexBaliseFermante + 1);
+            //                     if ((contenuApres.substring(partie.lastIndexOf('<') + 1) + contenuAvant) > 5399)
+            //                         contenuApres = contenuApres.substring(0, partie.lastIndexOf('<') + 1) + '<div>' + contenuApres.substring(partie.lastIndexOf('<') + 1)
+            //                     partie = contenuAvant + '</div>' + contenuApres;
+            //                 }
+            //             }
+            //         }
+            //     }
+            //     parties.push(partie);
+            // }
+            // var htmleditor = parties.join('');
             var name = this.selectedOption
-            var html = '<html><head><style> div { page-break-before: auto; max-height:3000px;}' + quillCSS + '</style></head><body><div class="ql-editor">' + htmleditor + '</div></body></html>'
+            var html = '<html><head><style> div { page-break-before: auto; max-height:3000px;}' + quillCSS + '</style></head><body><div class="ql-editor">' + htmlforpdf + '</div></body></html>'
             var pdf = require('hm-html-pdf');
             var options = { format: 'A4' };
             pdf.create(html, options).toFile('src/assets/pdfs/' + name + '.pdf', function (err, res) {
