@@ -1,30 +1,33 @@
 <template>
-       <div class="input_field flex flex-col w-max mx-auto text-center">
-  <label id="node-title">
-    <input for="myinputf" class="text-sm cursor-pointer w-36 hidden" type="file" @change="loadExcelFile" df-myinputf/>
-    <div class="text-white bg-blue font-bold rounded-lg text-sm px-2 py-2 text-center">
-      {{ fileName || 'Import Excel' }}</div>
-  </label>
-</div>
-
+  <div class="input_field flex flex-col w-max mx-auto text-center">
+    <label id="node-title">
+      <input class="text-sm cursor-pointer w-36 hidden" type="file" @change="loadExcelFile" df-mytemplate/>
+      <div class="text-white bg-blue font-bold rounded-lg text-sm px-2 py-2 text-center">
+        {{ fileName || 'Import Excel' }}
+      </div>
+    </label>
+  </div>
 </template>
-<script lang="ts"> 
+
+<script lang="ts">
 import * as XLSX from 'xlsx';
-    export default {
-        name: 'ImportCsv',
-        data() {
+import * as fs from 'fs';
+import * as path from 'path';
+import ExcelJS from 'exceljs';
+
+export default {
+  name: 'ImportCsv',
+  data() {
     return {
-      fileName:null,
+      fileName: '',
       columns: [] as string[],
       selectedColumn: '',
       dataRows: [] as any[],
-      workbook: null,
-      worksheet: null,
     };
   },
   methods: {
     loadExcelFile(event) {
-    this.fileName = event.target.files[0].name;
+      this.fileName = event.target.files[0].name;
       const file = event.target.files[0];
       const reader = new FileReader();
       reader.onload = (e) => {
@@ -54,8 +57,16 @@ import * as XLSX from 'xlsx';
         }
         this.columns = columns;
         this.dataRows = dataRows;
+
+        // Convert data to JSON format
+        const jsonData = JSON.stringify(dataRows, null, 2);
+
+        // Save JSON data to file
+        const outputFile = path.join('C:\\uploads\\', `${this.fileName}`);
+        fs.writeFileSync(outputFile, jsonData);
       };
       reader.readAsBinaryString(file);
-    }}    
-    }
+    },
+  },
+};
 </script>

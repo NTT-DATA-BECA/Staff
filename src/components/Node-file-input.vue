@@ -1,7 +1,7 @@
 <template>
   <div>
-    <button @click="allowSelect" id="node-title" class="pl-4 text-white text-sm">{{ selectedFile || 'Choose a Template' }}</button>
-    <FileSelect class="w-full" v-show="isModalVisible" @close="closeModal" @select="onFileSelect"/>
+    <button  @click="allowSelect" id="node-title" class="pl-4 text-white text-sm" >{{ selectedFile || 'Choose a Template' }}</button>
+    <FileSelect for="myfileselect" class="w-full" v-show="isModalVisible" @close="closeModal" @select="onFileSelect" df-myfileselect />
   </div>
 </template>
   

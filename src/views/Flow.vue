@@ -1,11 +1,11 @@
 <template>
     <div className="h-full w-full flex flex-col p-4">
         <div class="flex justify-between">
-            <v-select v-model="selectedOption"  label="name" class="h-9 text-primary-dark rounded w-60 mr-3" 
+            <v-select v-model="selectedOption" label="name" class="h-9 text-primary-dark rounded w-60 mr-3"
                 @click="() => loadJsonFiles()" :options="programs" @option:selected="onChangeFile()"></v-select>
             <div className="flex justify-end mb-3 text-gray-100">
-                <input v-if="action == 'add' || isEditName" id="program-name" className="input mr-2"
-                    placeholder="Add program name" @input="addProgramName($event)" v-model="nodeProgramName" />
+                <input v-if="action == 'add' || isEditName" className="input mr-2" placeholder="Add program name"
+                    @input="addProgramName($event)" v-model="nodeProgramName" />
                 <button className="btn mr-2 flex items-center" @click="createNewFlow()">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
                         class="mr-2 bi bi-plus-lg" viewBox="0 0 16 16">
@@ -15,7 +15,7 @@
                     New Flow
                 </button>
                 <button className="btn mr-2 flex items-center"
-                    @click="insertJSONFile(nodeProgramName); nodeProgramName = ''">
+                    @click="addEditFlow(nodeProgramName); nodeProgramName = ''">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
                         class="mr-2 bi bi-file-earmark-arrow-up-fill" viewBox="0 0 16 16">
                         <path
@@ -23,7 +23,7 @@
                     </svg>
                     Save Flow
                 </button>
-                <button className="btn flex items-center" @click=" delprograme(); ">
+                <button className="btn flex items-center" @click=" delprograme();">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
                         class="mr-2 bi bi-trash-fill" viewBox="0 0 16 16">
                         <path
@@ -36,18 +36,18 @@
         <div class="flex flex-row w-full h-full">
             <div className="flex flex-col gap-2 w-[200px] mx-auto mr-3">
                 <h4 className="border-b-4 p-2 text-center font-bold text-slate-500">Node Types</h4>
-                <div class="nodes-list" draggable="true" v-for="          i           in           nodesList          "
-                    :key=" i.name " :node-item=" i.item " @dragstart=" drag($event) ">
+                <div class="nodes-list" draggable="true" v-for="i in nodesList " :key="i.name" :node-item="i.item"
+                    @dragstart=" drag($event)">
                     <span class="node"><img className="m-1" src="../assets/product-request-line-item-svgrepo-com.svg"
                             style="width: 20px; height: 20px;" alt="" srcset=""> {{ i.name }}</span>
                 </div>
             </div>
             <div class="drawflow-container border border-slate-400 rounded w-full h-full relative">
-                <div id="drawflow" @drop=" drop($event) " @dragover=" allowDrop($event) ">
-                    <div id="ring">
-                        <div v-if=" action != 'add' " class="flex bg-primary-light w-fit text-white p-2 justify-center"
+                <div id="drawflow" @drop=" drop($event)" @dragover=" allowDrop($event)">
+                    <div>
+                        <div v-if="action != 'add'" class="flex bg-primary-light w-fit text-white p-2 justify-center"
                             style="border-bottom-right-radius: 7px;">
-                            <button id="btnn" @click=" showinput() " class="mx-2">
+                            <button @click=" showinput()" class="mx-2">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="30" fill="currentColor"
                                     class="bi bi-pencil-square" viewBox="0 0 16 16">
                                     <path
@@ -57,12 +57,12 @@
                                 </svg>
                             </button>
                             <pre class="mr-1 my-0 p-0 flex items-center">{{ flowName }}</pre>
-                            
+
                         </div>
                     </div>
                 </div>
                 <a className="absolute m-2 right-0 top-0 cursor-pointer text-primary-dark hover:text-primary-light"
-                    @click=" cleanEditor() " title="Press to clear">
+                    @click=" cleanEditor()" title="Press to clear">
                     <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" fill="currentColor"
                         class="bi bi-arrow-clockwise" viewBox="0 0 16 16">
                         <path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z" />
@@ -121,12 +121,78 @@ export default {
         this.editor.value = new Drawflow(id, { version: 3, h, render }, internalInstance.appContext.app._context);
         this.editor.value.start();
 
-
         this.editor.value.registerNode("ImportCsv", ImportCsv, {}, {});
         this.editor.value.registerNode("file-input", NodeFileInput, {}, {});
         this.editor.value.registerNode("start", NodeStart, {}, {});
         this.editor.value.registerNode("end", NodeEnd, {}, {});
-        this.editor.value.registerNode("generatepdf", NodeGeneratePdf, {}, {});
+        this.editor.value.registerNode("Generatepdf", NodeGeneratePdf, {}, {});
+
+
+        let mytemplate = ""
+        let csv = ""
+        const updateNodeOperation = (output_class: any, outputTemplate: any, outputCsv: any, inputNodeData: any) => {
+            if (output_class == "input_1") {
+                mytemplate = outputTemplate;
+                csv = outputCsv;
+            }
+            const input_id = inputNodeData.id;
+            this.editor.value.updateNodeDataFromId(input_id, { mytemplate: mytemplate, csv: csv });
+        }
+
+        this.editor.value.on("nodeDataChanged", (data: any) => {
+            const nodeData = this.editor.value.getNodeFromId(data);
+
+            const outputNode = nodeData.outputs.output_1.connections;
+            if (outputNode.length > 0) {
+                const outputTemplate = nodeData.data.mytemplate;
+                const outputCsv = nodeData.data.csv;
+                const output_class = nodeData.outputs.output_1.connections[0].output;
+                const inputNodeId = nodeData.outputs.output_1.connections[0].node;
+                const inputNodeData = this.editor.value.getNodeFromId(inputNodeId);
+                const inputNodeName = inputNodeData.name;
+                updateNodeOperation(output_class, outputTemplate, outputCsv, inputNodeData)
+
+
+
+            }
+
+        });
+
+        this.editor.value.on("connectionCreated", (data: any) => {
+            const outputData = this.editor.value.getNodeFromId(data.output_id);
+            const outputTemplate = outputData.data.mytemplate;
+            const outputCsv = outputData.data.csv;
+            const output_class = data.input_class;
+            const inputNodeData = this.editor.value.getNodeFromId(data.input_id);
+            const inputNodeName = inputNodeData.name;
+
+            updateNodeOperation(output_class, outputTemplate, outputCsv, inputNodeData)
+            outputData.data.mytemplate = inputNodeData.data.mytemplate;
+            outputData.data.csv = inputNodeData.data.csv;
+
+
+
+        });
+
+        this.editor.value.on("import", () => {
+            const editorData = this.editor.value.export().drawflow.Home.data;
+
+            Object.keys(editorData).forEach(function (i) {
+                mytemplate = editorData[i].data.mytemplate;
+                csv = editorData[i].data.csv;
+            });
+
+        });
+
+        this.editor.value.on("nodeRemoved", () => {
+            const editorData = this.editor.value.export().drawflow.Home.data;
+            Object.keys(editorData).forEach((i) => {
+                const input_id = editorData[i].id;
+                this.editor.value.updateNodeDataFromId(input_id, { mytemplate: mytemplate, csv: csv });
+            });
+        });
+
+
     },
     methods: {
         notify(message) {
@@ -171,7 +237,7 @@ export default {
             pos_y = pos_y * (this.editor.value.precanvas.clientHeight / (this.editor.value.precanvas.clientHeight * this.editor.value.zoom)) - (this.editor.value.precanvas.getBoundingClientRect().y
                 * (this.editor.value.precanvas.clientHeight / (this.editor.value.precanvas.clientHeight * this.editor.value.zoom)));
             const nodeSelected: any = nodesList.find(object => object.item === name);
-            this.editor.value.addNode(name, nodeSelected.input, nodeSelected.output, pos_x, pos_y, name, { number: 0, num1: 0, num2: 0 }, name, "vue");
+            this.editor.value.addNode(name, nodeSelected.input, nodeSelected.output, pos_x, pos_y, name, { mytemplate: "", csv: "" }, name, "vue");
         },
         addProgramName(event: any) {
             this.programName = event.target.value;
@@ -180,7 +246,7 @@ export default {
             const response = await ipcRenderer.invoke('getJsonFiles');
             this.programs = response;
         },
-        async insertJSONFile(nodeProgramName: string) {
+        async addEditFlow(nodeProgramName: string) {
             var exist = await ipcRenderer.invoke('checkFileNameExists', { name: nodeProgramName })
             const editorState = this.editor.value.export();
             const jsonString = JSON.stringify(editorState);
@@ -302,19 +368,10 @@ export default {
                         }
                     }
                 };
-                this.editor.value.export();
+                // this.editor.value.export();
+                this.editor.value.import(ob);
                 this.editor.value.import(ob);
             }
-        },
-        searchStart() {
-            const editorData = this.editor.value.export().drawflow.Home.data;
-            let variableName = "";
-            Object.keys(editorData).forEach(function (i) {
-                if (editorData[i].name === "Start") {
-                    variableName = editorData[i].data.variable;
-                }
-            });
-            return variableName
         },
         cleanEditor() {
             this.editor.value.clear();

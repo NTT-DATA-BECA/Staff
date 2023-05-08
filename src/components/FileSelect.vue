@@ -8,7 +8,7 @@
         </button>
       </header>
       <section class="modal-body">
-          <v-select style="color:#2d495c;" v-model="selectedOption" :options="files" class="w-72" />
+          <v-select for="myfileselect" style="color:#2d495c;" v-model="selectedOption" :options="files" class="w-72" df-myfileselect/>
       </section>
       <footer class="modal-footer">
 
