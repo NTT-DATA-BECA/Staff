@@ -3,7 +3,7 @@
         <div class="flex items-center flex-end mb-2">
             <v-select v-model="selectedOption" label="name" class="h-9 text-primary-dark rounded w-60 mr-3"
                 @click="() => loadJsonFiles()" :options="programs" @option:selected="onChangeFile()"></v-select>
-            <button class="btn" @click="() => generate()">Generate</button>
+            <button class="btn" @click="() => generateFlow()">Generate</button>
             <input id="program-name" className="hidden input mr-2" placeholder="Add program name"
                 @input="addProgramName($event)" v-model="nodeProgramName" />
         </div>
@@ -117,6 +117,13 @@ export default {
         cleanEditor() {
             this.editor.value.clear();
         },
+        generateFlow(){
+          var idNode=this.getStartId();
+          console.log(idNode)
+          if(idNode) {
+          var dataNode = this.editor.value.getNodeFromId(idNode)
+          console.log(dataNode)}
+        },
         searchNodeGeneratepdf() {
             const editorData = this.editor.value.export().drawflow.Home.data;
             let variableName = "";
@@ -126,6 +133,16 @@ export default {
                 }
             });
             return variableName
+        },
+        getStartId() {
+            const editorData = this.editor.value.export().drawflow.Home.data;
+            let idStart = "";
+            Object.keys(editorData).forEach(function (i) {
+                if (editorData[i].name === "start") {
+                    idStart = editorData[i].data.id;
+                }
+            });
+            return idStart
         },
         async downloadPdf(htmlforpdf: any) {
             var name = this.selectedOption
@@ -138,8 +155,6 @@ export default {
             });
         },
         async generate() {
-
-
             if (this.searchNodeGeneratepdf().length != 0) {
                 const response = await ipcRenderer.invoke('getQuillContentData', { name: this.searchNodeGeneratepdf() });
                 this.downloadPdf(response)
