@@ -8,7 +8,7 @@
         </button>
       </header>
       <section class="modal-body">
-          <v-select style="color:#2d495c;" v-model="selectedOption" :options="files" class="w-72" />
+          <v-select for="myfileselect" style="color:#2d495c;" v-model="selectedOption" :options="files" class="w-72" df-myfileselect/>
       </section>
       <footer class="modal-footer">
 
@@ -45,7 +45,15 @@ export default {
     close() {
       this.$emit('close');
     },
-    confirm() { }
+    async confirm() {
+      try {
+        const data = await ipcRenderer.invoke('getQuillContentData', { name: this.selectedOption });
+        this.$emit('select', this.selectedOption);
+        this.close();
+      } catch (error) {
+        console.error(error);
+      }
+    },
   },
 };
 </script>

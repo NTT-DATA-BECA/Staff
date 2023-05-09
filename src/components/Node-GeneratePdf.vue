@@ -1,6 +1,6 @@
 <template>
   <div>
-    <input for="myinput" class="text-black ml-4 w-28 align-middle" v-model="fileN" type="text" df-myinput>
+    <input class="text-black ml-4 w-28 align-middle" v-model="fileN" type="text" df-mytemplate>
   </div>
 </template>
 <script lang="ts">
