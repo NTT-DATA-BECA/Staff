@@ -1,121 +1,66 @@
 <template>
-  <div class="modal-backdrop">
-    <div class="modal">
-      <header class="modal-header">
-          Editor template
-        <button type="button" class="btn-close" @click="close">
-          x
-        </button>
-      </header>
-      <section class="modal-body">
-          <v-select style="color:#2d495c;" v-model="selectedOption" :options="files" class="w-72" />
-      </section>
-      <footer class="modal-footer">
-
-        <button type="button" class="btn-blue" @click="confirm">
-          Choose
-        </button>
-      </footer>
-    </div>
+  <div ref="el">
+      <nodeHeader  title="Get/Post"/>
+      <el-select v-model="mytemplate" placeholder="Select" @change="updateSelect" size="small" df-mytemplate>
+      <el-option
+      v-for="item in options"
+      :key="item.value"
+      :label="item.label"
+      :value="item.value"
+      >
+      </el-option>
+  </el-select>
+  <br><br>
+      <el-input v-model="mytemplate" df-mytemplate placeholder="Please input" size="small">
+      <template #prepend>https://</template>
+      </el-input>
   </div>
 </template>
-<script lang="ts">
-import { ref } from 'vue'
-import { ipcRenderer } from 'electron';
-export default {
-  name: 'Modal',
+
+<script>
+import { defineComponent, onMounted, getCurrentInstance, readonly, ref, nextTick } from 'vue'
+
+
+export default defineComponent({
   setup() {
+      const el = ref(null);
+      const nodeId = ref(0);
+      let df = null
+      const mytemplate = ref('get');
+      const dataNode = ref({});
+      const options = readonly([
+          {
+              value: 'get',
+              label: 'GET'
+          },
+          {
+              value: 'post',
+              label: 'POST'
+          }
+      ]);
+      
+      df = getCurrentInstance().appContext.config.globalProperties.$df.value;
 
-    const files = ref([]);
-    const selectedOption = ref("");
-    const loadFiles = async () => {
-      const response = await ipcRenderer.invoke('getQuillContentName');
-      files.value = response;
+      const updateSelect = (value) => {
+          dataNode.value.data.mytemplate = value;
+          df.updateNodeDataFromId(nodeId.value, dataNode.value);
+      }
+      
+      
+      onMounted(async () => {
+          await nextTick()
+          nodeId.value = el.value.parentElement.parentElement.id.slice(5)
+          dataNode.value = df.getNodeFromId(nodeId.value)
+          
+          
+          mytemplate.value = dataNode.value.data.mytemplate;
+      });
+      
+      return {
+          el,  mytemplate, options, updateSelect
+      }
 
-    };
-
-    loadFiles();
-
-    return {
-      files,
-      selectedOption,
-    };
-  },
-  methods: {
-    close() {
-      this.$emit('close');
-    },
-    confirm() { }
-  },
-};
+  }    
+  
+})
 </script>
-<style>
-.modal-body .vs__clear{
-  margin-bottom: 10px;
-}
-.modal-body .vs__open-indicator{
-  display: none;
-}
-.modal-backdrop {
-  position: fixed;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.modal {
-  background: #6484c4;
-  box-shadow: 2px 2px 20px 1px;
-  overflow-x: auto;
-  display: flex;
-  flex-direction: column;
-}
-
-.modal-header,
-.modal-footer {
-  padding: 15px;
-  display: flex;
-}
-
-.modal-header {
-  position: relative;
-  border-bottom: 1px solid #eeeeee;
-  color: white;
-  justify-content: center;
-}
-
-.modal-footer {
-  border-top: 1px solid #eeeeee;
-  flex-direction: column;
-  justify-content: flex-end;
-}
-
-.modal-body {
-  position: relative;
-  padding: 20px 10px;
-}
-
-.btn-close {
-  position: absolute;
-  top: 0;
-  right: 0;
-  border: none;
-  font-size: 20px;
-  padding: 10px;
-  cursor: pointer;
-  font-weight: bold;
-  color: #2d495c;
-  background: transparent;
-}
-
-.btn-blue {
-  color: white;
-  background: #2d495c;
-  border: 1px solid #6484c4;
-  border-radius: 2px;
-}
-</style>
