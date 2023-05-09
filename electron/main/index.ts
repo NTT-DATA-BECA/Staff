@@ -6,6 +6,10 @@ import { app, BrowserWindow, shell, ipcMain, MenuItem, Menu } from 'electron'
 const sqlite3 = require('sqlite3').verbose();
 import { release } from 'os'
 import { join } from 'path'
+import { promisify } from 'util';
+import * as fs from 'fs';
+
+
 
 // Disable GPU Acceleration for Windows 7
 if (release().startsWith('6.1')) app.disableHardwareAcceleration()
@@ -260,6 +264,7 @@ async function createWindow() {
     }
   }); 
 
+
   ipcMain.handle('getQuillContentName', async (event, arg) => {
     return await new Promise((resolve, reject) => {
       db.all(`SELECT name FROM files`, [], (err, rows) => {
@@ -267,7 +272,24 @@ async function createWindow() {
         resolve(rows.map(row => row.name))
       })
     })
-  })
+  });
+  // ipcMain.handle('uploadFile', async (event, arg) => {
+  //   try {
+  //     const file = arg.file;
+  //     const filePath = join(process.env.UPLOADS, file.name);
+  //     const fileData = file.data;
+  
+  //     // Write the file to disk
+  //     await promisify(fs.writeFile)(filePath, fileData);
+  
+  //     // Return the file path to the renderer process
+  //     return filePath;
+  //   } catch (error) {
+  //     console.error(error);
+  //     return null;
+  //   }
+  // });
+  
   
 }  
   
