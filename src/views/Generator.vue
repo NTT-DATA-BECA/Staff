@@ -35,6 +35,8 @@
 <script lang="ts">
 import { h, getCurrentInstance, render } from 'vue'
 import Drawflow from 'drawflow'
+import Swal from 'sweetalert2'
+import {SweetAlertIcon} from 'sweetalert2'
 import ImportCsv from '../components/ImportCsv.vue'
 import NodeFileInput from '../components/Node-file-input.vue'
 import NodeStart from '../components/Node-start.vue'
@@ -117,19 +119,56 @@ export default {
         cleanEditor() {
             this.editor.value.clear();
         },
-        generateFlow(){
-          var idNode=this.getStartId();
-          console.log(idNode)
+       async generateFlow(){
+          var idNode=parseFloat(this.getStartId());
+          this.searchNodeEnd();
           if(idNode) {
           var dataNode = this.editor.value.getNodeFromId(idNode)
-          console.log(dataNode)}
+          var nameNode=dataNode.name;
+          var startoutputs=0;  
+         while(dataNode.outputs.output_1.connections[startoutputs]){
+            console.log("entred");
+            idNode = parseFloat(dataNode.outputs.output_1.connections[startoutputs].node)
+            dataNode = this.editor.value.getNodeFromId(idNode)
+            nameNode=dataNode.name;
+            startoutputs=startoutputs+1;
+            console.log(" startoutputs++ "+ startoutputs)
+          while(nameNode!="end") {
+             if(nameNode=="Generatepdf") {
+                const response = await ipcRenderer.invoke('getQuillContentData', { name: dataNode.data.mytemplate });
+                if(response){
+                this.downloadPdf(response) 
+                this.showSucess()
+                 }     
+                else {
+                this.modalMessage('Error!','Something wrong.','error') 
+                }
+             }
+            console.log("Hello I'm "+nameNode+" Node")
+            idNode = parseFloat(dataNode.outputs.output_1.connections[0].node)
+            dataNode = this.editor.value.getNodeFromId(idNode)
+            nameNode=dataNode.name;
+          }}
+          }
+        },
+        searchNodeEnd() {
+            const editorData = this.editor.value.export().drawflow.Home.data;
+            let idEnd = "";
+            Object.keys(editorData).forEach(function (i) {
+                if (editorData[i].name === "end") {
+                    idEnd = editorData[i].id;
+                }
+            });
+            if(!idEnd) {
+              this.modalMessage('Error!','To generate the flow, include at least one End node.','error')
+              }
         },
         searchNodeGeneratepdf() {
             const editorData = this.editor.value.export().drawflow.Home.data;
             let variableName = "";
             Object.keys(editorData).forEach(function (i) {
                 if (editorData[i].name === "Generatepdf") {
-                    variableName = editorData[i].data.mytemplate;
+                    variableName = editorData[i].mytemplate;
                 }
             });
             return variableName
@@ -137,11 +176,19 @@ export default {
         getStartId() {
             const editorData = this.editor.value.export().drawflow.Home.data;
             let idStart = "";
+            var numStart=0;
             Object.keys(editorData).forEach(function (i) {
                 if (editorData[i].name === "start") {
-                    idStart = editorData[i].data.id;
+                    numStart++;
+                    idStart = editorData[i].id;
                 }
             });
+              if(!idStart) {
+              this.modalMessage('Error!','To generate the flow, include Start node.','error')
+              }
+              if(numStart > 1) { 
+              this.modalMessage('Error!','Include just one Start node.','error')
+              }
             return idStart
         },
         async downloadPdf(htmlforpdf: any) {
@@ -151,15 +198,29 @@ export default {
             var options = { format: 'A4' };
             pdf.create(html, options).toFile('src/assets/pdfs/' + name + '.pdf', function (err, res) {
                 if (err) return console.log(err);
-                console.log(res);
+                //console.log(res);
             });
         },
-        async generate() {
-            if (this.searchNodeGeneratepdf().length != 0) {
-                const response = await ipcRenderer.invoke('getQuillContentData', { name: this.searchNodeGeneratepdf() });
-                this.downloadPdf(response)
-            }
+    showSucess() {
+      Swal.fire({
+        toast: true,
+        icon: 'success',
+        title: 'Your flow has been successfully generated!',
+        position: 'bottom-left',
+        timer: 2000,
+        showConfirmButton: false,
+        timerProgressBar: true,
+      })
+    } ,
+
+        modalMessage(title:string,type:string, message:SweetAlertIcon){
+            Swal.fire(
+                title,
+                type,
+                message
+              );
         }
+
 
     }
 }
