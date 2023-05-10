@@ -299,15 +299,16 @@ export default {
       this.editor.root.innerHTML = this.editor.root.innerHTML + html;
     },
     async downloadPdf() {
-     
-      
+
+
       var contenu = this.editor.root.innerHTML;
-      
+
       var name = this.selectedOption
       var html = '<html><head><style> footer{position: fixed;bottom: 0;} .ql-editor{margin:0px;} div { page-break-before: auto; max-height:3000px;}' + quillCSS + '</style></head><body><div class="ql-editor">' + contenu + '</div> <footer style="padding-top: 100px;"><div style="border-top: 2px solid gray; font-size :15px; text-align:center; color:gray;"><p>NTT DATA Morocco Centers – SARL au capital de 7.700.000 Dhs – Parc Technologique de Tétouanshore, Route de Cabo Negro, Martil – Maroc – RC: 19687 – IF : 15294847 – CNSS : 4639532 – Taxe Prof. :51840121</p></div></footer> </body></html>'
       var pdf = require('hm-html-pdf');
-      var options = { format: 'A4',
-    };
+      var options = {
+        format: 'A4',
+      };
       pdf.create(html, options).toFile('src/assets/pdfs/' + name + '.pdf', function (err, res) {
         if (err) return console.log(err);
         console.log(res);

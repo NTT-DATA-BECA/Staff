@@ -36,7 +36,7 @@
 import { h, getCurrentInstance, render } from 'vue'
 import Drawflow from 'drawflow'
 import Swal from 'sweetalert2'
-import {SweetAlertIcon} from 'sweetalert2'
+import { SweetAlertIcon } from 'sweetalert2'
 import ImportCsv from '../components/ImportCsv.vue'
 import NodeFileInput from '../components/Node-file-input.vue'
 import NodeStart from '../components/Node-start.vue'
@@ -119,37 +119,39 @@ export default {
         cleanEditor() {
             this.editor.value.clear();
         },
-       async generateFlow(){
-          var idNode=parseFloat(this.getStartId());
-          this.searchNodeEnd();
-          if(idNode) {
-          var dataNode = this.editor.value.getNodeFromId(idNode)
-          var nameNode=dataNode.name;
-          var startoutputs=0;  
-         while(dataNode.outputs.output_1.connections[startoutputs]){
-            console.log("entred");
-            idNode = parseFloat(dataNode.outputs.output_1.connections[startoutputs].node)
-            dataNode = this.editor.value.getNodeFromId(idNode)
-            nameNode=dataNode.name;
-            startoutputs=startoutputs+1;
-            console.log(" startoutputs++ "+ startoutputs)
-          while(nameNode!="end") {
-             if(nameNode=="Generatepdf") {
-                const response = await ipcRenderer.invoke('getQuillContentData', { name: dataNode.data.mytemplate });
-                if(response){
-                this.downloadPdf(response) 
-                this.showSucess()
-                 }     
-                else {
-                this.modalMessage('Error!','Something wrong.','error') 
+        async generateFlow() {
+            var idNode = parseFloat(this.getStartId());
+            this.searchNodeEnd();
+            if (idNode) {
+                var dataNode = this.editor.value.getNodeFromId(idNode)
+                var dataNodeStart = this.editor.value.getNodeFromId(idNode)
+                var nameNode = dataNode.name;
+                var startoutputs = 0;
+                while (dataNodeStart.outputs?.output_1?.connections[startoutputs]) {
+                    console.log("entred");
+                    idNode = parseFloat(dataNodeStart.outputs.output_1.connections[startoutputs].node)
+                    dataNode = this.editor.value.getNodeFromId(idNode)
+                    nameNode = dataNode.name;
+                    startoutputs = startoutputs + 1;
+                    console.log(" startoutputs++ " + startoutputs)
+                    while (nameNode != "end") {
+                        if (nameNode == "Generatepdf") {
+                            const response = await ipcRenderer.invoke('getQuillContentData', { name: dataNode.data.mytemplate });
+                            if (response) {
+                                this.downloadPdf(response, dataNode.data.mytemplate)
+                                this.showSucess()
+                            }
+                            else {
+                                this.modalMessage('Error!', 'Something wrong.', 'error')
+                            }
+                        }
+                        console.log("Hello I'm " + nameNode + " Node")
+                        idNode = parseFloat(dataNode.outputs.output_1.connections[0].node)
+                        dataNode = this.editor.value.getNodeFromId(idNode)
+                        nameNode = dataNode.name;
+                    }
                 }
-             }
-            console.log("Hello I'm "+nameNode+" Node")
-            idNode = parseFloat(dataNode.outputs.output_1.connections[0].node)
-            dataNode = this.editor.value.getNodeFromId(idNode)
-            nameNode=dataNode.name;
-          }}
-          }
+            }
         },
         searchNodeEnd() {
             const editorData = this.editor.value.export().drawflow.Home.data;
@@ -159,9 +161,9 @@ export default {
                     idEnd = editorData[i].id;
                 }
             });
-            if(!idEnd) {
-              this.modalMessage('Error!','To generate the flow, include at least one End node.','error')
-              }
+            if (!idEnd) {
+                this.modalMessage('Error!', 'To generate the flow, include at least one End node.', 'error')
+            }
         },
         searchNodeGeneratepdf() {
             const editorData = this.editor.value.export().drawflow.Home.data;
@@ -176,24 +178,24 @@ export default {
         getStartId() {
             const editorData = this.editor.value.export().drawflow.Home.data;
             let idStart = "";
-            var numStart=0;
+            var numStart = 0;
             Object.keys(editorData).forEach(function (i) {
                 if (editorData[i].name === "start") {
                     numStart++;
                     idStart = editorData[i].id;
                 }
             });
-              if(!idStart) {
-              this.modalMessage('Error!','To generate the flow, include Start node.','error')
-              }
-              if(numStart > 1) { 
-              this.modalMessage('Error!','Include just one Start node.','error')
-              }
+            if (!idStart) {
+                this.modalMessage('Error!', 'To generate the flow, include Start node.', 'error')
+            }
+            if (numStart > 1) {
+                this.modalMessage('Error!', 'Include just one Start node.', 'error')
+            }
             return idStart
         },
-        async downloadPdf(htmlforpdf: any) {
-            var name = this.selectedOption
-            var html = '<html><head><style> div { page-break-before: auto; max-height:3000px;}' + quillCSS + '</style></head><body><div class="ql-editor">' + htmlforpdf + '</div></body></html>'
+        async downloadPdf(htmlforpdf: any, namefile: any) {
+            var name = this.selectedOption + "-" + namefile
+            var html = '<html><head><style> footer{position: fixed;bottom: 0;} .ql-editor{margin:0px;} div { page-break-before: auto; max-height:3000px;}' + quillCSS + '</style></head><body><div class="ql-editor">' + htmlforpdf + ' <footer style="padding-top: 100px;"><div style="border-top: 2px solid gray; font-size :15px; text-align:center; color:gray;"><p>NTT DATA Morocco Centers – SARL au capital de 7.700.000 Dhs – Parc Technologique de Tétouanshore, Route de Cabo Negro, Martil – Maroc – RC: 19687 – IF : 15294847 – CNSS : 4639532 – Taxe Prof. :51840121</p></div></footer> </div></body></html>'
             var pdf = require('hm-html-pdf');
             var options = { format: 'A4' };
             pdf.create(html, options).toFile('src/assets/pdfs/' + name + '.pdf', function (err, res) {
@@ -201,24 +203,24 @@ export default {
                 //console.log(res);
             });
         },
-    showSucess() {
-      Swal.fire({
-        toast: true,
-        icon: 'success',
-        title: 'Your flow has been successfully generated!',
-        position: 'bottom-left',
-        timer: 2000,
-        showConfirmButton: false,
-        timerProgressBar: true,
-      })
-    } ,
+        showSucess() {
+            Swal.fire({
+                toast: true,
+                icon: 'success',
+                title: 'Your flow has been successfully generated!',
+                position: 'bottom-left',
+                timer: 2000,
+                showConfirmButton: false,
+                timerProgressBar: true,
+            })
+        },
 
-        modalMessage(title:string,type:string, message:SweetAlertIcon){
+        modalMessage(title: string, type: string, message: SweetAlertIcon) {
             Swal.fire(
                 title,
                 type,
                 message
-              );
+            );
         }
 
 
