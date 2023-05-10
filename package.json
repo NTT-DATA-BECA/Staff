@@ -50,6 +50,7 @@
     "js-beautify": "^1.14.7",
     "mammoth-style": "^0.0.3",
     "mock-aws-s3": "^4.0.2",
+    "exceljs": "^4.3.0",
     "nock": "^13.3.0",
     "path": "^0.12.7",
     "phantomjs-prebuilt": "^2.1.13",
