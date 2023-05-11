@@ -18,7 +18,6 @@ export default defineComponent({
     const outputnodeId = ref(0);
     const options = ref([
     ]);
-  // important merge
     const internalInstance: any = getCurrentInstance();
     df = internalInstance.appContext.config.globalProperties.$df.value;
     async function onChangeFile() {
