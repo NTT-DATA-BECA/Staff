@@ -11,6 +11,9 @@ import * as fs from 'fs';
 
 
 
+
+
+
 // Disable GPU Acceleration for Windows 7
 if (release().startsWith('6.1')) app.disableHardwareAcceleration()
 

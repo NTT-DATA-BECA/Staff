@@ -1,246 +1,107 @@
 <template>
-  <div className="h-full w-full flex flex-col p-4">
+    <div className="h-full w-full flex flex-col p-4">
         <div class="flex items-center flex-end mb-2">
-            <v-select v-model="selectedOption" :options="flows" label="name"
-                class="h-9 text-primary-dark rounded w-60 mr-3" @click="() => loadJsonFiles()"
-                @option:selected="onchangeSelect()"></v-select>
-            <button class="btn">Generate</button>
+            <v-select v-model="selectedOption" label="name" class="h-9 text-primary-dark rounded w-60 mr-3"
+                @click="() => loadJsonFiles()" :options="programs" @option:selected="onChangeFile()"></v-select>
+            <button class="btn" @click="() => generateFlow()">Generate</button>
             <input id="program-name" className="hidden input mr-2" placeholder="Add program name"
-                    @input="addProgramName($event)" v-model="nodeProgramName" />
+                @input="addProgramName($event)" v-model="nodeProgramName" />
         </div>
         <div class="w-full h-full">
             <div class="drawflow-container border border-slate-400 rounded w-full h-full relative">
-                <div id="drawflow" class="h-full" @drop=" drop($event) " @dragover=" allowDrop($event) ">
-                    <div id="ring">
-                        <div class="bg-stone-300  ring-offset-2 ring-2 ring-blue-500 rounded-br-lg ml-0 mr-auto h-8 flex">
-                            <button id="btnn" @click=" showinput() " class="hidden pl-2"> <img class="transform hover:-rotate-12"
-                                    style="width: 0px; height: 0px;" src="../assets/editb.png" alt=""> </button>
-                            <input id="prog-name"
-                                class="hidden w-28 inline-block bg-stone-300 py-1 tracking-widest text-sm italic font-bold font-sans text-gray-800 mr-2 text-center"
-                                type="text" readonly>
+                <div id="drawflow">
+                    <div>
+                        <div v-if="action != 'add'" class="flex bg-primary-light w-fit text-white p-2 justify-center"
+                            style="border-bottom-right-radius: 7px;">
+                            <pre class="mr-1 my-0 p-0 flex items-center">{{ flowName }}</pre>
+
                         </div>
                     </div>
                 </div>
-                <a className="hidden absolute w-10 m-2 right-0 top-0" @click=" cleanEditor() " title="Press to clear">
-                    <img src="../assets/reload.png" style="width: 40px; height: 40px;">
+                <a className="absolute m-2 right-0 top-0 cursor-pointer text-primary-dark hover:text-primary-light"
+                    @click=" cleanEditor()" title="Press to clear">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" fill="currentColor"
+                        class="bi bi-arrow-clockwise" viewBox="0 0 16 16">
+                        <path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z" />
+                        <path
+                            d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z" />
+                    </svg>
                 </a>
             </div>
         </div>
-  </div>
-
+    </div>
 </template>
+
 <script lang="ts">
-import { h, getCurrentInstance, render, onMounted, shallowRef } from 'vue'
+import { h, getCurrentInstance, render } from 'vue'
 import Drawflow from 'drawflow'
+import Swal from 'sweetalert2'
+import { SweetAlertIcon } from 'sweetalert2'
 import ImportCsv from '../components/ImportCsv.vue'
 import NodeFileInput from '../components/Node-file-input.vue'
 import NodeStart from '../components/Node-start.vue'
 import NodeEnd from '../components/Node-end.vue'
 import NodeGeneratePdf from '../components/Node-GeneratePdf.vue'
-import Swal from 'sweetalert2'
-import { validationIf } from '../utils/validationIf'
-import { validationFor } from '../utils/validationFor'
-import { operationValues } from '../utils/operationValues'
 import { nodesList } from '../utils/nodesList'
 import { ipcRenderer } from 'electron';
-import { toast } from 'vue3-toastify';
+import quillCSS from 'quill/dist/quill.snow.css'
 import 'vue3-toastify/dist/index.css';
 
 export default {
     name: "DrawflowDashboard",
-
     inject: ['ipcRenderer'],
-
     data() {
         return {
-            nodeProgramName: "",
-
-
-
+            selectedOption: null as any,
+            programName: '' as string,
+            action: 'add' as string,
+            nodeProgramName: '' as string,
+            flowName: null as any,
+            programs: [] as any,
+            editor: [] as any,
+            node_select: '',
+            node_last_move: null as any,
+            nodesList: nodesList
         };
     },
-    setup() {
-        const notify = (message) => {
-            toast.success(message, {
-                autoClose: 3000,
-                theme: 'colored',
-                position: toast.POSITION.BOTTOM_LEFT,
-            });
-        }
-
-        var selectedOption: any = shallowRef(null);
-        const programName = shallowRef("");
-        const test = shallowRef(false);
-        var flows = shallowRef([]);
-        const editor: any = shallowRef({});
-        const Vue = { version: 3, h, render };
+    mounted() {
         const internalInstance: any = getCurrentInstance();
-        internalInstance.appContext.app._context.config.globalProperties.$df = editor;
+        internalInstance.appContext.app._context.config.globalProperties.$df = this.editor;
+        const id: HTMLElement = document.getElementById("drawflow") || document.createElement('div');
+        this.editor.value = new Drawflow(id, { version: 3, h, render }, internalInstance.appContext.app._context);
+        this.editor.value.start();
 
-        let node_select = "", node_last_move: any = null;
-        function touchScreenPosition(ev: any) {
-            node_last_move = ev;
+        this.editor.value.registerNode("ImportCsv", ImportCsv, {}, {});
+        this.editor.value.registerNode("file-input", NodeFileInput, {}, {});
+        this.editor.value.registerNode("start", NodeStart, {}, {});
+        this.editor.value.registerNode("end", NodeEnd, {}, {});
+        this.editor.value.registerNode("Generatepdf", NodeGeneratePdf, {}, {});
+
+    },
+    methods: {
+        touchScreenPosition(ev: any) {
+            this.node_last_move = ev;
         }
-
-        const drag = (ev: any) => {
-
-            if (ev.type === "touchstart") {
-                node_select = ev.target.closest(".nodes-list").getAttribute('node-item');
-            }
-            else {
-                ev.dataTransfer.setData("node", ev.target.getAttribute("node-item"));
-            }
-        };
-
-        const allowDrop = (ev: any) => {
-            ev.preventDefault();
-        };
-
-        const drop = (ev: any) => {
-            if (ev.type === "touchend") {
-                let clientX: number = node_last_move.touches[0].clientX;
-                let clientY: number = node_last_move.touches[0].clientY;
-                let parentdrawflow: any = document.elementFromPoint(clientX, clientY)?.closest("#drawflow");
-                if (parentdrawflow != null) {
-                    addNodeToDrawFlow(node_select, node_last_move.touches[0].clientX, node_last_move.touches[0].clientY);
-                }
-            }
-            else {
-                ev.preventDefault();
-                let data = ev.dataTransfer.getData("node");
-                addNodeToDrawFlow(data, ev.clientX, ev.clientY);
-            }
-        };
-
-        const addNodeToDrawFlow = (name: any, pos_x: any, pos_y: any) => {
-            pos_x = pos_x * (editor.value.precanvas.clientWidth / (editor.value.precanvas.clientWidth * editor.value.zoom)) - (editor.value.precanvas.getBoundingClientRect().x
-                * (editor.value.precanvas.clientWidth / (editor.value.precanvas.clientWidth * editor.value.zoom)));
-            pos_y = pos_y * (editor.value.precanvas.clientHeight / (editor.value.precanvas.clientHeight * editor.value.zoom)) - (editor.value.precanvas.getBoundingClientRect().y
-                * (editor.value.precanvas.clientHeight / (editor.value.precanvas.clientHeight * editor.value.zoom)));
+        ,
+        addNodeToDrawFlow(name: any, pos_x: any, pos_y: any) {
+            pos_x = pos_x * (this.editor.value.precanvas.clientWidth / (this.editor.value.precanvas.clientWidth * this.editor.value.zoom)) - (this.editor.value.precanvas.getBoundingClientRect().x
+                * (this.editor.value.precanvas.clientWidth / (this.editor.value.precanvas.clientWidth * this.editor.value.zoom)));
+            pos_y = pos_y * (this.editor.value.precanvas.clientHeight / (this.editor.value.precanvas.clientHeight * this.editor.value.zoom)) - (this.editor.value.precanvas.getBoundingClientRect().y
+                * (this.editor.value.precanvas.clientHeight / (this.editor.value.precanvas.clientHeight * this.editor.value.zoom)));
             const nodeSelected: any = nodesList.find(object => object.item === name);
-            editor.value.addNode(name, nodeSelected.input, nodeSelected.output, pos_x, pos_y, name, { number: 0, num1: 0, num2: 0 }, name, "vue");
-        };
-        const addProgramName = (event: any) => {
-            programName.value = event.target.value;
-        };
-        async function loadJsonFiles() {
+            this.editor.value.addNode(name, nodeSelected.input, nodeSelected.output, pos_x, pos_y, name, { mytemplate: "", csv: "" }, name, "vue");
+        },
+        addProgramName(event: any) {
+            this.programName = event.target.value;
+        },
+        async loadJsonFiles() {
             const response = await ipcRenderer.invoke('getJsonFiles');
-            flows.value = response;
-        }
-
-        async function insertJSONFile(nodeProgramName: string) {
-            const inputp = document.querySelector('input#prog-name');
-            const input = document.querySelector('input#program-name');
-            const editorState = editor.value.export();
-            const jsonString = JSON.stringify(editorState);
-            const btn = document.querySelector('button#btnn');
-            const divv = document.querySelector('div#ring');
-            if (!(input as HTMLSelectElement).value && test.value === false) {
-                if (nodeProgramName.length === 0 && selectedOption.value === null) {
-                    Swal.fire('Empty Name', 'The field cannot be left empty, please input a name.', 'error')
-                } else {
-                    console.log("updateJsonFile");
-                    const namen = (inputp as HTMLSelectElement).value
-                    try {
-                        await ipcRenderer.invoke('updateJsonFile', { name: namen, data: jsonString });
-                        notify("The modification has been completed")
-                    } catch (e) {
-                        console.error('La méthode a échoué avec l\'erreur suivante :', e);
-                    }
-                }
-            }
-            else if ((inputp as HTMLSelectElement).value && test.value === true) {
-                if (nodeProgramName.length === 0) {
-                    Swal.fire('Empty Name', 'The field cannot be left empty, please input a name.', 'error')
-                } else {
-                    console.log("updateJsonFileName");
-                    const namen = (inputp as HTMLSelectElement).value
-                    selectedOption.value = nodeProgramName;
-                    (inputp as HTMLSelectElement).value = nodeProgramName;
-                    (input as HTMLSelectElement).style.display = 'none';
-                    test.value = false;
-                    try {
-                        await ipcRenderer.invoke('updateJsonFileName', { oldName: namen, newName: nodeProgramName });
-                        notify("The modification has been completed")
-                    } catch (e) {
-                        console.error('La méthode a échoué avec l\'erreur suivante :', e);
-                    }
-                }
-
-            } else {
-                if (nodeProgramName.length === 0) {
-                    Swal.fire('Empty Name', 'The field cannot be left empty, please input a name.', 'error')
-                } else {
-                    console.log("insert");
-                    (input as HTMLSelectElement).style.display = 'none';
-                    (inputp as HTMLSelectElement).style.display = 'block';
-                    (btn as HTMLSelectElement).style.display = 'block';
-                    (divv as HTMLSelectElement).style.display = 'block';
-                    (inputp as HTMLSelectElement).value = nodeProgramName;
-                    selectedOption.value = nodeProgramName
-                    try {
-                        await ipcRenderer.invoke('insertJsonFile', { name: nodeProgramName, data: jsonString });
-                        notify("The insertion has been completed")
-                    } catch (e) {
-                        console.error('La méthode a échoué avec l\'erreur suivante :', e);
-                    }
-                }
-            }
-        }
-        async function delprograme() {
-            Swal.fire({
-                title: 'Are you sure?',
-                text: "You won't be able to revert this!",
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonText: 'Yes, delete it!',
-                cancelButtonText: 'No, cancel!',
-                confirmButtonColor: '#3085d6',
-                cancelButtonColor: '#d33',
-                reverseButtons: true
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    const inputp = document.querySelector('input#prog-name');
-                    const namp = (inputp as HTMLSelectElement).value;
-                    const programNameInput = document.querySelector('input#program-name');
-                    const btn = document.querySelector('button#btnn');
-                    selectedOption.value = null;
-                    (inputp as HTMLSelectElement).style.display = 'none';
-                    (btn as HTMLSelectElement).style.display = 'none';
-                    const divv = document.querySelector('div#ring');
-                    (divv as HTMLSelectElement).style.display = 'none';
-                    (programNameInput as HTMLSelectElement).style.display = 'block';
-                    (programNameInput as HTMLSelectElement).value = "";
-                    cleanEditor();
-                    ipcRenderer.invoke('deleteJsonFile', { name: namp });
-                    Swal.fire(
-                        'Deleted!',
-                        'Your file has been deleted.',
-                        'success'
-                    )
-                } else if (
-                    result.dismiss === Swal.DismissReason.cancel
-                ) {
-                    Swal.fire(
-                        'Cancelled',
-                        'Your imaginary file is safe :)',
-                        'error'
-                    )
-                }
-            })
-        }
-        async function onchangeSelect() {
-            const inputp = document.querySelector('input#prog-name');
-            const btn = document.querySelector('button#btnn');
-            const selectedFile = selectedOption.value;
-            const programNameInput = document.querySelector('input[placeholder="Add program name"]');
-            (programNameInput as HTMLSelectElement).style.display = 'none';
-            (inputp as HTMLSelectElement).style.display = 'block';
-            (btn as HTMLSelectElement).style.display = 'block';
-            (programNameInput as HTMLSelectElement).value = selectedFile;
-            (inputp as HTMLSelectElement).value = selectedFile;
-            const divv = document.querySelector('div#ring');
-            (divv as HTMLSelectElement).style.display = 'block';
+            this.programs = response;
+        },
+        async onChangeFile() {
+            const selectedFile = this.selectedOption;
+            this.action = "edit"
+            this.flowName = selectedFile;
             const response = await ipcRenderer.invoke('getJsonFile', { name: selectedFile });
             const jsonData = JSON.parse(response);
             if (jsonData?.drawflow) {
@@ -252,151 +113,122 @@ export default {
                         }
                     }
                 };
-                editor.value.export();
-                editor.value.import(ob);
+                this.editor.value.import(ob);
             }
-        }
-        function searchStart() {
-            const editorData = editor.value.export().drawflow.Home.data;
+        },
+        cleanEditor() {
+            this.editor.value.clear();
+        },
+        async generateFlow() {
+            var idNode = parseFloat(this.getStartId());
+            this.searchNodeEnd();
+            if (idNode) {
+                var dataNode = this.editor.value.getNodeFromId(idNode)
+                var dataNodeStart = this.editor.value.getNodeFromId(idNode)
+                var nameNode = dataNode.name;
+                var startoutputs = 0;
+                while (dataNodeStart.outputs?.output_1?.connections[startoutputs]) {
+                    console.log("entred");
+                    idNode = parseFloat(dataNodeStart.outputs.output_1.connections[startoutputs].node)
+                    dataNode = this.editor.value.getNodeFromId(idNode)
+                    nameNode = dataNode.name;
+                    startoutputs = startoutputs + 1;
+                    console.log(" startoutputs++ " + startoutputs)
+                    while (nameNode != "end") {
+                        if (nameNode == "Generatepdf") {
+                            const response = await ipcRenderer.invoke('getQuillContentData', { name: dataNode.data.mytemplate });
+                            if (response) {
+                                this.downloadPdf(response, dataNode.data.mytemplate)
+                                this.showSucess()
+                            }
+                            else {
+                                this.modalMessage('Error!', 'Something wrong.', 'error')
+                            }
+                        }
+                        console.log("Hello I'm " + nameNode + " Node")
+                        idNode = parseFloat(dataNode.outputs.output_1.connections[0].node)
+                        dataNode = this.editor.value.getNodeFromId(idNode)
+                        nameNode = dataNode.name;
+                    }
+                }
+            }
+        },
+        searchNodeEnd() {
+            const editorData = this.editor.value.export().drawflow.Home.data;
+            let idEnd = "";
+            Object.keys(editorData).forEach(function (i) {
+                if (editorData[i].name === "end") {
+                    idEnd = editorData[i].id;
+                }
+            });
+            if (!idEnd) {
+                this.modalMessage('Error!', 'To generate the flow, include at least one End node.', 'error')
+            }
+        },
+        searchNodeGeneratepdf() {
+            const editorData = this.editor.value.export().drawflow.Home.data;
             let variableName = "";
             Object.keys(editorData).forEach(function (i) {
-                if (editorData[i].name === "Start") {
-                    variableName = editorData[i].data.variable;
+                if (editorData[i].name === "Generatepdf") {
+                    variableName = editorData[i].mytemplate;
                 }
-
             });
             return variableName
-        }
-        onMounted(() => {
-            const inputp = document.querySelector('input#prog-name');
-            //(inputp as HTMLSelectElement).style.display = 'none';
-            const divv = document.querySelector('div#ring');
-            (divv as HTMLSelectElement).style.display = 'none';
-            const btn = document.querySelector('button#btnn');
-            //(btn as HTMLSelectElement).style.display = 'none';
-            var elements = document.getElementsByClassName('nodes-list');
-            for (var i = 0; i < elements.length; i++) {
-                elements[i].addEventListener('touchend', drop, false);
-                elements[i].addEventListener('touchmove', touchScreenPosition, false);
-                elements[i].addEventListener('touchstart', drag, false);
+        },
+        getStartId() {
+            const editorData = this.editor.value.export().drawflow.Home.data;
+            let idStart = "";
+            var numStart = 0;
+            Object.keys(editorData).forEach(function (i) {
+                if (editorData[i].name === "start") {
+                    numStart++;
+                    idStart = editorData[i].id;
+                }
+            });
+            if (!idStart) {
+                this.modalMessage('Error!', 'To generate the flow, include Start node.', 'error')
             }
-            const id: HTMLElement = document.getElementById("drawflow") || document.createElement('div');
-            editor.value = new Drawflow(id, Vue, internalInstance.appContext.app._context);
-            editor.value.start();
-
-
-            editor.value.registerNode("ImportCsv", ImportCsv, {}, {});
-            editor.value.registerNode("file-input", NodeFileInput, {}, {});
-            editor.value.registerNode("start", NodeStart, {}, {});
-            editor.value.registerNode("end", NodeEnd, {}, {});
-            editor.value.registerNode("generatepdf", NodeGeneratePdf, {}, {});
-
-
-        });
-        function cleanEditor() {
-            editor.value.clear();
-        }
-        async function createNewFlow() {
-            const newFlowButton = document.querySelector('#new-flow-button');
-            const programNameInput = document.querySelector('input#program-name');
-            const inputp = document.querySelector('input#prog-name');
-            const btn = document.querySelector('button#btnn');
-            const divv = document.querySelector('div#ring');
-
-            newFlowButton?.addEventListener('click', () => {
-                selectedOption.value = null;
-                (inputp as HTMLSelectElement).style.display = 'none';
-                (divv as HTMLSelectElement).style.display = 'none';
-                (btn as HTMLSelectElement).style.display = 'none';
-                (programNameInput as HTMLSelectElement).style.display = 'block';
-                (programNameInput as HTMLSelectElement).value = "";
-                cleanEditor();
+            if (numStart > 1) {
+                this.modalMessage('Error!', 'Include just one Start node.', 'error')
+            }
+            return idStart
+        },
+        async downloadPdf(htmlforpdf: any, namefile: any) {
+            var name = this.selectedOption + "-" + namefile
+            var html = '<html><head><style> footer{position: fixed;bottom: 0;} .ql-editor{margin:0px;} div { page-break-before: auto; max-height:3000px;}' + quillCSS + '</style></head><body><div class="ql-editor">' + htmlforpdf + ' <footer style="padding-top: 100px;"><div style="border-top: 2px solid gray; font-size :15px; text-align:center; color:gray;"><p>NTT DATA Morocco Centers – SARL au capital de 7.700.000 Dhs – Parc Technologique de Tétouanshore, Route de Cabo Negro, Martil – Maroc – RC: 19687 – IF : 15294847 – CNSS : 4639532 – Taxe Prof. :51840121</p></div></footer> </div></body></html>'
+            var pdf = require('hm-html-pdf');
+            var options = { format: 'A4' };
+            pdf.create(html, options).toFile('src/assets/pdfs/' + name + '.pdf', function (err, res) {
+                if (err) return console.log(err);
+                //console.log(res);
             });
-        }
-        function showinput() {
-            test.value = true;
-            const input = document.querySelector('input#program-name');
-            const Button = document.querySelector('#btnn');
-            Button?.addEventListener('click', () => {
-                (input as HTMLSelectElement).style.display = 'block';
-            });
-        }
-        return {
-            showinput,
-            onchangeSelect,
-            selectedOption,
-            flows,
-            delprograme,
-            createNewFlow,
-            loadJsonFiles,
-            nodesList,
-            drag,
-            drop,
-            searchStart,
-            allowDrop,
-            cleanEditor,
-            addProgramName,
-            insertJSONFile,
-            notify,
+        },
+        showSucess() {
+            Swal.fire({
+                toast: true,
+                icon: 'success',
+                title: 'Your flow has been successfully generated!',
+                position: 'bottom-left',
+                timer: 2000,
+                showConfirmButton: false,
+                timerProgressBar: true,
+            })
+        },
 
-        };
+        modalMessage(title: string, type: string, message: SweetAlertIcon) {
+            Swal.fire(
+                title,
+                type,
+                message
+            );
+        }
+
+
     }
 }
-// import { ipcRenderer } from 'electron';
-
-// export default {
-//   name: 'ContactUs',
-//   data() {
-//     return {
-//       selectedOption: "",
-//       flows: [],
-//       path: '',
-//     }
-//   },
-//   methods: {
-//     loadJsonFiles:async function(){
-//         const response = await ipcRenderer.invoke('getJsonFiles');
-//         this.flows = response;
-//     }
-//   },
-//   mounted(){
-//     this.loadJsonFiles();
-//   }
-  
-// }
 </script>
+
 <style scoped>
-* {
-  box-sizing: border-box;
-}
-
-.container {
-  display: block;
-  margin: auto;
-  text-align: center;
-  border-radius: 5px;
-  background-color: #f2f2f2;
-  padding: 20px;
-  width: 50%;
-}
-
-label {
-  float: left;
-}
-
-input[type=text],
-[type=email],
-textarea {
-  width: 100%;
-  padding: 12px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  box-sizing: border-box;
-  margin-top: 6px;
-  margin-bottom: 16px;
-  resize: vertical;
-}
-
 .node {
     @apply bg-primary-light border border-collapse text-white p-3 rounded w-full cursor-pointer sm:text-sm flex hover:bg-primary-dark hover:border hover:border-gray-800;
 }
