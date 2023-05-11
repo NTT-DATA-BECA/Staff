@@ -6,6 +6,10 @@ import { app, BrowserWindow, shell, ipcMain, MenuItem, Menu } from 'electron'
 const sqlite3 = require('sqlite3').verbose();
 import { release } from 'os'
 import { join } from 'path'
+import { promisify } from 'util';
+import * as fs from 'fs';
+
+
 
 
 
