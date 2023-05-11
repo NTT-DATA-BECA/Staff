@@ -13,7 +13,7 @@ export default defineComponent({
     const el = ref(null) as any;
     const nodeId = ref(0);
     let df = null as any;
-    const mytemplate = ref('empty');
+    const mytemplate = ref('nothing');
     const dataNode = ref({}) as any;
     const outputnodeId = ref(0);
     const options = ref([
