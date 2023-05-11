@@ -1,38 +1,36 @@
 <template>
-  <div>
-    <input class="text-black ml-4 w-28 align-middle" v-model="fileN" type="text" df-mytemplate>
+  <div ref="el">
+    <input class="text-black ml-4 w-28 align-middle" v-model="mytemplate" type="text" df-mytemplate />
   </div>
 </template>
 <script lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted, getCurrentInstance } from 'vue'
 export default {
   name: 'GeneratePdf',
 
   setup() {
-    var fileN = ref("");
+    var mytemplate = ref("");
+    const el = ref(null) as any;
+    const nodeId = ref(0);
+    let df = null as any;
+    const dataNode = ref({}) as any;
+    const internalInstance: any = getCurrentInstance();
+    df = internalInstance.appContext.config.globalProperties.$df.value;
+    onMounted(async () => {
+      nodeId.value = el.value?.parentElement.parentElement.id.slice(5)
+      if (nodeId.value) {
+        dataNode.value = df.getNodeFromId(nodeId.value)
+        mytemplate.value = dataNode.value.data.mytemplate;
+      }
+    }
+
+    );
     return {
-      fileN,
+      mytemplate,
     };
   }
 
 };
 
 </script>
-<!-- =======
-      <p id="node-title" class="text-sm">Generate PDF</p>
-      <input class="text-class w-full" type="text" v-model="inputText" />
-    </div>
-  </template>
-  
-  <script lang="ts"> 
-    export default {
-      name: 'NodeGeneratePdf',
-      data() {
-        return {
-          inputText: ''
-        }
-      }
-    }
-  </script>
-  
->>>>>>> origin/develop -->
+

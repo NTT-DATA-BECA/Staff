@@ -127,7 +127,6 @@ export default {
         this.editor.value.registerNode("end", NodeEnd, {}, {});
         this.editor.value.registerNode("Generatepdf", NodeGeneratePdf, {}, {});
 
-
         let mytemplate = ""
         let csv = ""
         const updateNodeOperation = (output_class: any, outputTemplate: any, outputCsv: any, inputNodeData: any) => {
@@ -368,9 +367,8 @@ export default {
                         }
                     }
                 };
-                // this.editor.value.export();
                 this.editor.value.import(ob);
-                this.editor.value.import(ob);
+                
             }
         },
         cleanEditor() {

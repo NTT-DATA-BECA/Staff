@@ -230,7 +230,7 @@ export default {
               );
               this.newFile();
             });
-        } 
+        }
         else if (result.dismiss === Swal.DismissReason.cancel) {
           Swal.fire(
             'Cancelled',
@@ -299,41 +299,16 @@ export default {
       this.editor.root.innerHTML = this.editor.root.innerHTML + html;
     },
     async downloadPdf() {
-      var longueurMax = 5400;
+
+
       var contenu = this.editor.root.innerHTML;
-      var parties: string[] = [];
-      while (contenu.length > 0) {
-        var partie = contenu.substring(0, longueurMax);
-        if (!partie.includes('<img')) {
-          longueurMax = 6300
-          partie = contenu.substring(0, longueurMax);
-        }
-        contenu = contenu.substring(longueurMax);
-        if (partie.endsWith('>') && contenu.length > 5299) {
-          partie = '<div>' + partie + '</div>';
-        } else {
-          var indexBaliseFermante = partie.lastIndexOf('>');
-          console.log("indexBaliseFermante " + indexBaliseFermante)
-          if (indexBaliseFermante !== -1) {
-            if (!partie.includes('<img')) {
-              if (partie.includes('<')) {
-                var contenuAvant = partie.substring(0, indexBaliseFermante + 1);
-                var contenuApres = partie.substring(indexBaliseFermante + 1);
-                if ((contenuApres.substring(partie.lastIndexOf('<') + 1) + contenuAvant) > 5399)
-                  contenuApres = contenuApres.substring(0, partie.lastIndexOf('<') + 1) + '<div>' + contenuApres.substring(partie.lastIndexOf('<') + 1)
-                partie = contenuAvant + '</div>' + contenuApres;
-              }
-            }
-          }
-        }
-        parties.push(partie);
-      }
-      var htmleditor = parties.join('');
-      console.log(htmleditor)
+
       var name = this.selectedOption
-      var html = '<html><head><style> div { page-break-before: auto; max-height:3000px;}' + quillCSS + '</style></head><body><div class="ql-editor">' + htmleditor + '</div></body></html>'
+      var html = '<html><head><style> footer{position: fixed;bottom: 0;} .ql-editor{margin:0px;} div { page-break-before: auto; max-height:3000px;}' + quillCSS + '</style></head><body><div class="ql-editor">' + contenu + '</div> <footer style="padding-top: 100px;"><div style="border-top: 2px solid gray; font-size :15px; text-align:center; color:gray;"><p>NTT DATA Morocco Centers – SARL au capital de 7.700.000 Dhs – Parc Technologique de Tétouanshore, Route de Cabo Negro, Martil – Maroc – RC: 19687 – IF : 15294847 – CNSS : 4639532 – Taxe Prof. :51840121</p></div></footer> </body></html>'
       var pdf = require('hm-html-pdf');
-      var options = { format: 'A4' };
+      var options = {
+        format: 'A4',
+      };
       pdf.create(html, options).toFile('src/assets/pdfs/' + name + '.pdf', function (err, res) {
         if (err) return console.log(err);
         console.log(res);

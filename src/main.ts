@@ -10,7 +10,6 @@ import vSelect from 'vue-select'
 
 createApp(App)
 .use(router)
-
 .component('v-select', vSelect)
 .provide('ipcRenderer', ipcRenderer)
   .mount('#app')
