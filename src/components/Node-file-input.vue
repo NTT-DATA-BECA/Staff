@@ -24,7 +24,7 @@ export default defineComponent({
       nodeId.value = el.value?.parentElement.parentElement.id.slice(5)
       dataNode.value = df.getNodeFromId(nodeId.value)
       df.updateNodeDataFromId(nodeId.value, { mytemplate: mytemplate.value, csv: "" })
-      if (dataNode.value.outputs.output_1.connections[0].node) {
+      if (dataNode.value.outputs.output_1.connections[0]?.node) {
         outputnodeId.value = parseFloat(dataNode.value.outputs.output_1.connections[0].node)
         df.updateNodeDataFromId(outputnodeId.value, { mytemplate: mytemplate.value, csv: "" })
       }
