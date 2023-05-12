@@ -1,6 +1,6 @@
 <template>
     <div>
-        <p id="node-title" className="text-sm">Start</p>
+        <p id="node-title" class="text-sm">Start</p>
     </div>
 </template>
 

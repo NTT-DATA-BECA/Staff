@@ -6,7 +6,7 @@
 }
 
 /* Drawflow */
-.drawflow .drawflow-node {
+.drawflow .drawflow-node:not(.drawflow-node.condition):not(.drawflow-node.end):not(.drawflow-node.start) {
     --tw-bg-opacity: 1;
     --tw-text-opacity: 1;
     --tw-border-opacity: 1;
@@ -16,7 +16,20 @@
     border: solid 2px rgb(113 152 206 / var(--tw-border-opacity)) !important;
     min-width: 190px !important;
 }
-
+.drawflow .drawflow-node.start{
+    background-color: #6484c4 !important;
+    border: solid 2px rgb(113 152 206 / var(--tw-border-opacity)) !important;
+    width: 90px ;
+    height: 90px;
+    border-radius: 50% !important;
+}
+.drawflow .drawflow-node.end{
+    background-color: #6484c4 !important;
+    border: solid 2px rgb(113 152 206 / var(--tw-border-opacity)) !important;
+    width: 90px ;
+    height: 90px;
+    border-radius: 50% !important;
+}
 .drawflow .drawflow-node .drawflow_content_node #node-title {
     color: #ffffff !important;
     text-align: center;
@@ -39,7 +52,7 @@
     margin-top: 14px;
     margin-bottom: 14px;
 }
-.drawflow .drawflow-node .output:hover, .drawflow .drawflow-node .input:hover {
+.drawflow .drawflow-node:not(.drawflow-node.condition) .output:hover, .drawflow .drawflow-:not(.drawflow-node.condition) .input:hover {
     background-color: #b3c4e4 !important;
     border: 2px solid #b3c4e4 !important;
 }
@@ -55,4 +68,75 @@
 }
 .mySelect .v-select .dropdown-toggle {
     border: none;
+ }
+/* condition  */
+    .drawflow .drawflow-node.condition  {
+        --tw-bg-opacity: 1;
+        --tw-text-opacity: 1;
+        --tw-border-opacity: 1;
+        border-radius: 0.75rem !important;
+        background-color: rgb(156 180 220 / var(--tw-bg-opacity)) !important;
+        color: rgb(255 255 255 / var(--tw-text-opacity)) !important;
+        border: solid 2px rgb(113 152 206 / var(--tw-border-opacity)) !important;
+    }
+  .drawflow .parent-node .drawflow-node.condition {
+    transform: rotate(45deg);
+    width: 70px;
+    height: 70px;
+  }
+  .drawflow .parent-node .drawflow-node.condition .drawflow_content_node {
+    transform: rotate(-45deg);
+  }
+  .drawflow .parent-node .drawflow-node.condition .input_1 {
+    transform: rotate(-45deg);
+    position: relative;
+    top: 30px;
+    right: 35px;
+  }
+
+  .drawflow .parent-node .drawflow-node.condition .output_1 {
+    transform: rotate(-45deg);
+    position: relative;
+    top: -5px;
+    right: 65px;
+  }
+
+  .drawflow .parent-node .drawflow-node.condition .output_2 {
+    transform: rotate(-45deg);
+    position: relative;
+    top: -40px;
+    right: 0px;
+  }
+
+  .drawflow .parent-node .drawflow-node.condition .output_3 {
+    transform: rotate(-45deg);
+    position: relative;
+    top: -5px;
+    right: 0px;
+  }
+
+  .drawflow-node.condition .outputs .output:nth-child(1):before {
+    display: block;
+    color: #2d495c;
+    content: "Bonus";
+    position: relative;
+    top: -25px;
+    right: 5px;
+  }
+ .drawflow-node.condition .outputs .output:nth-child(2):before {
+    display: block;
+    color: #2d495c;
+    content: "Augm";
+    position: relative;
+    top: -25px;
+    right: -10px;
+ }
+
+ .drawflow-node.condition .outputs .output:nth-child(3):before {
+    display: block;
+    color: #2d495c;
+    content: "Both";
+    position: relative;
+    top: 15px;
+    right: 5px;
  }

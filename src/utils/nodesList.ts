@@ -33,4 +33,10 @@ export const nodesList = readonly([
         input: 1,
         output: 1,
     },
+    {
+        name: "Condition",
+        item: "condition",
+        input: 1,
+        output: 3,
+    }
 ]);
