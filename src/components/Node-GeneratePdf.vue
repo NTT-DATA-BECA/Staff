@@ -1,6 +1,6 @@
 <template>
   <div ref="el">
-    <h2 id="node-title">Choose a path</h2>
+    <h2 id="node-title">Path</h2>
     <input v-model="mytemplate" class="text-black ml-2 w-36 align-middle" type="text" df-mytemplate/>
   </div>
 </template>
