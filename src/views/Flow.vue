@@ -84,6 +84,7 @@ import NodeStart from '../components/Node-start.vue'
 import NodeEnd from '../components/Node-end.vue'
 import NodeGeneratePdf from '../components/Node-GeneratePdf.vue'
 import NodeIf from '../components/Node-if.vue'
+import sendEmail from '../components/Node-sendEmail.vue'
 import Swal from 'sweetalert2'
 import { nodesList } from '../utils/nodesList'
 import { ipcRenderer } from 'electron';
@@ -128,6 +129,7 @@ export default {
         this.editor.value.registerNode("end", NodeEnd, {}, {});
         this.editor.value.registerNode("Generatepdf", NodeGeneratePdf, {}, {});
         this.editor.value.registerNode("condition", NodeIf, {}, {});
+        this.editor.value.registerNode("send-email", sendEmail, {}, {});
         let mytemplate = ""
         let csv = ""
         const updateNodeOperation = (output_class: any, outputTemplate: any, outputCsv: any, inputNodeData: any) => {

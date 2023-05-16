@@ -42,10 +42,12 @@ import NodeFileInput from '../components/Node-file-input.vue'
 import NodeStart from '../components/Node-start.vue'
 import NodeEnd from '../components/Node-end.vue'
 import NodeGeneratePdf from '../components/Node-GeneratePdf.vue'
+import sendEmail from '../components/Node-sendEmail.vue'
 import { nodesList } from '../utils/nodesList'
 import { ipcRenderer } from 'electron';
 import quillCSS from 'quill/dist/quill.snow.css'
 import 'vue3-toastify/dist/index.css';
+import nodemailer from 'nodemailer';
 
 export default {
     name: "DrawflowDashboard",
@@ -76,6 +78,7 @@ export default {
         this.editor.value.registerNode("start", NodeStart, {}, {});
         this.editor.value.registerNode("end", NodeEnd, {}, {});
         this.editor.value.registerNode("Generatepdf", NodeGeneratePdf, {}, {});
+        this.editor.value.registerNode("send-email", sendEmail, {}, {});
 
     },
     methods: {
@@ -127,6 +130,7 @@ export default {
                 var dataNodeStart = this.editor.value.getNodeFromId(idNode)
                 var nameNode = dataNode.name;
                 var startoutputs = 0;
+                var namefile;
                 while (dataNodeStart.outputs?.output_1?.connections[startoutputs]) {
                     console.log("entred");
                     idNode = parseFloat(dataNodeStart.outputs.output_1.connections[startoutputs].node)
@@ -138,8 +142,9 @@ export default {
                         if (nameNode == "Generatepdf") {
                             const response = await ipcRenderer.invoke('getQuillContentData', { name: dataNode.data.mytemplate });
                             if (response) {
-                                this.downloadPdf(response, dataNode.data.mytemplate)
-                                this.showSucess()
+                                const pdfPath = await this.downloadPdf(response, dataNode.data.mytemplate);
+                                this.sendEmailWithAttachment(pdfPath); // Send email with the generated PDF as attachment
+                                this.showSucess();
                             }
                             else {
                                 this.modalMessage('Error!', 'Something wrong.', 'error')
@@ -198,10 +203,37 @@ export default {
             var html = '<html><head><style> footer{position: fixed;bottom: 0;} .ql-editor{margin:0px;} div { page-break-before: auto; max-height:3000px;}' + quillCSS + '</style></head><body><div class="ql-editor">' + htmlforpdf + ' <footer style="padding-top: 100px;"><div style="border-top: 2px solid gray; font-size :15px; text-align:center; color:gray;"><p>NTT DATA Morocco Centers – SARL au capital de 7.700.000 Dhs – Parc Technologique de Tétouanshore, Route de Cabo Negro, Martil – Maroc – RC: 19687 – IF : 15294847 – CNSS : 4639532 – Taxe Prof. :51840121</p></div></footer> </div></body></html>'
             var pdf = require('hm-html-pdf');
             var options = { format: 'A4' };
-            pdf.create(html, options).toFile('src/assets/pdfs/' + name + '.pdf', function (err, res) {
-                if (err) return console.log(err);
-                //console.log(res);
+            return new Promise((resolve, reject) => {
+                pdf.create(html, options).toFile('src/assets/pdfs/' + name + '.pdf', function (err, res) {
+                if (err) {
+                    reject(err);
+                    return console.log(err);
+                }
+                resolve(res.filename);
+                });
             });
+        },
+        async sendEmailWithAttachment(pdfPath) {
+            const path = require('path');
+            const filename = path.basename(pdfPath);
+            const emailData = {
+                to: 'sanae.lmnjaoui@etu.uae.ac.ma',
+                subject: 'Test Email',
+                text: 'This is a test email sent from Electron.js!',
+                attachments: [
+                    {
+                        filename: filename, // The name you want to give to the PDF attachment
+                        path: pdfPath // Update with the correct file path
+                    }
+                ]
+        };
+        ipcRenderer.invoke('sendEmail', emailData)
+          .then(() => {
+            console.log('Email sent successfully');
+          })
+          .catch((error) => {
+            console.error('Error sending email:', error);
+          });
         },
         showSucess() {
             Swal.fire({

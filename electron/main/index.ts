@@ -6,6 +6,8 @@ import { app, BrowserWindow, shell, ipcMain, Menu } from 'electron'
 const sqlite3 = require('sqlite3').verbose();
 import { release } from 'os'
 import { join } from 'path'
+const nodemailer = require('nodemailer');
+require('dotenv').config();
 
 
 // Disable GPU Acceleration for Windows 7
@@ -36,6 +38,32 @@ async function createWindow() {
       console.error(err.message);
     }
     console.log('Connected to the database.');
+  });
+  // Create a transporter for sending emails
+  const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+      user: process.env.EMAIL,
+      pass: process.env.PASSWORD
+    }
+  });
+
+  ipcMain.handle('sendEmail', async (event, emailData) => {
+    try {
+      const mailOptions = {
+        from: process.env.EMAIL,
+        to: emailData.to,
+        subject: emailData.subject,
+        text: emailData.text,
+        attachments: emailData.attachments
+      };
+
+      await transporter.sendMail(mailOptions);
+      console.log('Email sent!');
+    } catch (error) {
+      console.error('Error sending email:', error);
+      throw error;
+    }
   });
   
   win = new BrowserWindow({
@@ -68,6 +96,7 @@ async function createWindow() {
     if (url.startsWith('https:')) shell.openExternal(url)
     return { action: 'deny' }
   })
+  
   ipcMain.handle('getJsonFiles', async (event, arg) => {
     return await new Promise((resolve, reject) => {
       db.all(`SELECT name FROM flow`, [], (err, rows) => {

@@ -38,5 +38,12 @@ export const nodesList = readonly([
         item: "condition",
         input: 1,
         output: 3,
-    }
+    },
+    {
+        name: "SendEmail",
+        item: "send-email",
+        input: 1,
+        output: 1,
+      }
+      
 ]);
