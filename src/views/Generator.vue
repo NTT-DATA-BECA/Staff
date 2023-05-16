@@ -130,98 +130,33 @@ export default {
                 var nameNode = dataNode.name;
                 var startoutputs = 0;
                 while (dataNodeStart.outputs?.output_1?.connections[startoutputs]) {
-                    console.log("entred");
                     idNode = parseFloat(dataNodeStart.outputs.output_1.connections[startoutputs].node)
                     dataNode = this.editor.value.getNodeFromId(idNode)
                     nameNode = dataNode.name;
                     startoutputs = startoutputs + 1;
-                    console.log(" startoutputs++ " + startoutputs)
                     while (nameNode != "end") {
+                        var count=0;
                         if (nameNode == "Generatepdf") {
-                            const response = await ipcRenderer.invoke('getQuillContentData', { name: dataNode.data.mytemplate });
+                            count++;
+                            const idInput= parseFloat(dataNode.inputs.input_1.connections[0].node)
+                            console.log(" dataNode.data.mytemplate "+ dataNode.data.mytemplate)
+                            if(idInput){
+                            const dataNodeinput=this.editor.value.getNodeFromId(idInput)
+                            const response = await ipcRenderer.invoke('getQuillContentData', { name: dataNodeinput.data.mytemplate });
                             if (response) {
-                                this.downloadPdf(response, dataNode.data.mytemplate)
+                                this.downloadPdf(response,count, dataNode.data.mytemplate+'/')
                                 this.showSucess()
                             }
                             else {
                                 this.modalMessage('Error!', 'Something wrong.', 'error')
-                            }
+                            }}
                         }
-                        console.log("Hello I'm " + nameNode + " Node")
                         idNode = parseFloat(dataNode.outputs.output_1.connections[0].node)
                         dataNode = this.editor.value.getNodeFromId(idNode)
                         nameNode = dataNode.name;
                     }
                 }
             }
-        },
-       async generateFlow1(){
-            var idNode = parseFloat(this.getStartId());
-            this.searchNodeEnd();
-            if (idNode) {
-                var dataNode = this.editor.value.getNodeFromId(idNode)
-                var dataNodeStart = this.editor.value.getNodeFromId(idNode)
-                var nameNode = dataNode.name;
-                var headersExcel='';
-                var dataExcel=[] as any;
-                var startoutputs = 0;
-                var operation='';
-                var inputparameter='';
-                var choose='';
-                var html=''
-                var dataAccepted =[] as any;
-                while (dataNodeStart.outputs?.output_1?.connections[startoutputs]) {
-                    idNode = parseFloat(dataNodeStart.outputs.output_1.connections[startoutputs].node)
-                    dataNode = this.editor.value.getNodeFromId(idNode)
-                    nameNode = dataNode.name;
-                    startoutputs = startoutputs + 1;
-                    while (nameNode != "end") {
-                    if(nameNode == "ImportExcel"){
-                        headersExcel=dataNode.data.headers;
-                        dataExcel=dataNode.data.variable1;
-                    }
-                    if(nameNode == "condition"){
-                        if(nameNode == "condition"){
-                        choose=headersExcel=dataNode.data.mytemplate;
-                        for (var i = 0; i < dataExcel.length; i++) {
-                            var element = dataExcel[i];
-                            if(element[choose]>0){
-                             dataAccepted.push(dataExcel[i])
-                            }
-                            }
-                          while(nameNode != "end"){
-                            idNode = parseFloat(dataNode.outputs.output_1.connections[0].node)
-                            dataNode = this.editor.value.getNodeFromId(idNode)
-                            nameNode = dataNode.name;
-                            if (nameNode == "Generatepdf") {
-                             html = await ipcRenderer.invoke('getQuillContentData', { name: dataNode.data.mytemplate });
-                            for (let key in dataAccepted) {
-                        
-                            html = html.replace(`{${key}}`, dataAccepted[key]);
-                            
-                            }
-                            if (html) {
-                                this.downloadPdf(html, dataNode.data.mytemplate)
-                                this.showSucess()
-                            }
-                            else {
-                                this.modalMessage('Error!', 'Something wrong.', 'error')
-                            }
-                        }
-                          }
-                            }
-                    }
-                    console.log("Hello I'm " + nameNode + " Node")
-                
-                        idNode = parseFloat(dataNode.outputs?.output_1?.connections[0]?.node);
-                        if(idNode){
-                        dataNode = this.editor.value.getNodeFromId(idNode);}
-                        if(nameNode != "end"){
-                        nameNode = dataNode.name;}
-                }
-                }
-             }
-
         },
         searchNodeEnd() {
             const editorData = this.editor.value.export().drawflow.Home.data;
@@ -263,12 +198,12 @@ export default {
             }
             return idStart
         },
-        async downloadPdf(htmlforpdf: any, namefile: any) {
+        async downloadPdf(htmlforpdf: any, namefile: any,path:any) {
             var name = this.selectedOption + "-" + namefile
             var html = '<html><head><style> footer{position: fixed;bottom: 0;} .ql-editor{margin:0px;} div { page-break-before: auto; max-height:3000px;}' + quillCSS + '</style></head><body><div class="ql-editor">' + htmlforpdf + ' <footer style="padding-top: 100px;"><div style="border-top: 2px solid gray; font-size :15px; text-align:center; color:gray;"><p>NTT DATA Morocco Centers – SARL au capital de 7.700.000 Dhs – Parc Technologique de Tétouanshore, Route de Cabo Negro, Martil – Maroc – RC: 19687 – IF : 15294847 – CNSS : 4639532 – Taxe Prof. :51840121</p></div></footer> </div></body></html>'
             var pdf = require('hm-html-pdf');
             var options = { format: 'A4' };
-            pdf.create(html, options).toFile('src/assets/pdfs/' + name + '.pdf', function (err, res) {
+            pdf.create(html, options).toFile(path + name + '.pdf', function (err, res) {
                 if (err) return console.log(err);
                 //console.log(res);
             });
