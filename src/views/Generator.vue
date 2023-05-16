@@ -155,6 +155,74 @@ export default {
                 }
             }
         },
+       async generateFlow1(){
+            var idNode = parseFloat(this.getStartId());
+            this.searchNodeEnd();
+            if (idNode) {
+                var dataNode = this.editor.value.getNodeFromId(idNode)
+                var dataNodeStart = this.editor.value.getNodeFromId(idNode)
+                var nameNode = dataNode.name;
+                var headersExcel='';
+                var dataExcel=[] as any;
+                var startoutputs = 0;
+                var operation='';
+                var inputparameter='';
+                var choose='';
+                var html=''
+                var dataAccepted =[] as any;
+                while (dataNodeStart.outputs?.output_1?.connections[startoutputs]) {
+                    idNode = parseFloat(dataNodeStart.outputs.output_1.connections[startoutputs].node)
+                    dataNode = this.editor.value.getNodeFromId(idNode)
+                    nameNode = dataNode.name;
+                    startoutputs = startoutputs + 1;
+                    while (nameNode != "end") {
+                    if(nameNode == "ImportExcel"){
+                        headersExcel=dataNode.data.headers;
+                        dataExcel=dataNode.data.variable1;
+                    }
+                    if(nameNode == "condition"){
+                        if(nameNode == "condition"){
+                        choose=headersExcel=dataNode.data.mytemplate;
+                        for (var i = 0; i < dataExcel.length; i++) {
+                            var element = dataExcel[i];
+                            if(element[choose]>0){
+                             dataAccepted.push(dataExcel[i])
+                            }
+                            }
+                          while(nameNode != "end"){
+                            idNode = parseFloat(dataNode.outputs.output_1.connections[0].node)
+                            dataNode = this.editor.value.getNodeFromId(idNode)
+                            nameNode = dataNode.name;
+                            if (nameNode == "Generatepdf") {
+                             html = await ipcRenderer.invoke('getQuillContentData', { name: dataNode.data.mytemplate });
+                            for (let key in dataAccepted) {
+                        
+                            html = html.replace(`{${key}}`, dataAccepted[key]);
+                            
+                            }
+                            if (html) {
+                                this.downloadPdf(html, dataNode.data.mytemplate)
+                                this.showSucess()
+                            }
+                            else {
+                                this.modalMessage('Error!', 'Something wrong.', 'error')
+                            }
+                        }
+                          }
+                            }
+                    }
+                    console.log("Hello I'm " + nameNode + " Node")
+                
+                        idNode = parseFloat(dataNode.outputs?.output_1?.connections[0]?.node);
+                        if(idNode){
+                        dataNode = this.editor.value.getNodeFromId(idNode);}
+                        if(nameNode != "end"){
+                        nameNode = dataNode.name;}
+                }
+                }
+             }
+
+        },
         searchNodeEnd() {
             const editorData = this.editor.value.export().drawflow.Home.data;
             let idEnd = "";
