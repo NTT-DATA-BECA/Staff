@@ -37,10 +37,11 @@ import { h, getCurrentInstance, render } from 'vue'
 import Drawflow from 'drawflow'
 import Swal from 'sweetalert2'
 import { SweetAlertIcon } from 'sweetalert2'
-import ImportCsv from '../components/ImportCsv.vue'
+import ImportExcel from '../components/ImportExcel.vue'
 import NodeFileInput from '../components/Node-file-input.vue'
 import NodeStart from '../components/Node-start.vue'
 import NodeEnd from '../components/Node-end.vue'
+import NodeIf from '../components/Node-if.vue'
 import NodeGeneratePdf from '../components/Node-GeneratePdf.vue'
 import { nodesList } from '../utils/nodesList'
 import { ipcRenderer } from 'electron';
@@ -71,11 +72,12 @@ export default {
         this.editor.value = new Drawflow(id, { version: 3, h, render }, internalInstance.appContext.app._context);
         this.editor.value.start();
 
-        this.editor.value.registerNode("ImportCsv", ImportCsv, {}, {});
+        this.editor.value.registerNode("ImportExcel", ImportExcel, {}, {});
         this.editor.value.registerNode("file-input", NodeFileInput, {}, {});
         this.editor.value.registerNode("start", NodeStart, {}, {});
         this.editor.value.registerNode("end", NodeEnd, {}, {});
         this.editor.value.registerNode("Generatepdf", NodeGeneratePdf, {}, {});
+        this.editor.value.registerNode("condition", NodeIf, {}, {});
 
     },
     methods: {
@@ -89,8 +91,8 @@ export default {
             pos_y = pos_y * (this.editor.value.precanvas.clientHeight / (this.editor.value.precanvas.clientHeight * this.editor.value.zoom)) - (this.editor.value.precanvas.getBoundingClientRect().y
                 * (this.editor.value.precanvas.clientHeight / (this.editor.value.precanvas.clientHeight * this.editor.value.zoom)));
             const nodeSelected: any = nodesList.find(object => object.item === name);
-            this.editor.value.addNode(name, nodeSelected.input, nodeSelected.output, pos_x, pos_y, name, { mytemplate: "", csv: "" }, name, "vue");
-        },
+            this.editor.value.addNode(name, nodeSelected.input, nodeSelected.output, pos_x, pos_y, name, { mytemplate: "", csv: "",headers:[],variable1:"",varaible2:"" }, name, "vue");
+            },
         addProgramName(event: any) {
             this.programName = event.target.value;
         },

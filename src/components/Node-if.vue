@@ -1,11 +1,62 @@
 <template>
-    <div id="node-title">
-    <h4 class="text-center" df-option>If/Else</h4>
+    <h2 id="node-title">condition</h2>
+    <div ref="el" class="-end-px w-64 text-black">
+        <select v-model="mytemplate" df-mytemplate class="w-14 text-primary-dark mr-2 h-6">
+            <option v-for="header in headersName" :key="header" :value="header">{{ header }}</option>
+        </select>
+        <select df-variable1 class="h-6">
+            <option value="-">-</option>
+            <option value="<">&lt;</option>
+            <option value=">">&gt;</option>
+            <option value="<=">&le;</option>
+            <option value=">=">&ge;</option>
+            <option value="=">&#61;</option>
+        </select>
+        <input df-variable2 v-model="variable2" class="w-10 ml-2 h-6" type="number">
     </div>
 </template>
 
 <script lang="ts">
-     export default {
-        name: 'NodeIf',
+import { getCurrentInstance, nextTick } from 'vue'
+export default {
+    name: 'NodeIf',
+    data() {
+        return {
+            el: null as any,
+            nodeId: 0,
+            dataNode: {} as any,
+            df: null as any,
+            headersName: [] as string[],
+            mytemplate: '',
+            inputnodeId: 0,
+            dataNodeInput: {} as any,
+            variable1:'',
+            variable2:0,
+        }
     }
+    ,
+    async mounted() {
+        this.el = this.$refs.el;
+        const internalInstance: any = getCurrentInstance();
+        this.df = internalInstance.appContext.config.globalProperties.$df.value;
+        await nextTick()
+        this.nodeId = this.el?.parentElement?.parentElement?.id?.slice(5);
+        if (this.nodeId) {
+            this.dataNode = this.df.getNodeFromId(this.nodeId);
+            await nextTick()
+            this.headersName = this.dataNode.data.headers;
+            this.mytemplate = this.dataNode.data.mytemplate;
+            this.variable1 = this.dataNode.data.variable1;
+            this.variable2 = this.dataNode.data.variable2;
+            
+        }
+        this.df.on('connectionCreated', (data) => {
+            const inputData = this.df.getNodeFromId(data.input_id);
+            if(inputData.name=="condition" || inputData.name=="ImportExcel") {
+            this.headersName=inputData.data.headers;
+        }
+      })
+
+    }
+}
 </script>

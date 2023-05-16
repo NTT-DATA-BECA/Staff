@@ -78,7 +78,7 @@
 <script lang="ts">
 import { h, getCurrentInstance, render } from 'vue'
 import Drawflow from 'drawflow'
-import ImportCsv from '../components/ImportCsv.vue'
+import ImportExcel from '../components/ImportExcel.vue'
 import NodeFileInput from '../components/Node-file-input.vue'
 import NodeStart from '../components/Node-start.vue'
 import NodeEnd from '../components/Node-end.vue'
@@ -122,7 +122,7 @@ export default {
         this.editor.value = new Drawflow(id, { version: 3, h, render }, internalInstance.appContext.app._context);
         this.editor.value.start();
 
-        this.editor.value.registerNode("ImportCsv", ImportCsv, {}, {});
+        this.editor.value.registerNode("ImportExcel", ImportExcel, {}, {});
         this.editor.value.registerNode("file-input", NodeFileInput, {}, {});
         this.editor.value.registerNode("start", NodeStart, {}, {});
         this.editor.value.registerNode("end", NodeEnd, {}, {});
@@ -130,13 +130,19 @@ export default {
         this.editor.value.registerNode("condition", NodeIf, {}, {});
         let mytemplate = ""
         let csv = ""
-        const updateNodeOperation = (output_class: any, outputTemplate: any, outputCsv: any, inputNodeData: any) => {
+        let variable1 = ""
+        let variable2 = ""
+        let headers = []
+        const updateNodeOperation = (output_class: any, outputTemplate: any, outputCsv: any,outputHeaders :any,outputVariable1 :any, outputVariable2 :any, inputNodeData: any) => {
             if (output_class == "input_1") {
                 mytemplate = outputTemplate;
                 csv = outputCsv;
+                headers=outputHeaders;
+                variable1=outputVariable1;
+                variable2=outputVariable2;
             }
             const input_id = inputNodeData.id;
-            this.editor.value.updateNodeDataFromId(input_id, { mytemplate: mytemplate, csv: csv });
+            this.editor.value.updateNodeDataFromId(input_id, { mytemplate: mytemplate, csv: csv,headers: headers,variable1: variable1,variable2: variable2});
         }
 
         this.editor.value.on("nodeDataChanged", (data: any) => {
@@ -146,11 +152,13 @@ export default {
             if (outputNode.length > 0) {
                 const outputTemplate = nodeData.data.mytemplate;
                 const outputCsv = nodeData.data.csv;
+                const outputHeaders = nodeData.data.headers;
+                const outputVariable1 = nodeData.data.variable1;
+                const outputVariable2 = nodeData.data.variable2;
                 const output_class = nodeData.outputs.output_1.connections[0].output;
                 const inputNodeId = nodeData.outputs.output_1.connections[0].node;
                 const inputNodeData = this.editor.value.getNodeFromId(inputNodeId);
-                const inputNodeName = inputNodeData.name;
-                updateNodeOperation(output_class, outputTemplate, outputCsv, inputNodeData)
+                updateNodeOperation(output_class, outputTemplate, outputCsv,outputHeaders,outputVariable1,outputVariable2,inputNodeData)
 
 
 
@@ -162,13 +170,16 @@ export default {
             const outputData = this.editor.value.getNodeFromId(data.output_id);
             const outputTemplate = outputData.data.mytemplate;
             const outputCsv = outputData.data.csv;
+            const outputHeaders = outputData.data.headers;
+            const outputVariable1 = outputData.data.variable1;
+            const outputVariable2 = outputData.data.variable2;
             const output_class = data.input_class;
             const inputNodeData = this.editor.value.getNodeFromId(data.input_id);
-            const inputNodeName = inputNodeData.name;
 
-            updateNodeOperation(output_class, outputTemplate, outputCsv, inputNodeData)
+            updateNodeOperation(output_class, outputTemplate, outputCsv,outputHeaders,outputVariable1,outputVariable2,inputNodeData)
             outputData.data.mytemplate = inputNodeData.data.mytemplate;
             outputData.data.csv = inputNodeData.data.csv;
+            
 
 
 
@@ -180,6 +191,10 @@ export default {
             Object.keys(editorData).forEach(function (i) {
                 mytemplate = editorData[i].data.mytemplate;
                 csv = editorData[i].data.csv;
+                headers = editorData[i].data.headers;
+                variable1 = editorData[i].data.variable1;
+                variable2 = editorData[i].data.variable2;
+
             });
 
         });
@@ -188,7 +203,7 @@ export default {
             const editorData = this.editor.value.export().drawflow.Home.data;
             Object.keys(editorData).forEach((i) => {
                 const input_id = editorData[i].id;
-                this.editor.value.updateNodeDataFromId(input_id, { mytemplate: mytemplate, csv: csv });
+                this.editor.value.updateNodeDataFromId(input_id, { mytemplate: mytemplate, csv: csv,headers:headers,variable1:variable1,variable2:variable2 });
             });
         });
 
@@ -237,7 +252,7 @@ export default {
             pos_y = pos_y * (this.editor.value.precanvas.clientHeight / (this.editor.value.precanvas.clientHeight * this.editor.value.zoom)) - (this.editor.value.precanvas.getBoundingClientRect().y
                 * (this.editor.value.precanvas.clientHeight / (this.editor.value.precanvas.clientHeight * this.editor.value.zoom)));
             const nodeSelected: any = nodesList.find(object => object.item === name);
-            this.editor.value.addNode(name, nodeSelected.input, nodeSelected.output, pos_x, pos_y, name, { mytemplate: "", csv: "" }, name, "vue");
+            this.editor.value.addNode(name, nodeSelected.input, nodeSelected.output, pos_x, pos_y, name, { mytemplate: "", csv: "",headers:[],variable1:"",varaible2:"" }, name, "vue");
         },
         addProgramName(event: any) {
             this.programName = event.target.value;

@@ -52,7 +52,7 @@
     margin-top: 14px;
     margin-bottom: 14px;
 }
-.drawflow .drawflow-node:not(.drawflow-node.condition) .output:hover, .drawflow .drawflow-:not(.drawflow-node.condition) .input:hover {
+.drawflow .drawflow-node:not(.drawflow-node.condition) .output:hover, .drawflow .drawflow-node:not(.drawflow-node.condition) .input:hover {
     background-color: #b3c4e4 !important;
     border: 2px solid #b3c4e4 !important;
 }
@@ -78,64 +78,46 @@
         background-color: rgb(156 180 220 / var(--tw-bg-opacity)) !important;
         color: rgb(255 255 255 / var(--tw-text-opacity)) !important;
         border: solid 2px rgb(113 152 206 / var(--tw-border-opacity)) !important;
+        border-left: 50% solid transparent !important;;
     }
   .drawflow .parent-node .drawflow-node.condition {
-    transform: rotate(45deg);
-    width: 70px;
-    height: 70px;
+    width: 185px;
+    height: 80px;
   }
-  .drawflow .parent-node .drawflow-node.condition .drawflow_content_node {
-    transform: rotate(-45deg);
-  }
+
   .drawflow .parent-node .drawflow-node.condition .input_1 {
     transform: rotate(-45deg);
     position: relative;
-    top: 30px;
-    right: 35px;
+    top: -4px;
+    right: 30px;
   }
 
   .drawflow .parent-node .drawflow-node.condition .output_1 {
     transform: rotate(-45deg);
     position: relative;
-    top: -5px;
-    right: 65px;
+    top: 15px;
+    right: -5px;
   }
 
   .drawflow .parent-node .drawflow-node.condition .output_2 {
     transform: rotate(-45deg);
     position: relative;
-    top: -40px;
-    right: 0px;
-  }
-
-  .drawflow .parent-node .drawflow-node.condition .output_3 {
-    transform: rotate(-45deg);
-    position: relative;
-    top: -5px;
-    right: 0px;
+    top: 20px;
+    right: 80px;
   }
 
   .drawflow-node.condition .outputs .output:nth-child(1):before {
     display: block;
     color: #2d495c;
-    content: "Bonus";
+    content: "Yes";
     position: relative;
-    top: -25px;
+    top: 15px;
     right: 5px;
   }
  .drawflow-node.condition .outputs .output:nth-child(2):before {
     display: block;
     color: #2d495c;
-    content: "Augm";
-    position: relative;
-    top: -25px;
-    right: -10px;
- }
-
- .drawflow-node.condition .outputs .output:nth-child(3):before {
-    display: block;
-    color: #2d495c;
-    content: "Both";
+    content: "No";
     position: relative;
     top: 15px;
     right: 5px;

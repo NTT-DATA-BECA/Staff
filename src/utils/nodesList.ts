@@ -22,8 +22,8 @@ export const nodesList = readonly([
 
     },
     {
-        name: "ImportCsv",
-        item: "ImportCsv",
+        name: "ImportExcel",
+        item: "ImportExcel",
         input: 1,
         output: 1,
     },
@@ -37,6 +37,6 @@ export const nodesList = readonly([
         name: "Condition",
         item: "condition",
         input: 1,
-        output: 3,
+        output: 2,
     }
 ]);
