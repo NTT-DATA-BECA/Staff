@@ -84,10 +84,6 @@ export default {
           fs.mkdirSync(dir);
         }
          const outputFile = path.join(dir, `${this.csv}`);
-        // const workbookOut = XLSX.utils.book_new();
-        // const sheetOut = XLSX.utils.json_to_sheet(dataRows);
-        // XLSX.utils.book_append_sheet(workbookOut, sheetOut);
-        // XLSX.writeFile(workbookOut, outputFile);
         this.el = this.$refs.el;
         this.csv = outputFile;
         this.csv = event.target.files[0].name;

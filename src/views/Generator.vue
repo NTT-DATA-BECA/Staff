@@ -91,8 +91,8 @@ export default {
             pos_y = pos_y * (this.editor.value.precanvas.clientHeight / (this.editor.value.precanvas.clientHeight * this.editor.value.zoom)) - (this.editor.value.precanvas.getBoundingClientRect().y
                 * (this.editor.value.precanvas.clientHeight / (this.editor.value.precanvas.clientHeight * this.editor.value.zoom)));
             const nodeSelected: any = nodesList.find(object => object.item === name);
-            this.editor.value.addNode(name, nodeSelected.input, nodeSelected.output, pos_x, pos_y, name, { mytemplate: "", csv: "",headers:[],variable1:"",varaible2:"" }, name, "vue");
-            },
+            this.editor.value.addNode(name, nodeSelected.input, nodeSelected.output, pos_x, pos_y, name, { mytemplate: "", csv: "", headers: [], variable1: "", varaible2: "" }, name, "vue");
+        },
         addProgramName(event: any) {
             this.programName = event.target.value;
         },
@@ -135,21 +135,22 @@ export default {
                     nameNode = dataNode.name;
                     startoutputs = startoutputs + 1;
                     while (nameNode != "end") {
-                        var count=0;
+                        var count = 0;
                         if (nameNode == "Generatepdf") {
                             count++;
-                            const idInput= parseFloat(dataNode.inputs.input_1.connections[0].node)
-                            console.log(" dataNode.data.mytemplate "+ dataNode.data.mytemplate)
-                            if(idInput){
-                            const dataNodeinput=this.editor.value.getNodeFromId(idInput)
-                            const response = await ipcRenderer.invoke('getQuillContentData', { name: dataNodeinput.data.mytemplate });
-                            if (response) {
-                                this.downloadPdf(response,count, dataNode.data.mytemplate+'/')
-                                this.showSucess()
+                            const idInput = parseFloat(dataNode.inputs.input_1.connections[0].node)
+                            console.log(" dataNode.data.mytemplate " + dataNode.data.mytemplate)
+                            if (idInput) {
+                                const dataNodeinput = this.editor.value.getNodeFromId(idInput)
+                                const response = await ipcRenderer.invoke('getQuillContentData', { name: dataNodeinput.data.mytemplate });
+                                if (response) {
+                                    this.downloadPdf(response, count, dataNode.data.mytemplate + '/')
+                                    this.showSucess()
+                                }
+                                else {
+                                    this.modalMessage('Error!', 'Something wrong.', 'error')
+                                }
                             }
-                            else {
-                                this.modalMessage('Error!', 'Something wrong.', 'error')
-                            }}
                         }
                         idNode = parseFloat(dataNode.outputs.output_1.connections[0].node)
                         dataNode = this.editor.value.getNodeFromId(idNode)
@@ -198,7 +199,7 @@ export default {
             }
             return idStart
         },
-        async downloadPdf(htmlforpdf: any, namefile: any,path:any) {
+        async downloadPdf(htmlforpdf: any, namefile: any, path: any) {
             var name = this.selectedOption + "-" + namefile
             var html = '<html><head><style> footer{position: fixed;bottom: 0;} .ql-editor{margin:0px;} div { page-break-before: auto; max-height:3000px;}' + quillCSS + '</style></head><body><div class="ql-editor">' + htmlforpdf + ' <footer style="padding-top: 100px;"><div style="border-top: 2px solid gray; font-size :15px; text-align:center; color:gray;"><p>NTT DATA Morocco Centers – SARL au capital de 7.700.000 Dhs – Parc Technologique de Tétouanshore, Route de Cabo Negro, Martil – Maroc – RC: 19687 – IF : 15294847 – CNSS : 4639532 – Taxe Prof. :51840121</p></div></footer> </div></body></html>'
             var pdf = require('hm-html-pdf');

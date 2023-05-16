@@ -14,8 +14,7 @@
                     </svg>
                     New Flow
                 </button>
-                <button className="btn mr-2 flex items-center"
-                    @click="addEditFlow(nodeProgramName); nodeProgramName = ''">
+                <button className="btn mr-2 flex items-center" @click="addEditFlow(nodeProgramName); nodeProgramName = ''">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
                         class="mr-2 bi bi-file-earmark-arrow-up-fill" viewBox="0 0 16 16">
                         <path
@@ -133,16 +132,16 @@ export default {
         let variable1 = ""
         let variable2 = ""
         let headers = []
-        const updateNodeOperation = (output_class: any, outputTemplate: any, outputCsv: any,outputHeaders :any,outputVariable1 :any, outputVariable2 :any, inputNodeData: any) => {
+        const updateNodeOperation = (output_class: any, outputTemplate: any, outputCsv: any, outputHeaders: any, outputVariable1: any, outputVariable2: any, inputNodeData: any) => {
             if (output_class == "input_1") {
                 mytemplate = outputTemplate;
                 csv = outputCsv;
-                headers=outputHeaders;
-                variable1=outputVariable1;
-                variable2=outputVariable2;
+                headers = outputHeaders;
+                variable1 = outputVariable1;
+                variable2 = outputVariable2;
             }
             const input_id = inputNodeData.id;
-            this.editor.value.updateNodeDataFromId(input_id, { mytemplate: mytemplate, csv: csv,headers: headers,variable1: variable1,variable2: variable2});
+            this.editor.value.updateNodeDataFromId(input_id, { mytemplate: mytemplate, csv: csv, headers: headers, variable1: variable1, variable2: variable2 });
         }
 
         this.editor.value.on("nodeDataChanged", (data: any) => {
@@ -158,7 +157,7 @@ export default {
                 const output_class = nodeData.outputs.output_1.connections[0].output;
                 const inputNodeId = nodeData.outputs.output_1.connections[0].node;
                 const inputNodeData = this.editor.value.getNodeFromId(inputNodeId);
-                updateNodeOperation(output_class, outputTemplate, outputCsv,outputHeaders,outputVariable1,outputVariable2,inputNodeData)
+                updateNodeOperation(output_class, outputTemplate, outputCsv, outputHeaders, outputVariable1, outputVariable2, inputNodeData)
 
 
 
@@ -176,10 +175,10 @@ export default {
             const output_class = data.input_class;
             const inputNodeData = this.editor.value.getNodeFromId(data.input_id);
 
-            updateNodeOperation(output_class, outputTemplate, outputCsv,outputHeaders,outputVariable1,outputVariable2,inputNodeData)
+            updateNodeOperation(output_class, outputTemplate, outputCsv, outputHeaders, outputVariable1, outputVariable2, inputNodeData)
             outputData.data.mytemplate = inputNodeData.data.mytemplate;
             outputData.data.csv = inputNodeData.data.csv;
-            
+
 
 
 
@@ -203,7 +202,7 @@ export default {
             const editorData = this.editor.value.export().drawflow.Home.data;
             Object.keys(editorData).forEach((i) => {
                 const input_id = editorData[i].id;
-                this.editor.value.updateNodeDataFromId(input_id, { mytemplate: mytemplate, csv: csv,headers:headers,variable1:variable1,variable2:variable2 });
+                this.editor.value.updateNodeDataFromId(input_id, { mytemplate: mytemplate, csv: csv, headers: headers, variable1: variable1, variable2: variable2 });
             });
         });
 
@@ -252,7 +251,7 @@ export default {
             pos_y = pos_y * (this.editor.value.precanvas.clientHeight / (this.editor.value.precanvas.clientHeight * this.editor.value.zoom)) - (this.editor.value.precanvas.getBoundingClientRect().y
                 * (this.editor.value.precanvas.clientHeight / (this.editor.value.precanvas.clientHeight * this.editor.value.zoom)));
             const nodeSelected: any = nodesList.find(object => object.item === name);
-            this.editor.value.addNode(name, nodeSelected.input, nodeSelected.output, pos_x, pos_y, name, { mytemplate: "", csv: "",headers:[],variable1:"",varaible2:"" }, name, "vue");
+            this.editor.value.addNode(name, nodeSelected.input, nodeSelected.output, pos_x, pos_y, name, { mytemplate: "", csv: "", headers: [], variable1: "", varaible2: "" }, name, "vue");
         },
         addProgramName(event: any) {
             this.programName = event.target.value;
@@ -384,7 +383,7 @@ export default {
                     }
                 };
                 this.editor.value.import(ob);
-                
+
             }
         },
         cleanEditor() {
