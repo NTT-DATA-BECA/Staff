@@ -1,6 +1,6 @@
 <template>
   <div ref="el" class="nodeselect">
-     <p id="node-title" className="text-sm">Template</p>
+     <p id="node-title" >Template</p>
      <v-select for="mytemplate" style="color:#2d495c; 
      width: 155px;" v-model="mytemplate" :options="options" @option:selected="onChangeFile()" df-mytemplate />
   </div>

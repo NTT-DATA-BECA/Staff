@@ -1,5 +1,5 @@
 <template>
-    <h2 id="node-title">condition</h2>
+    <h2 id="node-title">Condition</h2>
     <div ref="el" class="-end-px w-64 text-black">
         <select v-model="mytemplate" df-mytemplate class="w-14 text-primary-dark mr-2 h-6">
             <option v-for="header in headersName" :key="header" :value="header">{{ header }}</option>

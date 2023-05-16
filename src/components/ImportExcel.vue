@@ -1,8 +1,9 @@
 <template>
   <div ref="el" class="input_field flex flex-col w-max mx-auto text-center">
+    <p id="node-title">Data :</p>
     <label>
-      <input class="text-sm cursor-pointer w-36 hidden" type="file" @change="loadExcelFile" />
-      <div class="text-white bg-blue font-bold rounded-lg text-sm px-2 py-2 text-center">
+      <input class="cursor-pointer w-36 hidden" type="file" @change="loadExcelFile" />
+      <div class="text-white bg-blue font-bold rounded-lg text-sm text-center">
         {{ csv || 'Import Excel' }}
       </div>
     </label>
