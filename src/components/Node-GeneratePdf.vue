@@ -1,7 +1,7 @@
 <template>
   <div ref="el">
     <h2 id="node-title">Path</h2>
-    <input v-model="mytemplate" class="text-black ml-2 w-36 align-middle" type="text" df-mytemplate/>
+    <input v-model="variable1" class="text-black ml-2 w-36 align-middle" type="text" df-variable1/>
   </div>
 </template>
 <script lang="ts">
@@ -13,7 +13,7 @@ export default {
       el:null as any,
       nodeId:0,
       df:null as any,
-      mytemplate:[],
+      variable1:[],
       dataNode : {} as any,
   }},
    async mounted(){
@@ -24,7 +24,8 @@ export default {
      this.nodeId = this.el?.parentElement?.parentElement?.id?.slice(5);
      console.log( this.nodeId +"  this.nodeId ")
      this.dataNode = this.df.getNodeFromId(this.nodeId)
-     this.mytemplate = this.dataNode.data.mytemplate
+     this.variable1 = this.dataNode.data.variable1
+
   } 
 };
 </script>

@@ -11,7 +11,7 @@
             <option value="<=">&le;</option>
             <option value=">=">&ge;</option>
             <option value="=">&#61;</option>
-        </select>
+        </select>  
         <input df-variable2 v-model="variable2" class="w-10 ml-2 h-6" type="number">
     </div>
 </template>

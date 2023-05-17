@@ -22,6 +22,12 @@
                     </svg>
                     Save Flow
                 </button>
+                <button className="btn mr-2  flex items-center" @click="duplicateFlow();">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="mr-2 bi bi-file-earmark-plus-fill" viewBox="0 0 16 16">
+                    <path d="M9.293 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V4.707A1 1 0 0 0 13.707 4L10 .293A1 1 0 0 0 9.293 0zM9.5 3.5v-2l3 3h-2a1 1 0 0 1-1-1zM8.5 7v1.5H10a.5.5 0 0 1 0 1H8.5V11a.5.5 0 0 1-1 0V9.5H6a.5.5 0 0 1 0-1h1.5V7a.5.5 0 0 1 1 0z"/>
+                    </svg>
+                    Duplicate Flow
+                </button>
                 <button className="btn flex items-center" @click=" delprograme();">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
                         class="mr-2 bi bi-trash-fill" viewBox="0 0 16 16">
@@ -205,6 +211,16 @@ export default {
                 this.editor.value.updateNodeDataFromId(input_id, { mytemplate: mytemplate, csv: csv, headers: headers, variable1: variable1, variable2: variable2 });
             });
         });
+
+        this.editor.value.on("nodeSelected", () => {
+         const editorContent = this.editor.value.export();
+        document.addEventListener('keydown', (event) => {
+        if (event.ctrlKey && event.key === 'v') {        
+            this.editor.value.import(editorContent);
+        }
+    });
+});
+
 
 
     },
@@ -399,6 +415,13 @@ export default {
         },
         showinput() {
             this.isEditName = true;
+        },
+        duplicateFlow(){
+            const nameprograme=this.selectedOption;
+            const editorState = this.editor.value.export();
+            this.createNewFlow()
+            this.nodeProgramName=nameprograme+"-copy";
+            this.editor.value.import(editorState);
         }
     }
 }

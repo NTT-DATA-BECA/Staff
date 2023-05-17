@@ -139,12 +139,11 @@ export default {
                         if (nameNode == "Generatepdf") {
                             count++;
                             const idInput = parseFloat(dataNode.inputs.input_1.connections[0].node)
-                            console.log(" dataNode.data.mytemplate " + dataNode.data.mytemplate)
                             if (idInput) {
                                 const dataNodeinput = this.editor.value.getNodeFromId(idInput)
                                 const response = await ipcRenderer.invoke('getQuillContentData', { name: dataNodeinput.data.mytemplate });
                                 if (response) {
-                                    this.downloadPdf(response, count, dataNode.data.mytemplate + '/')
+                                    this.downloadPdf(response, count, dataNode.data.variable1 + '/')
                                     this.showSucess()
                                 }
                                 else {

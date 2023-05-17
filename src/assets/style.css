@@ -52,7 +52,7 @@
     margin-top: 14px;
     margin-bottom: 14px;
 }
-.drawflow .drawflow-node:not(.drawflow-node.condition) .output:hover, .drawflow .drawflow-node:not(.drawflow-node.condition) .input:hover {
+.drawflow .drawflow-node .output:hover, .drawflow .drawflow-node .input:hover {
     background-color: #b3c4e4 !important;
     border: 2px solid #b3c4e4 !important;
 }
@@ -108,7 +108,7 @@
 
   .drawflow-node.condition .outputs .output:nth-child(1):before {
     display: block;
-    color: #2d495c;
+    color: #2d495c !important;
     content: "Yes";
     position: relative;
     top: 15px;
@@ -116,7 +116,7 @@
   }
  .drawflow-node.condition .outputs .output:nth-child(2):before {
     display: block;
-    color: #2d495c;
+    color: #2d495c !important;
     content: "No";
     position: relative;
     top: 15px;
