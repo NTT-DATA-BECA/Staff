@@ -37,10 +37,11 @@ import { h, getCurrentInstance, render } from 'vue'
 import Drawflow from 'drawflow'
 import Swal from 'sweetalert2'
 import { SweetAlertIcon } from 'sweetalert2'
-import ImportCsv from '../components/ImportCsv.vue'
+import ImportExcel from '../components/ImportExcel.vue'
 import NodeFileInput from '../components/Node-file-input.vue'
 import NodeStart from '../components/Node-start.vue'
 import NodeEnd from '../components/Node-end.vue'
+import NodeIf from '../components/Node-if.vue'
 import NodeGeneratePdf from '../components/Node-GeneratePdf.vue'
 import sendEmail from '../components/Node-sendEmail.vue'
 import { nodesList } from '../utils/nodesList'
@@ -48,6 +49,7 @@ import { ipcRenderer } from 'electron';
 import quillCSS from 'quill/dist/quill.snow.css'
 import 'vue3-toastify/dist/index.css';
 import nodemailer from 'nodemailer';
+
 
 export default {
     name: "DrawflowDashboard",
@@ -73,11 +75,12 @@ export default {
         this.editor.value = new Drawflow(id, { version: 3, h, render }, internalInstance.appContext.app._context);
         this.editor.value.start();
 
-        this.editor.value.registerNode("ImportCsv", ImportCsv, {}, {});
+        this.editor.value.registerNode("ImportExcel", ImportExcel, {}, {});
         this.editor.value.registerNode("file-input", NodeFileInput, {}, {});
         this.editor.value.registerNode("start", NodeStart, {}, {});
         this.editor.value.registerNode("end", NodeEnd, {}, {});
         this.editor.value.registerNode("Generatepdf", NodeGeneratePdf, {}, {});
+        this.editor.value.registerNode("condition", NodeIf, {}, {});
         this.editor.value.registerNode("send-email", sendEmail, {}, {});
 
     },
@@ -92,7 +95,7 @@ export default {
             pos_y = pos_y * (this.editor.value.precanvas.clientHeight / (this.editor.value.precanvas.clientHeight * this.editor.value.zoom)) - (this.editor.value.precanvas.getBoundingClientRect().y
                 * (this.editor.value.precanvas.clientHeight / (this.editor.value.precanvas.clientHeight * this.editor.value.zoom)));
             const nodeSelected: any = nodesList.find(object => object.item === name);
-            this.editor.value.addNode(name, nodeSelected.input, nodeSelected.output, pos_x, pos_y, name, { mytemplate: "", csv: "" }, name, "vue");
+            this.editor.value.addNode(name, nodeSelected.input, nodeSelected.output, pos_x, pos_y, name, { mytemplate: "", csv: "", headers: [], variable1: "", varaible2: "" }, name, "vue");
         },
         addProgramName(event: any) {
             this.programName = event.target.value;
@@ -130,27 +133,54 @@ export default {
                 var dataNodeStart = this.editor.value.getNodeFromId(idNode)
                 var nameNode = dataNode.name;
                 var startoutputs = 0;
-                var namefile;
                 while (dataNodeStart.outputs?.output_1?.connections[startoutputs]) {
-                    console.log("entred");
                     idNode = parseFloat(dataNodeStart.outputs.output_1.connections[startoutputs].node)
                     dataNode = this.editor.value.getNodeFromId(idNode)
                     nameNode = dataNode.name;
                     startoutputs = startoutputs + 1;
-                    console.log(" startoutputs++ " + startoutputs)
                     while (nameNode != "end") {
+                        var count = 0;
                         if (nameNode == "Generatepdf") {
-                            const response = await ipcRenderer.invoke('getQuillContentData', { name: dataNode.data.mytemplate });
-                            if (response) {
-                                const pdfPath = await this.downloadPdf(response, dataNode.data.mytemplate);
-                                this.sendEmailWithAttachment(pdfPath); // Send email with the generated PDF as attachment
-                                this.showSucess();
+                            count++;
+                            const idInput = parseFloat(dataNode.inputs.input_1.connections[0].node)
+                            console.log(" dataNode.data.mytemplate " + dataNode.data.mytemplate)
+                            if (idInput) {
+                                const dataNodeinput = this.editor.value.getNodeFromId(idInput)
+                                const response = await ipcRenderer.invoke('getQuillContentData', { name: dataNodeinput.data.mytemplate });
+                                if (response) {
+                                    this.downloadPdf(response, count, dataNode.data.mytemplate + '/')
+                                    this.showSucess()
+                                }
+                                else {
+                                    this.modalMessage('Error!', 'Something wrong.', 'error')
+                                }
                             }
-                            else {
-                                this.modalMessage('Error!', 'Something wrong.', 'error')
+                        }else  if (nameNode == "send-email") {
+                            // Get the selected header from the SendEmail component
+                            const selectedHeader = dataNode.data.mytemplate;
+                            console.log("Selected header:", selectedHeader);
+                            // Check if the selected header column contains emails
+                            if (selectedHeader) {
+                            const selectedHeader = dataNode.data.mytemplate;
+                            const headers = dataNode.data.headers;
+                            console.log("headers:", headers);
+                            const variable1 = dataNode.data.variable1;
+                            const headerIndex = headers.findIndex((header) => header === selectedHeader);
+                            console.log("headerIndex", headerIndex);
+                            if (headerIndex !== -1) {
+                                const columnData = variable1.map((row) => row[selectedHeader]);
+                                console.log("columnData", columnData);
+                                const emailsExist = columnData.some((value) => /\S+@\S+\.\S+/.test(value));
+                                if (emailsExist) {
+                                console.log("Emails exist");
+                                } else {
+                                console.log("Emails don't exist");
+                                }
+                            } else {
+                                console.log("Invalid column data: header not found");
+                            }
                             }
                         }
-                        console.log("Hello I'm " + nameNode + " Node")
                         idNode = parseFloat(dataNode.outputs.output_1.connections[0].node)
                         dataNode = this.editor.value.getNodeFromId(idNode)
                         nameNode = dataNode.name;
@@ -198,42 +228,15 @@ export default {
             }
             return idStart
         },
-        async downloadPdf(htmlforpdf: any, namefile: any) {
+        async downloadPdf(htmlforpdf: any, namefile: any, path: any) {
             var name = this.selectedOption + "-" + namefile
             var html = '<html><head><style> footer{position: fixed;bottom: 0;} .ql-editor{margin:0px;} div { page-break-before: auto; max-height:3000px;}' + quillCSS + '</style></head><body><div class="ql-editor">' + htmlforpdf + ' <footer style="padding-top: 100px;"><div style="border-top: 2px solid gray; font-size :15px; text-align:center; color:gray;"><p>NTT DATA Morocco Centers – SARL au capital de 7.700.000 Dhs – Parc Technologique de Tétouanshore, Route de Cabo Negro, Martil – Maroc – RC: 19687 – IF : 15294847 – CNSS : 4639532 – Taxe Prof. :51840121</p></div></footer> </div></body></html>'
             var pdf = require('hm-html-pdf');
             var options = { format: 'A4' };
-            return new Promise((resolve, reject) => {
-                pdf.create(html, options).toFile('src/assets/pdfs/' + name + '.pdf', function (err, res) {
-                if (err) {
-                    reject(err);
-                    return console.log(err);
-                }
-                resolve(res.filename);
-                });
+            pdf.create(html, options).toFile(path + name + '.pdf', function (err, res) {
+                if (err) return console.log(err);
+                //console.log(res);
             });
-        },
-        async sendEmailWithAttachment(pdfPath) {
-            const path = require('path');
-            const filename = path.basename(pdfPath);
-            const emailData = {
-                to: 'sanae.lmnjaoui@etu.uae.ac.ma',
-                subject: 'Test Email',
-                text: 'This is a test email sent from Electron.js!',
-                attachments: [
-                    {
-                        filename: filename, // The name you want to give to the PDF attachment
-                        path: pdfPath // Update with the correct file path
-                    }
-                ]
-        };
-        ipcRenderer.invoke('sendEmail', emailData)
-          .then(() => {
-            console.log('Email sent successfully');
-          })
-          .catch((error) => {
-            console.error('Error sending email:', error);
-          });
         },
         showSucess() {
             Swal.fire({

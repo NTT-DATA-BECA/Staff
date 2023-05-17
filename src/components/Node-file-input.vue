@@ -1,6 +1,6 @@
 <template>
   <div ref="el" class="nodeselect">
-     <p id="node-title" className="text-sm">Search for a template</p>
+     <p id="node-title" >Template</p>
      <v-select for="mytemplate" style="color:#2d495c; 
      width: 155px;" v-model="mytemplate" :options="options" @option:selected="onChangeFile()" df-mytemplate />
   </div>
@@ -27,18 +27,18 @@
      const internalInstance: any = getCurrentInstance();
      this.df = internalInstance.appContext.config.globalProperties.$df.value;
      this.options = await ipcRenderer.invoke('getQuillContentName');
-     this.nodeId = this.el?.parentElement.parentElement.id.slice(5)
+     this.nodeId = this.el?.parentElement?.parentElement?.id?.slice(5);
      this.dataNode = this.df.getNodeFromId(this.nodeId)
      this.mytemplate = this.dataNode.data.mytemplate;
    },
    methods: {
     async onChangeFile() {
-       this.nodeId = this.el?.parentElement.parentElement.id.slice(5)
+      this.nodeId = this.el?.parentElement?.parentElement?.id?.slice(5);
        this.dataNode = this.df.getNodeFromId(this.nodeId)
-       this.df.updateNodeDataFromId(this.nodeId, { mytemplate: this.mytemplate, csv: "" })
+       this.df.updateNodeDataFromId(this.nodeId, { mytemplate: this.mytemplate, csv: "",headers:[],variable1:"",variable2:"" })
        if (this.dataNode.outputs.output_1.connections[0]?.node) { 
        this.outputnodeId = parseFloat(this.dataNode.outputs.output_1.connections[0].node)
-       this.df.updateNodeDataFromId(this.outputnodeId, { mytemplate: this.mytemplate, csv: "" })
+       this.df.updateNodeDataFromId(this.outputnodeId, { mytemplate: this.mytemplate, csv: "",headers:[],variable1:"",variable2:"" })
        }
     }  
    },

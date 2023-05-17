@@ -309,7 +309,7 @@ export default {
       var options = {
         format: 'A4',
       };
-      pdf.create(html, options).toFile('src/assets/pdfs/' + name + '.pdf', function (err, res) {
+      pdf.create(html, options).toFile('C:/uploads/' + name + '.pdf', function (err, res) {
         if (err) return console.log(err);
         console.log(res);
       });
@@ -404,5 +404,4 @@ export default {
   @apply p-2 mb-2 block text-white bg-primary-light hover:bg-primary-dark rounded-lg w-full text-center;
 }
 </style>
-
 
