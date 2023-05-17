@@ -133,28 +133,25 @@ export default {
                 var dataNodeStart = this.editor.value.getNodeFromId(idNode)
                 var nameNode = dataNode.name;
                 var startoutputs = 0;
+                var namefile;
                 while (dataNodeStart.outputs?.output_1?.connections[startoutputs]) {
                     idNode = parseFloat(dataNodeStart.outputs.output_1.connections[startoutputs].node)
                     dataNode = this.editor.value.getNodeFromId(idNode)
                     nameNode = dataNode.name;
                     startoutputs = startoutputs + 1;
                     while (nameNode != "end") {
-                        var count = 0;
                         if (nameNode == "Generatepdf") {
-                            count++;
-                            const idInput = parseFloat(dataNode.inputs.input_1.connections[0].node)
-                            console.log(" dataNode.data.mytemplate " + dataNode.data.mytemplate)
-                            if (idInput) {
-                                const dataNodeinput = this.editor.value.getNodeFromId(idInput)
-                                const response = await ipcRenderer.invoke('getQuillContentData', { name: dataNodeinput.data.mytemplate });
+                            
+                                const response = await ipcRenderer.invoke('getQuillContentData', { name: dataNode.data.mytemplate });
                                 if (response) {
-                                    this.downloadPdf(response, count, dataNode.data.mytemplate + '/')
+                                    const pdfPath = await this.downloadPdf(response, dataNode.data.mytemplate);
+                                    await this.sendEmailWithAttachment(pdfPath);
                                     this.showSucess()
                                 }
                                 else {
                                     this.modalMessage('Error!', 'Something wrong.', 'error')
                                 }
-                            }
+                           
                         }else  if (nameNode == "send-email") {
                             // Get the selected header from the SendEmail component
                             const selectedHeader = dataNode.data.mytemplate;
@@ -170,11 +167,16 @@ export default {
                             if (headerIndex !== -1) {
                                 const columnData = variable1.map((row) => row[selectedHeader]);
                                 console.log("columnData", columnData);
-                                const emailsExist = columnData.some((value) => /\S+@\S+\.\S+/.test(value));
-                                if (emailsExist) {
-                                console.log("Emails exist");
+                                const validEmails = columnData.filter((value) => /\S+@\S+\.\S+/.test(value));
+                                if (validEmails.length > 0) {
+                                for (const email of validEmails) {
+                                    const response = await ipcRenderer.invoke('getQuillContentData', { name: dataNode.data.mytemplate });
+                                    const pdfPath = await this.downloadPdf(response, dataNode.data.mytemplate);
+                                    await this.sendEmailWithAttachment(email, pdfPath);
+                                    console.log("send it!.");
+                                }
                                 } else {
-                                console.log("Emails don't exist");
+                                console.log("No valid emails found in the selected header column.");
                                 }
                             } else {
                                 console.log("Invalid column data: header not found");
@@ -228,15 +230,42 @@ export default {
             }
             return idStart
         },
-        async downloadPdf(htmlforpdf: any, namefile: any, path: any) {
+        async downloadPdf(htmlforpdf: any, namefile: any) {
             var name = this.selectedOption + "-" + namefile
             var html = '<html><head><style> footer{position: fixed;bottom: 0;} .ql-editor{margin:0px;} div { page-break-before: auto; max-height:3000px;}' + quillCSS + '</style></head><body><div class="ql-editor">' + htmlforpdf + ' <footer style="padding-top: 100px;"><div style="border-top: 2px solid gray; font-size :15px; text-align:center; color:gray;"><p>NTT DATA Morocco Centers – SARL au capital de 7.700.000 Dhs – Parc Technologique de Tétouanshore, Route de Cabo Negro, Martil – Maroc – RC: 19687 – IF : 15294847 – CNSS : 4639532 – Taxe Prof. :51840121</p></div></footer> </div></body></html>'
             var pdf = require('hm-html-pdf');
             var options = { format: 'A4' };
-            pdf.create(html, options).toFile(path + name + '.pdf', function (err, res) {
-                if (err) return console.log(err);
-                //console.log(res);
+            return new Promise((resolve, reject) => {
+                pdf.create(html, options).toFile('src/assets/pdfs/' + name + '.pdf', function (err, res) {
+                if (err) {
+                    reject(err);
+                    return console.log(err);
+                }
+                resolve(res.filename);
+                });
             });
+        },
+        async sendEmailWithAttachment(email, pdfPath) {
+            const path = require('path');
+            const filename = path.basename(pdfPath);
+            const emailData = {
+                to: email,
+                subject: 'Test Email',
+                text: 'This is a test email sent from Electron.js!',
+                attachments: [
+                    {
+                        filename: filename, // The name you want to give to the PDF attachment
+                        path: pdfPath // Update with the correct file path
+                    }
+                ]
+        };
+        ipcRenderer.invoke('sendEmail', emailData)
+          .then(() => {
+            console.log('Email sent successfully');
+          })
+          .catch((error) => {
+            console.error('Error sending email:', error);
+          });
         },
         showSucess() {
             Swal.fire({
