@@ -144,7 +144,8 @@ export default {
                             const response = await ipcRenderer.invoke('getQuillContentData', { name: dataNode.data.mytemplate });
                             if (response) {
                                 const pdfPath = await this.downloadPdf(response, dataNode.data.mytemplate);
-                                await this.sendEmailWithAttachment('', pdfPath);
+                                const zipPath = await this.createZipFile(pdfPath);
+                                await this.sendEmailWithAttachment('', zipPath);
                                 this.showSucess();
                             } else {
                                 this.modalMessage('Error!', 'Something wrong.', 'error');
