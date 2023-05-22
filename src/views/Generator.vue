@@ -48,7 +48,7 @@ import { nodesList } from '../utils/nodesList'
 import { ipcRenderer } from 'electron';
 import quillCSS from 'quill/dist/quill.snow.css'
 import 'vue3-toastify/dist/index.css';
-import nodemailer from 'nodemailer';
+import archiver from 'archiver';
 
 
 export default {
@@ -141,46 +141,41 @@ export default {
                     startoutputs = startoutputs + 1;
                     while (nameNode != "end") {
                         if (nameNode == "Generatepdf") {
-                            
-                                const response = await ipcRenderer.invoke('getQuillContentData', { name: dataNode.data.mytemplate });
-                                if (response) {
-                                    const pdfPath = await this.downloadPdf(response, dataNode.data.mytemplate);
-                                    await this.sendEmailWithAttachment(pdfPath);
-                                    this.showSucess()
-                                }
-                                else {
-                                    this.modalMessage('Error!', 'Something wrong.', 'error')
-                                }
-                           
-                        }else  if (nameNode == "send-email") {
-                            // Get the selected header from the SendEmail component
+                            const response = await ipcRenderer.invoke('getQuillContentData', { name: dataNode.data.mytemplate });
+                            if (response) {
+                                const pdfPath = await this.downloadPdf(response, dataNode.data.mytemplate);
+                                await this.sendEmailWithAttachment('', pdfPath);
+                                this.showSucess();
+                            } else {
+                                this.modalMessage('Error!', 'Something wrong.', 'error');
+                            }
+                        } else if (nameNode == "send-email") {
                             const selectedHeader = dataNode.data.mytemplate;
                             console.log("Selected header:", selectedHeader);
-                            // Check if the selected header column contains emails
                             if (selectedHeader) {
-                            const selectedHeader = dataNode.data.mytemplate;
-                            const headers = dataNode.data.headers;
-                            console.log("headers:", headers);
-                            const variable1 = dataNode.data.variable1;
-                            const headerIndex = headers.findIndex((header) => header === selectedHeader);
-                            console.log("headerIndex", headerIndex);
-                            if (headerIndex !== -1) {
-                                const columnData = variable1.map((row) => row[selectedHeader]);
-                                console.log("columnData", columnData);
-                                const validEmails = columnData.filter((value) => /\S+@\S+\.\S+/.test(value));
-                                if (validEmails.length > 0) {
-                                for (const email of validEmails) {
-                                    const response = await ipcRenderer.invoke('getQuillContentData', { name: dataNode.data.mytemplate });
-                                    const pdfPath = await this.downloadPdf(response, dataNode.data.mytemplate);
-                                    await this.sendEmailWithAttachment(email, pdfPath);
-                                    console.log("send it!.");
-                                }
+                                const headers = dataNode.data.headers;
+                                console.log("headers:", headers);
+                                const variable1 = dataNode.data.variable1;
+                                const headerIndex = headers.findIndex((header) => header === selectedHeader);
+                                console.log("headerIndex", headerIndex);
+                                if (headerIndex !== -1) {
+                                    const columnData = variable1.map((row) => row[selectedHeader]);
+                                    console.log("columnData", columnData);
+                                    const validEmails = columnData.filter((value) => /\S+@\S+\.\S+/.test(value));
+                                    if (validEmails.length > 0) {
+                                        for (const email of validEmails) {
+                                            const response = await ipcRenderer.invoke('getQuillContentData', { name: dataNode.data.mytemplate });
+                                            const pdfPath = await this.downloadPdf(response, dataNode.data.mytemplate);
+                                            const zipPath = await this.createZipFile(pdfPath);
+                                            await this.sendEmailWithAttachment(email, zipPath);
+                                            console.log("Sent email to:", email);
+                                        }
+                                    } else {
+                                        console.log("No valid emails found in the selected header column.");
+                                    }
                                 } else {
-                                console.log("No valid emails found in the selected header column.");
+                                    console.log("Invalid column data: header not found");
                                 }
-                            } else {
-                                console.log("Invalid column data: header not found");
-                            }
                             }
                         }
                         idNode = parseFloat(dataNode.outputs.output_1.connections[0].node)
@@ -190,6 +185,7 @@ export default {
                 }
             }
         },
+
         searchNodeEnd() {
             const editorData = this.editor.value.export().drawflow.Home.data;
             let idEnd = "";
@@ -230,42 +226,73 @@ export default {
             }
             return idStart
         },
-        async downloadPdf(htmlforpdf: any, namefile: any) {
+        async downloadPdf(htmlforpdf, namefile) {
             var name = this.selectedOption + "-" + namefile
             var html = '<html><head><style> footer{position: fixed;bottom: 0;} .ql-editor{margin:0px;} div { page-break-before: auto; max-height:3000px;}' + quillCSS + '</style></head><body><div class="ql-editor">' + htmlforpdf + ' <footer style="padding-top: 100px;"><div style="border-top: 2px solid gray; font-size :15px; text-align:center; color:gray;"><p>NTT DATA Morocco Centers – SARL au capital de 7.700.000 Dhs – Parc Technologique de Tétouanshore, Route de Cabo Negro, Martil – Maroc – RC: 19687 – IF : 15294847 – CNSS : 4639532 – Taxe Prof. :51840121</p></div></footer> </div></body></html>'
             var pdf = require('hm-html-pdf');
             var options = { format: 'A4' };
             return new Promise((resolve, reject) => {
                 pdf.create(html, options).toFile('src/assets/pdfs/' + name + '.pdf', function (err, res) {
-                if (err) {
-                    reject(err);
-                    return console.log(err);
-                }
-                resolve(res.filename);
+                    if (err) {
+                        reject(err);
+                        return console.log(err);
+                    }
+                    resolve(res.filename);
                 });
             });
         },
-        async sendEmailWithAttachment(email, pdfPath) {
+
+        async createZipFile(pdfPath) {
+            const fs = require('fs');
+            const archiver = require('archiver');
+            const zipPath = pdfPath.replace('.pdf', '.zip');
+            return new Promise((resolve, reject) => {
+                const output = fs.createWriteStream(zipPath);
+                const archive = archiver('zip', {
+                    zlib: { level: 9 }
+                });
+                output.on('close', function () {
+                    console.log(archive.pointer() + ' total bytes');
+                    console.log('Zip file created:', zipPath);
+                    resolve(zipPath);
+                });
+                archive.on('warning', function (err) {
+                    if (err.code === 'ENOENT') {
+                        console.warn(err);
+                    } else {
+                        reject(err);
+                    }
+                });
+                archive.on('error', function (err) {
+                    reject(err);
+                });
+                archive.pipe(output);
+                archive.file(pdfPath, { name: 'document.pdf' });
+                archive.finalize();
+            });
+        },
+
+        async sendEmailWithAttachment(email, zipPath) {
             const path = require('path');
-            const filename = path.basename(pdfPath);
+            const filename = path.basename(zipPath);
             const emailData = {
                 to: email,
                 subject: 'Test Email',
                 text: 'This is a test email sent from Electron.js!',
                 attachments: [
                     {
-                        filename: filename, // The name you want to give to the PDF attachment
-                        path: pdfPath // Update with the correct file path
+                        filename: filename,
+                        path: zipPath
                     }
                 ]
-        };
-        ipcRenderer.invoke('sendEmail', emailData)
-          .then(() => {
-            console.log('Email sent successfully');
-          })
-          .catch((error) => {
-            console.error('Error sending email:', error);
-          });
+            };
+            ipcRenderer.invoke('sendEmail', emailData)
+                .then(() => {
+                    console.log('Email sent successfully');
+                })
+                .catch((error) => {
+                    console.error('Error sending email:', error);
+                });
         },
         showSucess() {
             Swal.fire({
