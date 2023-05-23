@@ -95,15 +95,15 @@
   .drawflow .parent-node .drawflow-node.condition .output_1 {
     transform: rotate(-45deg);
     position: relative;
-    top: 15px;
+    top: 0px;
     right: -5px;
   }
 
   .drawflow .parent-node .drawflow-node.condition .output_2 {
     transform: rotate(-45deg);
     position: relative;
-    top: 20px;
-    right: 80px;
+    top: -5px;
+    right: -5px;
   }
 
   .drawflow-node.condition .outputs .output:nth-child(1):before {
@@ -111,8 +111,8 @@
     color: #2d495c !important;
     content: "Yes";
     position: relative;
-    top: 15px;
-    right: 5px;
+    top: -5px;
+    right: -25px;
   }
  .drawflow-node.condition .outputs .output:nth-child(2):before {
     display: block;
@@ -120,5 +120,5 @@
     content: "No";
     position: relative;
     top: 15px;
-    right: 5px;
+    right: -5px;
  }

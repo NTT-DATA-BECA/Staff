@@ -22,7 +22,6 @@ export default {
      this.df = internalInstance.appContext.config.globalProperties.$df.value;
      await nextTick()
      this.nodeId = this.el?.parentElement?.parentElement?.id?.slice(5);
-     console.log( this.nodeId +"  this.nodeId ")
      this.dataNode = this.df.getNodeFromId(this.nodeId)
      this.variable1 = this.dataNode.data.variable1
 

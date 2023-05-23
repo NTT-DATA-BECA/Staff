@@ -221,6 +221,16 @@ export default {
     });
 });
 
+// this.editor.value.on("nodeDataChanged", (nodeChanged) => {
+//     const editorData = this.editor.value.export().drawflow.Home.data;
+//     console.log(nodeChanged)
+//     const dataNode = this.editor.value.getNodeFromId(nodeChanged);
+//             Object.keys(editorData).forEach((i) => {
+//                 const input_id = editorData[i].id;
+//                 this.editor.value.updateNodeDataFromId(input_id, { mytemplate: dataNode.data.mytemplate, csv: dataNode.data.csv, headers: dataNode.data.headers, variable1: dataNode.data.variable1, variable2: dataNode.data.variable2 });
+//             });
+// });  
+
 
 
     },

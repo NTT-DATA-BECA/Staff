@@ -14,6 +14,7 @@
         </select>  
         <input df-variable2 v-model="variable2" class="w-10 ml-2 h-6" type="number">
     </div>
+    <input type="hidden" df-headers>
 </template>
 
 <script lang="ts">

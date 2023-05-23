@@ -41,7 +41,6 @@ export default {
     this.csv = this.dataNode.data.csv;
     this.headersName = this.dataNode.data.headers;
     this.variable1 = this.dataNode.data.variable1;
-    console.log(this.variable1+" variable1");
 
   },
   methods: {
