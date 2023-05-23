@@ -2,7 +2,7 @@
     <h2 id="node-title">Email</h2>
     <div ref="el" class="-end-px w-64 text-black">
       <select v-model="mytemplate" df-mytemplate class="w-40 text-primary-dark mr-2 h-6">
-        <option v-for="header in headersName" :key="header" :value="header">{{ header }}</option>
+        <option v-for="header in headers" :key="header" :value="header">{{ header }}</option>
       </select>
       <input type="hidden" v-model="mytemplate" df-mytemplate>
     </div>
@@ -10,6 +10,7 @@
   
   <script lang="ts">
   import { getCurrentInstance, nextTick } from 'vue';
+  import { mapState } from 'vuex';
   
   export default {
     name: 'sendEmail',
@@ -43,12 +44,13 @@
   
       this.df.on('connectionCreated', (data) => {
         const inputData = this.df.getNodeFromId(data.input_id);
-        if (inputData.name === "send-email" || inputData.name === "ImportExcel") {
-          this.headersName = inputData.data.headers;
-         }//else if(inputData.name === "send-email" || inputData.name === "GeneratePdf"){
-        //   this.mytemplate = inputData.data.mytemplate;
-        // }
+        if(inputData.name === "send-email" || inputData.name === "zip-folder"){
+          this.mytemplate = inputData.data.mytemplate;
+        }
       });
+    },
+    computed: {
+    ...mapState(['headers', 'variable1']),
     },
   };
   </script>

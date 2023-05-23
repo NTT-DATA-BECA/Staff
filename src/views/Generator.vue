@@ -43,6 +43,8 @@ import NodeStart from '../components/Node-start.vue'
 import NodeEnd from '../components/Node-end.vue'
 import NodeIf from '../components/Node-if.vue'
 import NodeGeneratePdf from '../components/Node-GeneratePdf.vue'
+import NodeZipFolder from '../components/Node-zipFolder.vue'
+
 import sendEmail from '../components/Node-sendEmail.vue'
 import { nodesList } from '../utils/nodesList'
 import { ipcRenderer } from 'electron';
@@ -80,6 +82,7 @@ export default {
         this.editor.value.registerNode("start", NodeStart, {}, {});
         this.editor.value.registerNode("end", NodeEnd, {}, {});
         this.editor.value.registerNode("Generatepdf", NodeGeneratePdf, {}, {});
+        this.editor.value.registerNode("zip-folder", NodeZipFolder, {}, {});
         this.editor.value.registerNode("condition", NodeIf, {}, {});
         this.editor.value.registerNode("send-email", sendEmail, {}, {});
 
@@ -126,6 +129,7 @@ export default {
             this.editor.value.clear();
         },
         async generateFlow() {
+            var path = '';
             var idNode = parseFloat(this.getStartId());
             this.searchNodeEnd();
             if (idNode) {
@@ -133,7 +137,6 @@ export default {
                 var dataNodeStart = this.editor.value.getNodeFromId(idNode)
                 var nameNode = dataNode.name;
                 var startoutputs = 0;
-                var namefile;
                 while (dataNodeStart.outputs?.output_1?.connections[startoutputs]) {
                     idNode = parseFloat(dataNodeStart.outputs.output_1.connections[startoutputs].node)
                     dataNode = this.editor.value.getNodeFromId(idNode)
@@ -141,15 +144,24 @@ export default {
                     startoutputs = startoutputs + 1;
                     while (nameNode != "end") {
                         if (nameNode == "Generatepdf") {
-                            const response = await ipcRenderer.invoke('getQuillContentData', { name: dataNode.data.mytemplate });
-                            if (response) {
-                                const pdfPath = await this.downloadPdf(response, dataNode.data.mytemplate);
-                                const zipPath = await this.createZipFile(pdfPath);
-                                await this.sendEmailWithAttachment('', zipPath);
-                                this.showSucess();
-                            } else {
-                                this.modalMessage('Error!', 'Something wrong.', 'error');
-                            }
+                            const idInput = parseFloat(dataNode.inputs.input_1.connections[0].node)
+                            if (idInput) {
+                                const dataNodeinput = this.editor.value.getNodeFromId(idInput)
+                                const response = await ipcRenderer.invoke('getQuillContentData', { name: dataNodeinput.data.mytemplate });
+                                if (response) {
+                                    await this.generateFolder(response, dataNode.data.mytemplate, '');
+                                    this.showSucess();
+                                }
+                                else {
+                                    this.modalMessage('Error!', 'Something wrong.', 'error');
+                                }
+                            };
+                        } else if (nameNode == "zip-folder") {
+                            const idInput = parseFloat(dataNode.inputs.input_1.connections[0].node)
+                            const dataNodeinput = this.editor.value.getNodeFromId(idInput)
+                            let pdfPath = dataNodeinput.data.mytemplate;
+                            // debugger;
+                            await this.createZipFile(pdfPath);
                         } else if (nameNode == "send-email") {
                             const selectedHeader = dataNode.data.mytemplate;
                             console.log("Selected header:", selectedHeader);
@@ -165,9 +177,9 @@ export default {
                                     const validEmails = columnData.filter((value) => /\S+@\S+\.\S+/.test(value));
                                     if (validEmails.length > 0) {
                                         for (const email of validEmails) {
-                                            const response = await ipcRenderer.invoke('getQuillContentData', { name: dataNode.data.mytemplate });
-                                            const pdfPath = await this.downloadPdf(response, dataNode.data.mytemplate);
-                                            const zipPath = await this.createZipFile(pdfPath);
+                                            const idInput = parseFloat(dataNode.inputs.input_1.connections[0].node)
+                                            const dataNodeinput = this.editor.value.getNodeFromId(idInput)
+                                            let zipPath = dataNodeinput.data.mytemplate;
                                             await this.sendEmailWithAttachment(email, zipPath);
                                             console.log("Sent email to:", email);
                                         }
@@ -227,23 +239,21 @@ export default {
             }
             return idStart
         },
-        async downloadPdf(htmlforpdf, namefile) {
+        async downloadPdf(htmlforpdf: any, namefile: any, path: any) {
             var name = this.selectedOption + "-" + namefile
             var html = '<html><head><style> footer{position: fixed;bottom: 0;} .ql-editor{margin:0px;} div { page-break-before: auto; max-height:3000px;}' + quillCSS + '</style></head><body><div class="ql-editor">' + htmlforpdf + ' <footer style="padding-top: 100px;"><div style="border-top: 2px solid gray; font-size :15px; text-align:center; color:gray;"><p>NTT DATA Morocco Centers – SARL au capital de 7.700.000 Dhs – Parc Technologique de Tétouanshore, Route de Cabo Negro, Martil – Maroc – RC: 19687 – IF : 15294847 – CNSS : 4639532 – Taxe Prof. :51840121</p></div></footer> </div></body></html>'
             var pdf = require('hm-html-pdf');
             var options = { format: 'A4' };
             return new Promise((resolve, reject) => {
-                pdf.create(html, options).toFile('src/assets/pdfs/' + name + '.pdf', function (err, res) {
-                    if (err) {
-                        reject(err);
-                        return console.log(err);
-                    }
+                pdf.create(html, options).toFile(path + name + '.pdf', function (err, res) {
+                    if (err) return reject(err);
                     resolve(res.filename);
                 });
             });
         },
 
         async createZipFile(pdfPath) {
+            debugger;
             const fs = require('fs');
             const archiver = require('archiver');
             const zipPath = pdfPath.replace('.pdf', '.zip');
@@ -270,6 +280,18 @@ export default {
                 archive.pipe(output);
                 archive.file(pdfPath, { name: 'document.pdf' });
                 archive.finalize();
+            });
+        },
+        async generateFolder(htmlforpdf: any, namefile: any, path: any) {
+            var name = this.selectedOption + "-" + namefile
+            var html = '<html><head><style> footer{position: fixed;bottom: 0;} .ql-editor{margin:0px;} div { page-break-before: auto; max-height:3000px;}' + quillCSS + '</style></head><body><div class="ql-editor">' + htmlforpdf + ' <footer style="padding-top: 100px;"><div style="border-top: 2px solid gray; font-size :15px; text-align:center; color:gray;"><p>NTT DATA Morocco Centers – SARL au capital de 7.700.000 Dhs – Parc Technologique de Tétouanshore, Route de Cabo Negro, Martil – Maroc – RC: 19687 – IF : 15294847 – CNSS : 4639532 – Taxe Prof. :51840121</p></div></footer> </div></body></html>'
+            var pdf = require('hm-html-pdf');
+            var options = { format: 'A4' };
+            return new Promise((resolve, reject) => {
+                pdf.create(html, options).toFile(path + name + '.pdf', function (err, res) {
+                    if (err) return reject(err);
+                    resolve(path);
+                });
             });
         },
 
@@ -313,7 +335,7 @@ export default {
                 type,
                 message
             );
-        }
+        },
 
 
     }

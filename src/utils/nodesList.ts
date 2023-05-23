@@ -34,6 +34,12 @@ export const nodesList = readonly([
         output: 1,
     },
     {
+        name: "zipFolder",
+        item: "zip-folder",
+        input: 1,
+        output: 1,
+    },
+    {
         name: "Condition",
         item: "condition",
         input: 1,
@@ -44,5 +50,5 @@ export const nodesList = readonly([
         item: "send-email",
         input: 1,
         output: 1,
-    }
+    },
 ]);

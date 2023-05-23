@@ -82,6 +82,7 @@ import NodeFileInput from '../components/Node-file-input.vue'
 import NodeStart from '../components/Node-start.vue'
 import NodeEnd from '../components/Node-end.vue'
 import NodeGeneratePdf from '../components/Node-GeneratePdf.vue'
+import NodeZipFolder from '../components/Node-zipFolder.vue'
 import NodeIf from '../components/Node-if.vue'
 import sendEmail from '../components/Node-sendEmail.vue'
 import Swal from 'sweetalert2'
@@ -129,6 +130,7 @@ export default {
         this.editor.value.registerNode("start", NodeStart, {}, {});
         this.editor.value.registerNode("end", NodeEnd, {}, {});
         this.editor.value.registerNode("Generatepdf", NodeGeneratePdf, {}, {});
+        this.editor.value.registerNode("zip-folder", NodeZipFolder, {}, {});
         this.editor.value.registerNode("condition", NodeIf, {}, {});
         this.editor.value.registerNode("send-email", sendEmail, {}, {});
         let mytemplate = ""
