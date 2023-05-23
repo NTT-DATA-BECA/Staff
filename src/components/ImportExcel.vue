@@ -16,6 +16,8 @@ import { getCurrentInstance, nextTick } from 'vue'
 import * as XLSX from 'xlsx';
 import * as fs from 'fs';
 import * as path from 'path';
+import { mapState, mapActions } from 'vuex';
+
 export default {
   name: 'ImportExcel',
   data() {
@@ -44,7 +46,11 @@ export default {
     console.log(this.variable1+" variable1");
 
   },
+  computed: {
+    ...mapState(['headers', 'variable1']),
+  },
   methods: {
+    ...mapActions(['setHeaders', 'setVariable1']),
    async loadExcelFile(event) {
       const file = event.target.files[0];
       const reader = new FileReader();
@@ -92,6 +98,9 @@ export default {
         this.nodeId = this.el?.parentElement?.parentElement?.id?.slice(5);
         this.dataNode = this.df.getNodeFromId(this.nodeId)
         this.headersName = headNames;
+        // Update Vuex state with new headers and variable1
+        this.setHeaders(headNames);
+        this.setVariable1(dataRows);
         this.df.updateNodeDataFromId(this.nodeId, { mytemplate: "", csv: this.csv, headers: this.headersName,variable1:this.variable1,variable2:"" })
         if (this.dataNode.outputs.output_1.connections[0]?.node) {
           this.outputnodeId = parseFloat(this.dataNode.outputs.output_1.connections[0].node)
@@ -107,7 +116,8 @@ export default {
             this.df.removeConnectionNodeId('node-'+outputnodeId);
           }
          
-        }
+        };
+        
       };
       reader.readAsBinaryString(file);
        

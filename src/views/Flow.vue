@@ -89,6 +89,8 @@ import { nodesList } from '../utils/nodesList'
 import { ipcRenderer } from 'electron';
 import { toast } from 'vue3-toastify';
 import 'vue3-toastify/dist/index.css';
+import { useStore } from 'vuex';
+
 
 export default {
     name: "DrawflowDashboard",
@@ -131,9 +133,11 @@ export default {
         this.editor.value.registerNode("send-email", sendEmail, {}, {});
         let mytemplate = ""
         let csv = ""
-        let variable1 = ""
+        const store = useStore()
+        let headers = store.getters.getHeaders // Access headers from Vuex getter
+        let variable1 = store.getters.getVariable1 // Access variable1 from Vuex getter
         let variable2 = ""
-        let headers = []
+       
         const updateNodeOperation = (output_class: any, outputTemplate: any, outputCsv: any, outputHeaders: any, outputVariable1: any, outputVariable2: any, inputNodeData: any) => {
             if (output_class == "input_1") {
                 mytemplate = outputTemplate;

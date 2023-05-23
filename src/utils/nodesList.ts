@@ -42,7 +42,7 @@ export const nodesList = readonly([
     {
         name: "sendEmail",
         item: "send-email",
-        input: 2,
+        input: 1,
         output: 1,
     }
 ]);
