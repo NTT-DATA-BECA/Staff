@@ -21,7 +21,7 @@ import { getCurrentInstance, nextTick } from 'vue'
 import { mapState } from 'vuex';
 
 export default {
-    name: 'NodeCondition',
+    name: 'Condition',
     data() {
         return {
             el: null as any,

@@ -24,7 +24,6 @@ export default {
     return {
       el: null as any,
       nodeId: 0,
-      outputnodeId: 0,
       df: null as any,
       excelName: '',
       excelData:[] as any,

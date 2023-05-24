@@ -41,7 +41,7 @@ import ImportExcel from '../components/ImportExcel.vue'
 import NodeFileInput from '../components/Node-file-input.vue'
 import NodeStart from '../components/Node-start.vue'
 import NodeEnd from '../components/Node-end.vue'
-import NodeCondition from '../components/Node-Condition.vue'
+import Condition from '../components/Node-Condition.vue'
 import NodeGeneratePdf from '../components/Node-GeneratePdf.vue'
 import { nodesList } from '../utils/nodesList'
 import { ipcRenderer } from 'electron';
@@ -77,7 +77,7 @@ export default {
         this.editor.value.registerNode("start", NodeStart, {}, {});
         this.editor.value.registerNode("end", NodeEnd, {}, {});
         this.editor.value.registerNode("Generatepdf", NodeGeneratePdf, {}, {});
-        this.editor.value.registerNode("condition", NodeCondition, {}, {});
+        this.editor.value.registerNode("condition", Condition, {}, {});
 
     },
     methods: {
@@ -91,7 +91,7 @@ export default {
             pos_y = pos_y * (this.editor.value.precanvas.clientHeight / (this.editor.value.precanvas.clientHeight * this.editor.value.zoom)) - (this.editor.value.precanvas.getBoundingClientRect().y
                 * (this.editor.value.precanvas.clientHeight / (this.editor.value.precanvas.clientHeight * this.editor.value.zoom)));
             const nodeSelected: any = nodesList.find(object => object.item === name);
-            this.editor.value.addNode(name, nodeSelected.input, nodeSelected.output, pos_x, pos_y, name, { mytemplate: "", excelName: "", headers: [], excelData: "",symbole: "", pdfPath: "", myzip: "", varaible1: "", varaible2: "" }, name, "vue");
+            this.editor.value.addNode(name, nodeSelected.input, nodeSelected.output, pos_x, pos_y, name, { mytemplate: "", excelName: "", headers: [], excelData: "",symbole: "", pdfpath: "", myzip: "", varaible1: "", varaible2: "" }, name, "vue");
         },
         addProgramName(event: any) {
             this.programName = event.target.value;
@@ -123,7 +123,7 @@ export default {
         },
         /* Node generatePdf the path stored in the symbole 
            The Data of the Excel file is retrieved from the NodeExcel and is stored in the symbole
-           the Header option is retrieved from the NodeCondition and is stored in mytemplate
+           the Header option is retrieved from the Condition and is stored in mytemplate
         */
         async generateFlow() {
             var idNode = parseFloat(this.getStartId());
@@ -238,7 +238,7 @@ export default {
                                         response = response.replace(/{Name}/g, employee.Name);
                                         response = response.replace(/{DOC_YEAR}/g, "" + currentYear);
                                         response = response.replace(/{DOC_DATE}/g, currentDateStr);
-                                        this.downloadPdf(response, employee.Name + "-" + currentDateStr, dataOutput.data.pdfPath + '/')
+                                        this.downloadPdf(response, employee.Name + "-" + currentDateStr, dataOutput.data.pdfpath + '/')
 
                                     }
                                 }
@@ -249,7 +249,7 @@ export default {
                         }
                     }
                     if (!dataExcel) {
-                        this.downloadPdf(response, this.selectedOption + "-" + currentDateStr, dataOutput.data.pdfPath + '/')
+                        this.downloadPdf(response, this.selectedOption + "-" + currentDateStr, dataOutput.data.pdfpath + '/')
                     }
 
                 }

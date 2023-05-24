@@ -1,7 +1,7 @@
 <template>
   <div ref="el">
     <h2 id="node-title">Path</h2>
-    <input v-model="pdfPath" class="text-black ml-2 w-36 align-middle" type="text" df-pdfPath/>
+    <input v-model="pdfpath" class="text-black ml-2 w-36 align-middle" type="text" df-pdfpath/>
   </div>
 </template>
 <script lang="ts">
@@ -13,7 +13,7 @@ export default {
       el:null as any,
       nodeId:0,
       df:null as any,
-      pdfPath:[],
+      pdfpath:"",
       dataNode : {} as any,
   }},
    async mounted(){
@@ -23,8 +23,7 @@ export default {
      await nextTick()
      this.nodeId = this.el?.parentElement?.parentElement?.id?.slice(5);
      this.dataNode = this.df.getNodeFromId(this.nodeId)
-     this.pdfPath = this.dataNode.data.pdfPath
-
+     this.pdfpath = this.dataNode.data.pdfpath
   } 
 };
 </script>
