@@ -34,8 +34,7 @@ export default {
             symbole:'',
             variable2:0,
         }
-    }
-    ,
+    },
     async mounted() {
         this.el = this.$refs.el;
         const internalInstance: any = getCurrentInstance();
