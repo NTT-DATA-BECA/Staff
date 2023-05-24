@@ -23,7 +23,7 @@
         mytemplate: '',
         inputnodeId: 0,
         dataNodeInput: {} as any,
-        variable1: [] as any[],
+        excelData: [] as any[],
       };
     },
   
@@ -37,7 +37,7 @@
         this.dataNode = this.df.getNodeFromId(this.nodeId);
         await nextTick();
         this.mytemplate = this.dataNode.data.mytemplate;
-        this.variable1 = this.dataNode.data.variable1;
+        this.excelData = this.dataNode.data.excelData;
       }
   
       this.df.on('connectionCreated', (data) => {
@@ -48,7 +48,7 @@
       });
     },
     computed: {
-    ...mapState(['headers', 'variable1']),
+    ...mapState(['headers', 'excelData']),
     },
   };
   </script>

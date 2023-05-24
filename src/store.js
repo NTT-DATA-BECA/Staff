@@ -3,30 +3,30 @@ import { createStore } from 'vuex';
 const store = createStore({
   state: {
     headers: [],
-    variable1: [],
+    excelData: [],
   },
   mutations: {
     setHeaders(state, headers) {
       state.headers = headers;
     },
-    setVariable1(state, variable1) {
-      state.variable1 = variable1;
+    setExcelData(state, excelData) {
+      state.excelData = excelData;
     },
   },
   actions: {
     setHeaders({ commit }, headers) {
       commit('setHeaders', headers);
     },
-    setVariable1({ commit }, variable1) {
-      commit('setVariable1', variable1);
+    setExcelData({ commit }, excelData) {
+      commit('setExcelData', excelData);
     },
   },
   getters: {
     getHeaders(state) {
       return state.headers;
     },
-    getVariable1(state) {
-      return state.variable1;
+    getExcelData(state) {
+      return state.excelData;
     },
   },
 });

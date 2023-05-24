@@ -140,22 +140,29 @@ export default {
         this.editor.value.registerNode("condition", NodeIf, {}, {});
         this.editor.value.registerNode("send-email", sendEmail, {}, {});
         let mytemplate = ""
-        let csv = ""
+        let excelName = ""
         const store = useStore()
         let headers = store.getters.getHeaders // Access headers from Vuex getter
-        let variable1 = store.getters.getVariable1 // Access variable1 from Vuex getter
+        let excelData = store.getters.getExcelData // Access excelData from Vuex getter
+        let symbole = ""
+        let mypdf = ""      
+        let myzip = ""
         let variable2 = ""
+
        
-        const updateNodeOperation = (output_class: any, outputTemplate: any, outputCsv: any, outputHeaders: any, outputVariable1: any, outputVariable2: any, inputNodeData: any) => {
+        const updateNodeOperation = (output_class: any, outputTemplate: any, outputExcelName: any, outputHeaders: any, outputExcelData: any, outputSymbole: any, outputMypdf: any, outputMyzip: any, outputVariable2: any, inputNodeData: any) => {
             if (output_class == "input_1") {
                 mytemplate = outputTemplate;
-                csv = outputCsv;
+                excelName = outputExcelName;
                 headers = outputHeaders;
-                variable1 = outputVariable1;
+                excelData = outputExcelData;
+                symbole = outputSymbole;
+                mypdf = outputMypdf;
+                myzip = outputMyzip;
                 variable2 = outputVariable2;
             }
             const input_id = inputNodeData.id;
-            this.editor.value.updateNodeDataFromId(input_id, { mytemplate: mytemplate, csv: csv, headers: headers, variable1: variable1, variable2: variable2 });
+            this.editor.value.updateNodeDataFromId(input_id, { mytemplate: mytemplate, excelName: excelName, headers: headers, excelData: excelData, symbole: symbole, mypdf: mypdf, myzip: myzip, variable2: variable2 });
         }
 
         this.editor.value.on("nodeDataChanged", (data: any) => {
@@ -164,14 +171,17 @@ export default {
             const outputNode = nodeData.outputs.output_1.connections;
             if (outputNode.length > 0) {
                 const outputTemplate = nodeData.data.mytemplate;
-                const outputCsv = nodeData.data.csv;
+                const outputExcelName = nodeData.data.excelName;
                 const outputHeaders = nodeData.data.headers;
-                const outputVariable1 = nodeData.data.variable1;
+                const outputExcelData = nodeData.data.excelData;
+                const outputSymbole = nodeData.data.symbole;
+                const outputMypdf = nodeData.data.mypdf;
+                const outputMyzip = nodeData.data.myzip;
                 const outputVariable2 = nodeData.data.variable2;
                 const output_class = nodeData.outputs.output_1.connections[0].output;
                 const inputNodeId = nodeData.outputs.output_1.connections[0].node;
                 const inputNodeData = this.editor.value.getNodeFromId(inputNodeId);
-                updateNodeOperation(output_class, outputTemplate, outputCsv, outputHeaders, outputVariable1, outputVariable2, inputNodeData)
+                updateNodeOperation(output_class, outputTemplate, outputExcelName, outputHeaders, outputExcelData, outputSymbole, outputMypdf, outputMyzip, outputVariable2, inputNodeData)
 
 
 
@@ -182,16 +192,19 @@ export default {
         this.editor.value.on("connectionCreated", (data: any) => {
             const outputData = this.editor.value.getNodeFromId(data.output_id);
             const outputTemplate = outputData.data.mytemplate;
-            const outputCsv = outputData.data.csv;
+            const outputExcelName = outputData.data.excelName;
             const outputHeaders = outputData.data.headers;
-            const outputVariable1 = outputData.data.variable1;
+            const outputExcelData = outputData.data.excelData;
+            const outputSymbole = outputData.data.symbole;
+            const outputMypdf = outputData.data.mypdf;
+            const outputMyzip = outputData.data.myzip;
             const outputVariable2 = outputData.data.variable2;
             const output_class = data.input_class;
             const inputNodeData = this.editor.value.getNodeFromId(data.input_id);
 
-            updateNodeOperation(output_class, outputTemplate, outputCsv, outputHeaders, outputVariable1, outputVariable2, inputNodeData)
+            updateNodeOperation(output_class, outputTemplate, outputExcelName, outputHeaders, outputExcelData, outputSymbole, outputMypdf, outputMyzip, outputVariable2, inputNodeData)
             outputData.data.mytemplate = inputNodeData.data.mytemplate;
-            outputData.data.csv = inputNodeData.data.csv;
+            outputData.data.excelName = inputNodeData.data.excelName;
 
 
 
@@ -203,9 +216,12 @@ export default {
 
             Object.keys(editorData).forEach(function (i) {
                 mytemplate = editorData[i].data.mytemplate;
-                csv = editorData[i].data.csv;
+                excelName = editorData[i].data.excelName;
                 headers = editorData[i].data.headers;
-                variable1 = editorData[i].data.variable1;
+                excelData = editorData[i].data.excelData;
+                symbole = editorData[i].data.symbole;
+                mypdf = editorData[i].data.mypdf;
+                myzip = editorData[i].data.myzip;
                 variable2 = editorData[i].data.variable2;
 
             });
@@ -216,29 +232,18 @@ export default {
             const editorData = this.editor.value.export().drawflow.Home.data;
             Object.keys(editorData).forEach((i) => {
                 const input_id = editorData[i].id;
-                this.editor.value.updateNodeDataFromId(input_id, { mytemplate: mytemplate, csv: csv, headers: headers, variable1: variable1, variable2: variable2 });
+                this.editor.value.updateNodeDataFromId(input_id, { mytemplate: mytemplate, excelName: excelName, headers: headers, excelData: excelData, symbole: symbole, mypdf: mypdf, myzip: myzip, variable2: variable2 });
             });
         });
 
         this.editor.value.on("nodeSelected", () => {
-         const editorContent = this.editor.value.export();
+        const editorContent = this.editor.value.export();
         document.addEventListener('keydown', (event) => {
         if (event.ctrlKey && event.key === 'v') {        
             this.editor.value.import(editorContent);
         }
     });
-});
-
-// this.editor.value.on("nodeDataChanged", (nodeChanged) => {
-//     const editorData = this.editor.value.export().drawflow.Home.data;
-//     console.log(nodeChanged)
-//     const dataNode = this.editor.value.getNodeFromId(nodeChanged);
-//             Object.keys(editorData).forEach((i) => {
-//                 const input_id = editorData[i].id;
-//                 this.editor.value.updateNodeDataFromId(input_id, { mytemplate: dataNode.data.mytemplate, csv: dataNode.data.csv, headers: dataNode.data.headers, variable1: dataNode.data.variable1, variable2: dataNode.data.variable2 });
-//             });
-// });  
-
+        });
 
 
     },
@@ -285,7 +290,7 @@ export default {
             pos_y = pos_y * (this.editor.value.precanvas.clientHeight / (this.editor.value.precanvas.clientHeight * this.editor.value.zoom)) - (this.editor.value.precanvas.getBoundingClientRect().y
                 * (this.editor.value.precanvas.clientHeight / (this.editor.value.precanvas.clientHeight * this.editor.value.zoom)));
             const nodeSelected: any = nodesList.find(object => object.item === name);
-            this.editor.value.addNode(name, nodeSelected.input, nodeSelected.output, pos_x, pos_y, name, { mytemplate: "", csv: "", headers: [], variable1: "", varaible2: "" }, name, "vue");
+            this.editor.value.addNode(name, nodeSelected.input, nodeSelected.output, pos_x, pos_y, name, { mytemplate: "", excelName: "", headers: [], excelData: "",symbole: "", mypdf: "", myzip: "", varaible2: "" }, name, "vue");
         },
         addProgramName(event: any) {
             this.programName = event.target.value;

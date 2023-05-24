@@ -4,7 +4,7 @@
         <select v-model="mytemplate" df-mytemplate class="w-14 text-primary-dark mr-2 h-6">
             <option v-for="header in headers" :key="header" :value="header">{{ header }}</option>
         </select>
-        <select df-variable1 class="h-6">
+        <select df-symbole class="h-6">
             <option value="-">-</option>
             <option value="<">&lt;</option>
             <option value=">">&gt;</option>
@@ -31,7 +31,7 @@ export default {
             mytemplate: '',
             inputnodeId: 0,
             dataNodeInput: {} as any,
-            variable1:'',
+            symbole:'',
             variable2:0,
         }
     }
@@ -46,7 +46,7 @@ export default {
             this.dataNode = this.df.getNodeFromId(this.nodeId);
             await nextTick()
             this.mytemplate = this.dataNode.data.mytemplate;
-            this.variable1 = this.dataNode.data.variable1;
+            this.symbole = this.dataNode.data.symbole;
             this.variable2 = this.dataNode.data.variable2;
             
         }

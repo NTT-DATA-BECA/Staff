@@ -91,7 +91,7 @@ export default {
             pos_y = pos_y * (this.editor.value.precanvas.clientHeight / (this.editor.value.precanvas.clientHeight * this.editor.value.zoom)) - (this.editor.value.precanvas.getBoundingClientRect().y
                 * (this.editor.value.precanvas.clientHeight / (this.editor.value.precanvas.clientHeight * this.editor.value.zoom)));
             const nodeSelected: any = nodesList.find(object => object.item === name);
-            this.editor.value.addNode(name, nodeSelected.input, nodeSelected.output, pos_x, pos_y, name, { mytemplate: "", csv: "", headers: [], variable1: "", varaible2: "" }, name, "vue");
+            this.editor.value.addNode(name, nodeSelected.input, nodeSelected.output, pos_x, pos_y, name, { mytemplate: "", csv: "", headers: [], excelData: "", symbole: "", mypdf: "", myzip: "", varaible2: "" }, name, "vue");
         },
         addProgramName(event: any) {
             this.programName = event.target.value;
@@ -121,8 +121,8 @@ export default {
         cleanEditor() {
             this.editor.value.clear();
         },
-        /* Node generatePdf the path stored in the variable1 
-           The Data of the Excel file is retrieved from the NodeExcel and is stored in the variable1
+        /* Node generatePdf the path stored in the excelData
+           The Data of the Excel file is retrieved from the NodeExcel and is stored in the excelData
            the Header option is retrieved from the NodeCondition and is stored in mytemplate
         */
         async generateFlow() {
@@ -142,7 +142,7 @@ export default {
                     startoutputs = startoutputs + 1;
                     while (nameNode != "end") {
                         if (nameNode == "ImportExcel") {
-                            dataExcel = dataNode.data.variable1;
+                            dataExcel = dataNode.data.excelData;
                             idNode = parseFloat(dataNode.outputs?.output_1?.connections[0]?.node);
                             dataNode = this.editor.value.getNodeFromId(idNode);
                             nameNode = dataNode.name;
@@ -238,7 +238,7 @@ export default {
                                         response = response.replace(/{Name}/g, employee.Name);
                                         response = response.replace(/{DOC_YEAR}/g, "" + currentYear);
                                         response = response.replace(/{DOC_DATE}/g, currentDateStr);
-                                        this.downloadPdf(response, employee.Name + "-" + currentDateStr, dataOutput.data.variable1 + '/')
+                                        this.downloadPdf(response, employee.Name + "-" + currentDateStr, dataOutput.data.excelData + '/')
 
                                     }
                                 }
@@ -249,7 +249,7 @@ export default {
                         }
                     }
                     if (!dataExcel) {
-                        this.downloadPdf(response, this.selectedOption + "-" + currentDateStr, dataOutput.data.variable1 + '/')
+                        this.downloadPdf(response, this.selectedOption + "-" + currentDateStr, dataOutput.data.excelData + '/')
                     }
 
                 }

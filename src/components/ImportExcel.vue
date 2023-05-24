@@ -4,11 +4,11 @@
     <label>
       <input class="cursor-pointer w-36 hidden" type="file" @change="loadExcelFile" />
       <div class="text-white bg-blue font-bold rounded-lg text-sm text-center">
-        {{ csv || 'Import Excel' }}
+        {{ excelName || 'Import Excel' }}
       </div>
     </label>
-    <input type="hidden" v-model="csv" df-csv>
-    <input df-variable1 type="hidden" v-model="variable1">
+    <input type="hidden" v-model="excelName" df-excelName>
+    <input df-excelData type="hidden" v-model="excelData">
   </div>
 </template>
 <script lang="ts">
@@ -26,8 +26,8 @@ export default {
       nodeId: 0,
       outputnodeId: 0,
       df: null as any,
-      csv: '',
-      variable1:[] as any,
+      excelName: '',
+      excelData:[] as any,
       headersName: [] as any,
       dataNode: {} as any,
       dataNodeOutput: {} as any,
@@ -40,17 +40,16 @@ export default {
     await nextTick()
     this.nodeId = this.el?.parentElement?.parentElement?.id?.slice(5);
     this.dataNode = this.df.getNodeFromId(this.nodeId)
-    this.csv = this.dataNode.data.csv;
+    this.excelName = this.dataNode.data.excelName;
     this.headersName = this.dataNode.data.headers;
-    this.variable1 = this.dataNode.data.variable1;
-    console.log(this.variable1+" variable1");
+    this.excelData = this.dataNode.data.excelData;
 
   },
   computed: {
-    ...mapState(['headers', 'variable1']),
+    ...mapState(['headers', 'excelData']),
   },
   methods: {
-    ...mapActions(['setHeaders', 'setVariable1']),
+    ...mapActions(['setHeaders', 'setExcelData']),
    async loadExcelFile(event) {
       const file = event.target.files[0];
       const reader = new FileReader();
@@ -90,34 +89,18 @@ export default {
         if (!fs.existsSync(dir)) {
           fs.mkdirSync(dir);
         }
-         const outputFile = path.join(dir, `${this.csv}`);
+         const outputFile = path.join(dir, `${this.excelName}`);
         this.el = this.$refs.el;
-        this.csv = outputFile;
-        this.csv = event.target.files[0].name;
-        this.variable1=dataRows;
+        this.excelName = outputFile;
+        this.excelName = event.target.files[0].name;
+        this.excelData=dataRows;
         this.nodeId = this.el?.parentElement?.parentElement?.id?.slice(5);
         this.dataNode = this.df.getNodeFromId(this.nodeId)
         this.headersName = headNames;
-        // Update Vuex state with new headers and variable1
+        // Update Vuex state with new headers and excelData
         this.setHeaders(headNames);
-        this.setVariable1(dataRows);
-        this.df.updateNodeDataFromId(this.nodeId, { mytemplate: "", csv: this.csv, headers: this.headersName,variable1:this.variable1,variable2:"" })
-        if (this.dataNode.outputs.output_1.connections[0]?.node) {
-          this.outputnodeId = parseFloat(this.dataNode.outputs.output_1.connections[0].node)
-          this.dataNodeOutput = this.df.getNodeFromId(this.outputnodeId)
-          this.df.updateNodeDataFromId(this.outputnodeId, { mytemplate: this.dataNodeOutput.data.mytemplate, csv: "", headers: this.headersName,variable1:"",variable2:"" })
-          this.df.removeConnectionNodeId('node-'+this.outputnodeId);
-          if(this.dataNodeOutput.outputs.output_1.connections[0]?.node){
-            const outputnodeId = parseFloat(this.dataNode.outputs.output_1.connections[0].node)
-            this.df.removeConnectionNodeId('node-'+outputnodeId);
-          }
-          if(this.dataNodeOutput.outputs.output_1.connections[1]?.node){
-            const outputnodeId = parseFloat(this.dataNode.outputs.output_1.connections[1].node)
-            this.df.removeConnectionNodeId('node-'+outputnodeId);
-          }
-         
-        };
-        
+        this.setExcelData(dataRows);
+        this.df.updateNodeDataFromId(this.nodeId, {excelName: this.excelName, headers: this.headersName, excelData: this.excelData})
       };
       reader.readAsBinaryString(file);
        
