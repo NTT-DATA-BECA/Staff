@@ -1,7 +1,7 @@
 <template>
     <h2 id="node-title">Condition</h2>
     <div ref="el" class="-end-px w-64 text-black">
-        <select v-model="mytemplate" df-mytemplate class="w-14 text-primary-dark mr-2 h-6">
+        <select v-model="variable1" df-variable1 class="w-14 text-primary-dark mr-2 h-6">
             <option v-for="header in headers" :key="header" :value="header">{{ header }}</option>
         </select>
         <select df-symbole class="h-6">
@@ -21,14 +21,14 @@ import { getCurrentInstance, nextTick } from 'vue'
 import { mapState } from 'vuex';
 
 export default {
-    name: 'NodeIf',
+    name: 'NodeCondition',
     data() {
         return {
             el: null as any,
             nodeId: 0,
             dataNode: {} as any,
             df: null as any,
-            mytemplate: '',
+            variable1: '',
             inputnodeId: 0,
             dataNodeInput: {} as any,
             symbole:'',
@@ -45,7 +45,7 @@ export default {
         if (this.nodeId) {
             this.dataNode = this.df.getNodeFromId(this.nodeId);
             await nextTick()
-            this.mytemplate = this.dataNode.data.mytemplate;
+            this.variable1 = this.dataNode.data.variable1;
             this.symbole = this.dataNode.data.symbole;
             this.variable2 = this.dataNode.data.variable2;
             
