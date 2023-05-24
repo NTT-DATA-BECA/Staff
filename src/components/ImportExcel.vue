@@ -6,9 +6,10 @@
       <div class="text-white bg-blue font-bold rounded-lg text-sm text-center">
         {{ excelName || 'Import Excel' }}
       </div>
+      <input df-excelData type="hidden" v-model="excelData">
+      <input type="hidden" v-model="excelName" df-excelName>
     </label>
-    <input type="hidden" v-model="excelName" df-excelName>
-    <input df-excelData type="hidden" v-model="excelData">
+    
   </div>
 </template>
 <script lang="ts">
@@ -17,6 +18,7 @@ import * as XLSX from 'xlsx';
 import * as fs from 'fs';
 import * as path from 'path';
 import { mapState, mapActions } from 'vuex';
+const localStorage = window.localStorage;
 
 export default {
   name: 'ImportExcel',
@@ -24,6 +26,7 @@ export default {
     return {
       el: null as any,
       nodeId: 0,
+      outputnodeId: 0,
       df: null as any,
       excelName: '',
       excelData:[] as any,
@@ -42,6 +45,14 @@ export default {
     this.excelName = this.dataNode.data.excelName;
     this.headersName = this.dataNode.data.headers;
     this.excelData = this.dataNode.data.excelData;
+
+    // Retrieve state data from local storage
+    const storedHeaders = localStorage.getItem('headers');
+    const storedExcelData = localStorage.getItem('excelData');
+    if (storedHeaders && storedExcelData) {
+      this.setHeaders(JSON.parse(storedHeaders));
+      this.setExcelData(JSON.parse(storedExcelData));
+    }
 
   },
   computed: {
@@ -96,9 +107,15 @@ export default {
         this.nodeId = this.el?.parentElement?.parentElement?.id?.slice(5);
         this.dataNode = this.df.getNodeFromId(this.nodeId)
         this.headersName = headNames;
+
         // Update Vuex state with new headers and excelData
         this.setHeaders(headNames);
         this.setExcelData(dataRows);
+
+        // Save the state data to local storage
+        localStorage.setItem('headers', JSON.stringify(headNames));
+        localStorage.setItem('excelData', JSON.stringify(dataRows));
+       
         this.df.updateNodeDataFromId(this.nodeId, {excelName: this.excelName, headers: this.headersName, excelData: this.excelData})
       };
       reader.readAsBinaryString(file);
