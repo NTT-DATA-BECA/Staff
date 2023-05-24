@@ -20,7 +20,6 @@
         nodeId: 0,
         dataNode: {} as any,
         df: null as any,
-        headersName: [] as string[],
         mytemplate: '',
         inputnodeId: 0,
         dataNodeInput: {} as any,
@@ -37,7 +36,6 @@
       if (this.nodeId) {
         this.dataNode = this.df.getNodeFromId(this.nodeId);
         await nextTick();
-        this.headersName = this.dataNode.data.headers;
         this.mytemplate = this.dataNode.data.mytemplate;
         this.variable1 = this.dataNode.data.variable1;
       }

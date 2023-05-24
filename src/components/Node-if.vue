@@ -2,7 +2,7 @@
     <h2 id="node-title">Condition</h2>
     <div ref="el" class="-end-px w-64 text-black">
         <select v-model="mytemplate" df-mytemplate class="w-14 text-primary-dark mr-2 h-6">
-            <option v-for="header in headersName" :key="header" :value="header">{{ header }}</option>
+            <option v-for="header in headers" :key="header" :value="header">{{ header }}</option>
         </select>
         <select df-variable1 class="h-6">
             <option value="-">-</option>
@@ -14,11 +14,12 @@
         </select>  
         <input df-variable2 v-model="variable2" class="w-10 ml-2 h-6" type="number">
     </div>
-    <input type="hidden" df-headers>
 </template>
 
 <script lang="ts">
 import { getCurrentInstance, nextTick } from 'vue'
+import { mapState } from 'vuex';
+
 export default {
     name: 'NodeIf',
     data() {
@@ -27,7 +28,6 @@ export default {
             nodeId: 0,
             dataNode: {} as any,
             df: null as any,
-            headersName: [] as string[],
             mytemplate: '',
             inputnodeId: 0,
             dataNodeInput: {} as any,
@@ -45,19 +45,16 @@ export default {
         if (this.nodeId) {
             this.dataNode = this.df.getNodeFromId(this.nodeId);
             await nextTick()
-            this.headersName = this.dataNode.data.headers;
             this.mytemplate = this.dataNode.data.mytemplate;
             this.variable1 = this.dataNode.data.variable1;
             this.variable2 = this.dataNode.data.variable2;
             
         }
-        this.df.on('connectionCreated', (data) => {
-            const inputData = this.df.getNodeFromId(data.input_id);
-            if(inputData.name=="condition" || inputData.name=="ImportExcel") {
-            this.headersName=inputData.data.headers;
-        }
-      })
 
-    }
+
+    },
+    computed: {
+    ...mapState(['headers']),
+    },
 }
 </script>
