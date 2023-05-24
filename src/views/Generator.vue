@@ -43,15 +43,10 @@ import NodeStart from '../components/Node-start.vue'
 import NodeEnd from '../components/Node-end.vue'
 import NodeIf from '../components/Node-if.vue'
 import NodeGeneratePdf from '../components/Node-GeneratePdf.vue'
-import NodeZipFolder from '../components/Node-zipFolder.vue'
-
-import sendEmail from '../components/Node-sendEmail.vue'
 import { nodesList } from '../utils/nodesList'
 import { ipcRenderer } from 'electron';
 import quillCSS from 'quill/dist/quill.snow.css'
 import 'vue3-toastify/dist/index.css';
-import archiver from 'archiver';
-
 
 export default {
     name: "DrawflowDashboard",
@@ -82,9 +77,7 @@ export default {
         this.editor.value.registerNode("start", NodeStart, {}, {});
         this.editor.value.registerNode("end", NodeEnd, {}, {});
         this.editor.value.registerNode("Generatepdf", NodeGeneratePdf, {}, {});
-        this.editor.value.registerNode("zip-folder", NodeZipFolder, {}, {});
         this.editor.value.registerNode("condition", NodeIf, {}, {});
-        this.editor.value.registerNode("send-email", sendEmail, {}, {});
 
     },
     methods: {
@@ -128,8 +121,11 @@ export default {
         cleanEditor() {
             this.editor.value.clear();
         },
+        /* Node generatePdf the path stored in the variable1 
+           The Data of the Excel file is retrieved from the NodeExcel and is stored in the variable1
+           the Header option is retrieved from the NodeCondition and is stored in mytemplate
+        */
         async generateFlow() {
-            var path = '';
             var idNode = parseFloat(this.getStartId());
             this.searchNodeEnd();
             if (idNode) {
@@ -137,68 +133,142 @@ export default {
                 var dataNodeStart = this.editor.value.getNodeFromId(idNode)
                 var nameNode = dataNode.name;
                 var startoutputs = 0;
+                var headerCondition = [] as any;
+                var dataExcel = [] as any;
                 while (dataNodeStart.outputs?.output_1?.connections[startoutputs]) {
                     idNode = parseFloat(dataNodeStart.outputs.output_1.connections[startoutputs].node)
                     dataNode = this.editor.value.getNodeFromId(idNode)
                     nameNode = dataNode.name;
                     startoutputs = startoutputs + 1;
                     while (nameNode != "end") {
-                        if (nameNode == "Generatepdf") {
-                            const idInput = parseFloat(dataNode.inputs.input_1.connections[0].node)
-                            if (idInput) {
-                                const dataNodeinput = this.editor.value.getNodeFromId(idInput)
-                                const response = await ipcRenderer.invoke('getQuillContentData', { name: dataNodeinput.data.mytemplate });
-                                if (response) {
-                                    await this.generateFolder(response, dataNode.data.mytemplate, '');
-                                    this.showSucess();
-                                }
-                                else {
-                                    this.modalMessage('Error!', 'Something wrong.', 'error');
-                                }
-                            };
-                        } else if (nameNode == "zip-folder") {
-                            const idInput = parseFloat(dataNode.inputs.input_1.connections[0].node)
-                            const dataNodeinput = this.editor.value.getNodeFromId(idInput)
-                            let pdfPath = dataNodeinput.data.mytemplate;
-                            // debugger;
-                            await this.createZipFile(pdfPath);
-                        } else if (nameNode == "send-email") {
-                            const selectedHeader = dataNode.data.mytemplate;
-                            console.log("Selected header:", selectedHeader);
-                            if (selectedHeader) {
-                                const headers = dataNode.data.headers;
-                                console.log("headers:", headers);
-                                const variable1 = dataNode.data.variable1;
-                                const headerIndex = headers.findIndex((header) => header === selectedHeader);
-                                console.log("headerIndex", headerIndex);
-                                if (headerIndex !== -1) {
-                                    const columnData = variable1.map((row) => row[selectedHeader]);
-                                    console.log("columnData", columnData);
-                                    const validEmails = columnData.filter((value) => /\S+@\S+\.\S+/.test(value));
-                                    if (validEmails.length > 0) {
-                                        for (const email of validEmails) {
-                                            const idInput = parseFloat(dataNode.inputs.input_1.connections[0].node)
-                                            const dataNodeinput = this.editor.value.getNodeFromId(idInput)
-                                            let zipPath = dataNodeinput.data.mytemplate;
-                                            await this.sendEmailWithAttachment(email, zipPath);
-                                            console.log("Sent email to:", email);
+                        if (nameNode == "ImportExcel") {
+                            dataExcel = dataNode.data.variable1;
+                            idNode = parseFloat(dataNode.outputs?.output_1?.connections[0]?.node);
+                            dataNode = this.editor.value.getNodeFromId(idNode);
+                            nameNode = dataNode.name;
+                            if (nameNode == "condition") {
+                                var dataAccepted = [] as any;
+                                var dataNotAccepted = [] as any;
+                                while (nameNode != "end") {
+                                    var dataOutput1 = dataNode;
+                                    var dataOutput2 = dataNode;
+                                    var idNodeoutput2 = 0;
+                                    headerCondition = dataNode.data.mytemplate;
+                                    for (var i = 0; i < dataExcel.length; i++) {
+                                        var element = dataExcel[i];
+                                        if (element[headerCondition] > 0) {
+                                            dataAccepted.push(dataExcel[i]);
+                                        } else {
+                                            dataNotAccepted.push(dataExcel[i]);
                                         }
-                                    } else {
-                                        console.log("No valid emails found in the selected header column.");
                                     }
-                                } else {
-                                    console.log("Invalid column data: header not found");
+                                    if (dataNode.outputs?.output_1?.connections[0]) {
+                                        var idNodeoutput1 = parseFloat(dataOutput1.outputs.output_1.connections[0].node)
+                                        dataOutput1 = this.editor.value.getNodeFromId(idNodeoutput1)
+                                        var nameNodeOutput1 = dataOutput1.name;
+                                        if (nameNodeOutput1 != "condition") {
+                                            await this.generateNodePdf(nameNodeOutput1, dataAccepted, dataOutput1);
+                                            nameNode = "end";
+                                        }
+                                    }
+                                    if (dataNode.outputs?.output_2?.connections[0]) {
+                                        idNodeoutput2 = parseFloat(dataOutput2.outputs?.output_2?.connections[0]?.node);
+                                        dataOutput2 = this.editor.value.getNodeFromId(idNodeoutput2);
+                                        var nameNodeOutput2 = dataOutput2.name;
+                                        await this.generateNodePdf(nameNodeOutput2, dataNotAccepted, dataOutput2);
+                                    }
+                                    for (var i = 0; i < dataNotAccepted.length; i++) {
+                                        var element = dataNotAccepted[i];
+                                        var index = dataExcel.indexOf(element);
+                                        if (index !== -1) {
+                                            dataExcel.splice(index, 1);
+                                        }
+                                    }
+                                    dataAccepted = [];
+                                    dataNotAccepted = [];
+                                    if (nameNode != "end") {
+                                        idNode = parseFloat(dataNode.outputs?.output_1?.connections[0]?.node);
+                                        if (idNode) {
+                                            dataNode = this.editor.value.getNodeFromId(idNode);
+                                        }
+                                        nameNode = dataNode.name;
+                                    }
                                 }
                             }
+                            this.showSucess();
                         }
-                        idNode = parseFloat(dataNode.outputs.output_1.connections[0].node)
-                        dataNode = this.editor.value.getNodeFromId(idNode)
-                        nameNode = dataNode.name;
+                        if (nameNode == "Generatepdf") {
+                            await this.generateNodePdf(nameNode, null, dataNode);
+                        }
+                        if (nameNode != "end") {
+                            idNode = parseFloat(dataNode.outputs?.output_1?.connections[0]?.node);
+                            if (idNode) {
+                                dataNode = this.editor.value.getNodeFromId(idNode);
+                            }
+                            nameNode = dataNode.name;
+                        }
                     }
                 }
             }
-        },
 
+        },
+        async generateNodePdf(nameNodeOutput: any, dataExcel: any, dataOutput) {
+            while (nameNodeOutput !== "end") {
+                if (nameNodeOutput == "Generatepdf") {
+                    var replacedResponse = "";
+                    var response = "";
+                    var lenghtData = 1;
+                    const currentDate = new Date();
+                    const currentYear = currentDate.getFullYear();
+                    const currentDateStr = currentDate.toISOString().split('T')[0];
+                    if (dataExcel) {
+                        lenghtData = dataExcel.length;
+                    }
+                    for (var i = 0; i < lenghtData; i++) {
+                        if (dataExcel) { var employee = dataExcel[i]; }
+                        const idInput = parseFloat(dataOutput.inputs.input_1.connections[0].node)
+                        if (idInput) {
+                            const dataNodeinput = this.editor.value.getNodeFromId(idInput)
+                            response = await ipcRenderer.invoke('getQuillContentData', { name: dataNodeinput.data.mytemplate });
+                            if (response) {
+                                if (dataExcel) {
+                                    replacedResponse = this.replaceVariables(response, employee);
+                                    if (dataExcel) {
+                                        response = replacedResponse;
+                                        response = response.replace(/{Name}/g, employee.Name);
+                                        response = response.replace(/{DOC_YEAR}/g, "" + currentYear);
+                                        response = response.replace(/{DOC_DATE}/g, currentDateStr);
+                                        this.downloadPdf(response, employee.Name + "-" + currentDateStr, dataOutput.data.variable1 + '/')
+
+                                    }
+                                }
+                            }
+                            else {
+                                this.modalMessage('Error!', 'Something wrong.', 'error')
+                            }
+                        }
+                    }
+                    if (!dataExcel) {
+                        this.downloadPdf(response, this.selectedOption + "-" + currentDateStr, dataOutput.data.variable1 + '/')
+                    }
+
+                }
+                var idNodeoutput = parseFloat(dataOutput.outputs?.output_1?.connections[0]?.node);
+                dataOutput = this.editor.value.getNodeFromId(idNodeoutput);
+                nameNodeOutput = dataOutput.name;
+            }
+        },
+        replaceVariables(response, employee) {
+            for (var prop in employee) {
+                if (employee.hasOwnProperty(prop)) {
+                    const variableName = `{${prop}}`;
+                    const variableValue = employee[prop];
+                    response = response.split(variableName).join(variableValue);
+                }
+            }
+            return response;
+        }
+        ,
         searchNodeEnd() {
             const editorData = this.editor.value.export().drawflow.Home.data;
             let idEnd = "";
@@ -240,82 +310,18 @@ export default {
             return idStart
         },
         async downloadPdf(htmlforpdf: any, namefile: any, path: any) {
-            var name = this.selectedOption + "-" + namefile
-            var html = '<html><head><style> footer{position: fixed;bottom: 0;} .ql-editor{margin:0px;} div { page-break-before: auto; max-height:3000px;}' + quillCSS + '</style></head><body><div class="ql-editor">' + htmlforpdf + ' <footer style="padding-top: 100px;"><div style="border-top: 2px solid gray; font-size :15px; text-align:center; color:gray;"><p>NTT DATA Morocco Centers – SARL au capital de 7.700.000 Dhs – Parc Technologique de Tétouanshore, Route de Cabo Negro, Martil – Maroc – RC: 19687 – IF : 15294847 – CNSS : 4639532 – Taxe Prof. :51840121</p></div></footer> </div></body></html>'
-            var pdf = require('hm-html-pdf');
-            var options = { format: 'A4' };
-            return new Promise((resolve, reject) => {
-                pdf.create(html, options).toFile(path + name + '.pdf', function (err, res) {
-                    if (err) return reject(err);
-                    resolve(res.filename);
-                });
-            });
-        },
 
-        async createZipFile(pdfPath) {
-            debugger;
-            const fs = require('fs');
-            const archiver = require('archiver');
-            const zipPath = pdfPath.replace('.pdf', '.zip');
-            return new Promise((resolve, reject) => {
-                const output = fs.createWriteStream(zipPath);
-                const archive = archiver('zip', {
-                    zlib: { level: 9 }
-                });
-                output.on('close', function () {
-                    console.log(archive.pointer() + ' total bytes');
-                    console.log('Zip file created:', zipPath);
-                    resolve(zipPath);
-                });
-                archive.on('warning', function (err) {
-                    if (err.code === 'ENOENT') {
-                        console.warn(err);
-                    } else {
-                        reject(err);
-                    }
-                });
-                archive.on('error', function (err) {
-                    reject(err);
-                });
-                archive.pipe(output);
-                archive.file(pdfPath, { name: 'document.pdf' });
-                archive.finalize();
-            });
-        },
-        async generateFolder(htmlforpdf: any, namefile: any, path: any) {
-            var name = this.selectedOption + "-" + namefile
-            var html = '<html><head><style> footer{position: fixed;bottom: 0;} .ql-editor{margin:0px;} div { page-break-before: auto; max-height:3000px;}' + quillCSS + '</style></head><body><div class="ql-editor">' + htmlforpdf + ' <footer style="padding-top: 100px;"><div style="border-top: 2px solid gray; font-size :15px; text-align:center; color:gray;"><p>NTT DATA Morocco Centers – SARL au capital de 7.700.000 Dhs – Parc Technologique de Tétouanshore, Route de Cabo Negro, Martil – Maroc – RC: 19687 – IF : 15294847 – CNSS : 4639532 – Taxe Prof. :51840121</p></div></footer> </div></body></html>'
+            var name = namefile
+            var html = '<html><head><style> footer{position: fixed;bottom: 0;}' + quillCSS + '</style></head><body><div class="ql-editor">' + htmlforpdf + ' <footer style="padding-top: 100px;"><div style="border-top: 2px solid gray;"><div style="font-size :15px; text-align:center; color:gray;margin-left:0px;margin-right:5px;"><p> NTT DATA Morocco Centers – SARL au capital de 7.700.000 Dhs – Parc Technologique de Tétouanshore, Route de Cabo Negro, Martil – Maroc – RC: 19687 – IF : 15294847 – CNSS : 4639532 – </br>Taxe Prof. :51840121</p></div></footer> </div></body></html>'
             var pdf = require('hm-html-pdf');
-            var options = { format: 'A4' };
-            return new Promise((resolve, reject) => {
-                pdf.create(html, options).toFile(path + name + '.pdf', function (err, res) {
-                    if (err) return reject(err);
-                    resolve(path);
-                });
-            });
-        },
-
-        async sendEmailWithAttachment(email, zipPath) {
-            const path = require('path');
-            const filename = path.basename(zipPath);
-            const emailData = {
-                to: email,
-                subject: 'Test Email',
-                text: 'This is a test email sent from Electron.js!',
-                attachments: [
-                    {
-                        filename: filename,
-                        path: zipPath
-                    }
-                ]
+            var options = {
+                format: 'A4',
+                orientation: "portrait",
             };
-            ipcRenderer.invoke('sendEmail', emailData)
-                .then(() => {
-                    console.log('Email sent successfully');
-                })
-                .catch((error) => {
-                    console.error('Error sending email:', error);
-                });
+            pdf.create(html, options).toFile(path + name + '.pdf', function (err, res) {
+                if (err) return console.log(err);
+                //console.log(res);
+            });
         },
         showSucess() {
             Swal.fire({
@@ -335,9 +341,7 @@ export default {
                 type,
                 message
             );
-        },
-
-
+        }
     }
 }
 </script>

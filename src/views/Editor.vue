@@ -24,13 +24,19 @@
           </svg>
           Save File
         </button>
-        <button class="btn flex items-center" @click="newFile">
+        <button class="mr-2 btn flex items-center" @click="newFile">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="mr-2 bi bi-plus-lg"
             viewBox="0 0 16 16">
             <path fill-rule="evenodd"
               d="M8 2a.5.5 0 0 1 .5.5v5h5a.5.5 0 0 1 0 1h-5v5a.5.5 0 0 1-1 0v-5h-5a.5.5 0 0 1 0-1h5v-5A.5.5 0 0 1 8 2Z" />
           </svg>
           New file
+        </button>
+        <button v-if="action == 'edit'" class="btn flex items-center" @click="duplicateFile">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="mr-2 bi bi-file-earmark-plus-fill" viewBox="0 0 16 16">
+                    <path d="M9.293 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V4.707A1 1 0 0 0 13.707 4L10 .293A1 1 0 0 0 9.293 0zM9.5 3.5v-2l3 3h-2a1 1 0 0 1-1-1zM8.5 7v1.5H10a.5.5 0 0 1 0 1H8.5V11a.5.5 0 0 1-1 0V9.5H6a.5.5 0 0 1 0-1h1.5V7a.5.5 0 0 1 1 0z"/>
+          </svg>
+          Duplicate file
         </button>
         <button v-if="action == 'edit'" class="btn ml-2 flex items-center" @click="deleteFile">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="mr-2 bi bi-trash-fill"
@@ -299,13 +305,10 @@ export default {
       this.editor.root.innerHTML = this.editor.root.innerHTML + html;
     },
     async downloadPdf() {
-
-
       var contenu = this.editor.root.innerHTML;
-
       var name = this.selectedOption
-      var html = '<html><head><style> footer{position: fixed;bottom: 0;} .ql-editor{margin:0px;} div { page-break-before: auto; max-height:3000px;}' + quillCSS + '</style></head><body><div class="ql-editor">' + contenu + '</div> <footer style="padding-top: 100px;"><div style="border-top: 2px solid gray; font-size :15px; text-align:center; color:gray;"><p>NTT DATA Morocco Centers – SARL au capital de 7.700.000 Dhs – Parc Technologique de Tétouanshore, Route de Cabo Negro, Martil – Maroc – RC: 19687 – IF : 15294847 – CNSS : 4639532 – Taxe Prof. :51840121</p></div></footer> </body></html>'
-      var pdf = require('hm-html-pdf');
+      var html = '<html><head><style> footer{position: fixed;bottom: 0;}' + quillCSS + '</style></head><body><div class="ql-editor">' + contenu + ' <footer style="padding-top: 100px;"><div style="border-top: 2px solid gray;"><div style="font-size :15px; text-align:center; color:gray;margin-left:0px;margin-right:5px;"><p> NTT DATA Morocco Centers – SARL au capital de 7.700.000 Dhs – Parc Technologique de Tétouanshore, Route de Cabo Negro, Martil – Maroc – RC: 19687 – IF : 15294847 – CNSS : 4639532 – </br>Taxe Prof. :51840121</p></div></footer> </div></body></html>'
+        var pdf = require('hm-html-pdf');
       var options = {
         format: 'A4',
       };
@@ -355,13 +358,8 @@ export default {
         }
       }
       else {
-        if (this.fileName.length === 0 || this.selectedOption.length === 0) {
-          Swal.fire('Empty Name', 'The field cannot be left empty, please input a name.', 'error')
-        }
-        else {
           ipcRenderer.invoke('updateContentFile', { name: this.selectedOption, data: this.editor.root.innerHTML });
           this.showSucess();
-        }
       }
     },
     showSucess() {
@@ -390,8 +388,15 @@ export default {
       this.fileName = '';
       this.editor.root.innerHTML = response;
       this.action = 'edit';
+    },
+    duplicateFile(){
+      const contenuEditor = this.editor.root.innerHTML;
+      const nameFile=this.selectedOption;
+      this.newFile();
+      this.fileName=nameFile+"-copy";
+      this.editor.root.innerHTML=contenuEditor;
     }
-  },
+  }
 }
 </script>
 

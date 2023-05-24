@@ -3,6 +3,7 @@ process.env.DIST = join(__dirname, '../..')
 process.env.PUBLIC = app.isPackaged ? process.env.DIST : join(process.env.DIST, '../public')
 
 import { app, BrowserWindow, shell, ipcMain, Menu } from 'electron'
+import { app, BrowserWindow, shell, ipcMain, Menu } from 'electron'
 const sqlite3 = require('sqlite3').verbose();
 import { release } from 'os'
 import { join } from 'path'

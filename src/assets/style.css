@@ -7,28 +7,28 @@
 
 /* Drawflow */
 .drawflow .drawflow-node:not(.drawflow-node.condition):not(.drawflow-node.end):not(.drawflow-node.start) {
-  --tw-bg-opacity: 1;
-  --tw-text-opacity: 1;
-  --tw-border-opacity: 1;
-  border-radius: 0.75rem !important;
-  background-color: rgb(156 180 220 / var(--tw-bg-opacity)) !important;
-  color: rgb(255 255 255 / var(--tw-text-opacity)) !important;
-  border: solid 2px rgb(113 152 206 / var(--tw-border-opacity)) !important;
-  min-width: 190px !important;
+    --tw-bg-opacity: 1;
+    --tw-text-opacity: 1;
+    --tw-border-opacity: 1;
+    border-radius: 0.75rem !important;
+    background-color: rgb(156 180 220 / var(--tw-bg-opacity)) !important;
+    color: rgb(255 255 255 / var(--tw-text-opacity)) !important;
+    border: solid 2px rgb(113 152 206 / var(--tw-border-opacity)) !important;
+    min-width: 190px !important;
 }
 .drawflow .drawflow-node.start{
-  background-color: #6484c4 !important;
-  border: solid 2px rgb(113 152 206 / var(--tw-border-opacity)) !important;
-  width: 90px ;
-  height: 90px;
-  border-radius: 50% !important;
+    background-color: #6484c4 !important;
+    border: solid 2px rgb(113 152 206 / var(--tw-border-opacity)) !important;
+    width: 90px ;
+    height: 90px;
+    border-radius: 50% !important;
 }
 .drawflow .drawflow-node.end{
-  background-color: #6484c4 !important;
-  border: solid 2px rgb(113 152 206 / var(--tw-border-opacity)) !important;
-  width: 90px ;
-  height: 90px;
-  border-radius: 50% !important;
+    background-color: #6484c4 !important;
+    border: solid 2px rgb(113 152 206 / var(--tw-border-opacity)) !important;
+    width: 90px ;
+    height: 90px;
+    border-radius: 50% !important;
 }
 .drawflow .drawflow-node .drawflow_content_node #node-title {
   color: #ffffff !important;
@@ -67,44 +67,61 @@
   stroke: #557c95 !important;
 }
 .mySelect .v-select .dropdown-toggle {
-  border: none;
-}
+    border: none;
+ }
 /* condition  */
-  .drawflow .drawflow-node.condition  {
-      --tw-bg-opacity: 1;
-      --tw-text-opacity: 1;
-      --tw-border-opacity: 1;
-      border-radius: 0.75rem !important;
-      background-color: rgb(156 180 220 / var(--tw-bg-opacity)) !important;
-      color: rgb(255 255 255 / var(--tw-text-opacity)) !important;
-      border: solid 2px rgb(113 152 206 / var(--tw-border-opacity)) !important;
-      border-left: 50% solid transparent !important;;
+    .drawflow .drawflow-node.condition  {
+        --tw-bg-opacity: 1;
+        --tw-text-opacity: 1;
+        --tw-border-opacity: 1;
+        border-radius: 0.75rem !important;
+        background-color: rgb(156 180 220 / var(--tw-bg-opacity)) !important;
+        color: rgb(255 255 255 / var(--tw-text-opacity)) !important;
+        border: solid 2px rgb(113 152 206 / var(--tw-border-opacity)) !important;
+        border-left: 50% solid transparent !important;;
+    }
+  .drawflow .parent-node .drawflow-node.condition {
+    width: 185px;
+    height: 80px;
   }
-.drawflow .parent-node .drawflow-node.condition {
-  width: 185px;
-  height: 80px;
-}
 
-.drawflow .parent-node .drawflow-node.condition .input_1 {
-  transform: rotate(-45deg);
-  position: relative;
-  top: -4px;
-  right: 30px;
-}
+  .drawflow .parent-node .drawflow-node.condition .input_1 {
+    transform: rotate(-45deg);
+    position: relative;
+    top: -4px;
+    right: 30px;
+  }
 
-.drawflow .parent-node .drawflow-node.condition .output_1 {
-  transform: rotate(-45deg);
-  position: relative;
-  top: 15px;
-  right: -5px;
-}
+  .drawflow .parent-node .drawflow-node.condition .output_1 {
+    transform: rotate(-45deg);
+    position: relative;
+    top: 0px;
+    right: -5px;
+  }
 
-.drawflow .parent-node .drawflow-node.condition .output_2 {
-  transform: rotate(-45deg);
-  position: relative;
-  top: 20px;
-  right: 80px;
-}
+  .drawflow .parent-node .drawflow-node.condition .output_2 {
+    transform: rotate(-45deg);
+    position: relative;
+    top: -5px;
+    right: -5px;
+  }
+
+  .drawflow-node.condition .outputs .output:nth-child(1):before {
+    display: block;
+    color: #2d495c !important;
+    content: "Yes";
+    position: relative;
+    top: -5px;
+    right: -25px;
+  }
+ .drawflow-node.condition .outputs .output:nth-child(2):before {
+    display: block;
+    color: #2d495c !important;
+    content: "No";
+    position: relative;
+    top: 15px;
+    right: -5px;
+ }
 
 .drawflow-node.condition .outputs .output:nth-child(1):before {
   display: block;
