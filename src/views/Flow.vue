@@ -91,6 +91,7 @@ import NodeGeneratePdf from '../components/Node-GeneratePdf.vue'
 import NodeZipFolder from '../components/Node-zipFolder.vue'
 import Condition from '../components/Node-Condition.vue'
 import sendEmail from '../components/Node-sendEmail.vue'
+import groupPdfBy from '../components/Node-groupPdfBy.vue'
 import Swal from 'sweetalert2'
 import { nodesList } from '../utils/nodesList'
 import { ipcRenderer } from 'electron';
@@ -139,6 +140,7 @@ export default {
         this.editor.value.registerNode("zip-folder", NodeZipFolder, {}, {});
         this.editor.value.registerNode("condition", Condition, {}, {});
         this.editor.value.registerNode("send-email", sendEmail, {}, {});
+        this.editor.value.registerNode("groupPdfBy", groupPdfBy, {}, {});
         let mytemplate = ""
         let excelName = ""
         const store = useStore()
@@ -166,30 +168,28 @@ export default {
             this.editor.value.updateNodeDataFromId(input_id, { mytemplate: mytemplate, excelName: excelName, headers: headers, excelData: excelData, symbole: symbole, pdfpath: pdfpath, myzip: myzip, variable1: variable1, variable2: variable2 });
         }
 
-        this.editor.value.on("nodeDataChanged", (data: any) => {
-            const nodeData = this.editor.value.getNodeFromId(data);
+        // this.editor.value.on("nodeDataChanged", (data: any) => {
+        //     const nodeData = this.editor.value.getNodeFromId(data);
 
-            const outputNode = nodeData.outputs.output_1.connections;
-            if (outputNode.length > 0) {
-                const outputTemplate = nodeData.data.mytemplate;
-                const outputExcelName = nodeData.data.excelName;
-                const outputHeaders = nodeData.data.headers;
-                const outputExcelData = nodeData.data.excelData;
-                const outputSymbole = nodeData.data.symbole;
-                const outputpdfpath = nodeData.data.pdfpath;
-                const outputMyzip = nodeData.data.myzip;
-                const outputVariable1 = nodeData.data.variable1;
-                const outputVariable2 = nodeData.data.variable2;
-                const output_class = nodeData.outputs.output_1.connections[0].output;
-                const inputNodeId = nodeData.outputs.output_1.connections[0].node;
-                const inputNodeData = this.editor.value.getNodeFromId(inputNodeId);
-                updateNodeOperation(output_class, outputTemplate, outputExcelName, outputHeaders, outputExcelData, outputSymbole, outputpdfpath, outputMyzip,outputVariable1, outputVariable2, inputNodeData)
+        //     const outputNode = nodeData.outputs.output_1.connections;
+        //     if (outputNode.length > 0) {
+        //         const outputTemplate = nodeData.data.mytemplate;
+        //         const outputExcelName = nodeData.data.excelName;
+        //         const outputHeaders = nodeData.data.headers;
+        //         const outputExcelData = nodeData.data.excelData;
+        //         const outputSymbole = nodeData.data.symbole;
+        //         const outputpdfpath = nodeData.data.pdfpath;
+        //         const outputMyzip = nodeData.data.myzip;
+        //         const outputVariable1 = nodeData.data.variable1;
+        //         const outputVariable2 = nodeData.data.variable2;
+        //         const output_class = nodeData.outputs.output_1.connections[0].output;
+        //         const inputNodeId = nodeData.outputs.output_1.connections[0].node;
+        //         const inputNodeData = this.editor.value.getNodeFromId(inputNodeId);
+        //         updateNodeOperation(output_class, outputTemplate, outputExcelName, outputHeaders, outputExcelData, outputSymbole, outputpdfpath, outputMyzip,outputVariable1, outputVariable2, inputNodeData)
 
+        //     }
 
-
-            }
-
-        });
+        // });
 
         this.editor.value.on("connectionCreated", (data: any) => {
             const outputData = this.editor.value.getNodeFromId(data.output_id);

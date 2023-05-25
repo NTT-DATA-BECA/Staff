@@ -43,6 +43,9 @@ import NodeStart from '../components/Node-start.vue'
 import NodeEnd from '../components/Node-end.vue'
 import Condition from '../components/Node-Condition.vue'
 import NodeGeneratePdf from '../components/Node-GeneratePdf.vue'
+import NodeZipFolder from '../components/Node-zipFolder.vue'
+import sendEmail from '../components/Node-sendEmail.vue'
+import groupPdfBy from '../components/Node-groupPdfBy.vue'
 import { nodesList } from '../utils/nodesList'
 import { ipcRenderer } from 'electron';
 import quillCSS from 'quill/dist/quill.snow.css'
@@ -78,7 +81,9 @@ export default {
         this.editor.value.registerNode("end", NodeEnd, {}, {});
         this.editor.value.registerNode("Generatepdf", NodeGeneratePdf, {}, {});
         this.editor.value.registerNode("condition", Condition, {}, {});
-
+        this.editor.value.registerNode("groupPdfBy", groupPdfBy, {}, {});
+        this.editor.value.registerNode("send-email", sendEmail, {}, {});
+        this.editor.value.registerNode("zip-folder", NodeZipFolder, {}, {});
     },
     methods: {
         touchScreenPosition(ev: any) {
@@ -121,10 +126,6 @@ export default {
         cleanEditor() {
             this.editor.value.clear();
         },
-        /* Node generatePdf the path stored in the symbole 
-           The Data of the Excel file is retrieved from the NodeExcel and is stored in the symbole
-           the Header option is retrieved from the Condition and is stored in mytemplate
-        */
         async generateFlow() {
             var idNode = parseFloat(this.getStartId());
             this.searchNodeEnd();
@@ -212,9 +213,17 @@ export default {
             }
 
         },
-        async generateNodePdf(nameNodeOutput: any, dataExcel: any, dataOutput) {
+        async generateNodePdf(nameNodeOutput: any, dataExcel: any, dataNode :any) {
             while (nameNodeOutput !== "end") {
                 if (nameNodeOutput == "Generatepdf") {
+                    var group='';
+                    const idoutput = parseFloat(dataNode.outputs.output_1.connections[0].node)
+                    if(idoutput){
+                    const dataNodeoutput = this.editor.value.getNodeFromId(idoutput);
+                    if(dataNodeoutput.name=="groupPdfBy"){
+                       group=dataNodeoutput.data.variable1;    
+                    }
+                    }
                     var replacedResponse = "";
                     var response = "";
                     var lenghtData = 1;
@@ -226,7 +235,8 @@ export default {
                     }
                     for (var i = 0; i < lenghtData; i++) {
                         if (dataExcel) { var employee = dataExcel[i]; }
-                        const idInput = parseFloat(dataOutput.inputs.input_1.connections[0].node)
+                        
+                        const idInput = parseFloat(dataNode.inputs.input_1.connections[0].node)
                         if (idInput) {
                             const dataNodeinput = this.editor.value.getNodeFromId(idInput)
                             response = await ipcRenderer.invoke('getQuillContentData', { name: dataNodeinput.data.mytemplate });
@@ -238,8 +248,11 @@ export default {
                                         response = response.replace(/{Name}/g, employee.Name);
                                         response = response.replace(/{DOC_YEAR}/g, "" + currentYear);
                                         response = response.replace(/{DOC_DATE}/g, currentDateStr);
-                                        this.downloadPdf(response, employee.Name + "-" + currentDateStr, dataOutput.data.pdfpath + '/')
-
+                                        if(group){
+                                        this.downloadPdf(response, employee.LastName+employee.FirstName + "-" + employee.Year, dataNode.data.pdfpath + '/'+employee[group]+'/')
+                                        } else {
+                                        this.downloadPdf(response, employee.LastName+employee.FirstName + "-" + employee.Year, dataNode.data.pdfpath + '/')
+                                       }
                                     }
                                 }
                             }
@@ -249,13 +262,13 @@ export default {
                         }
                     }
                     if (!dataExcel) {
-                        this.downloadPdf(response, this.selectedOption + "-" + currentDateStr, dataOutput.data.pdfpath + '/')
+                        this.downloadPdf(response, this.selectedOption + "-" + currentDateStr, dataNode.data.pdfpath + '/')
                     }
 
                 }
-                var idNodeoutput = parseFloat(dataOutput.outputs?.output_1?.connections[0]?.node);
-                dataOutput = this.editor.value.getNodeFromId(idNodeoutput);
-                nameNodeOutput = dataOutput.name;
+                var idNodeoutput = parseFloat(dataNode.outputs?.output_1?.connections[0]?.node);
+                dataNode = this.editor.value.getNodeFromId(idNodeoutput);
+                nameNodeOutput = dataNode.name;
             }
         },
         replaceVariables(response, employee) {
@@ -320,7 +333,6 @@ export default {
             };
             pdf.create(html, options).toFile(path + name + '.pdf', function (err, res) {
                 if (err) return console.log(err);
-                //console.log(res);
             });
         },
         showSucess() {
