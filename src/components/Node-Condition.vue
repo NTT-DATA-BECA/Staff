@@ -5,7 +5,6 @@
             <option v-for="header in headers" :key="header" :value="header">{{ header }}</option>
         </select>
         <select df-symbole class="h-6">
-            <option value="-">-</option>
             <option value="<">&lt;</option>
             <option value=">">&gt;</option>
             <option value="<=">&le;</option>

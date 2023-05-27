@@ -134,34 +134,58 @@ export default {
                 var dataNodeStart = this.editor.value.getNodeFromId(idNode)
                 var nameNode = dataNode.name;
                 var startoutputs = 0;
-                var headerCondition = [] as any;
-                var dataExcel = [] as any;
-                while (dataNodeStart.outputs?.output_1?.connections[startoutputs]) {
-                    idNode = parseFloat(dataNodeStart.outputs.output_1.connections[startoutputs].node)
-                    dataNode = this.editor.value.getNodeFromId(idNode)
+                while (dataNodeStart.outputs?.output_1?.connections[startoutputs]) {   
+                    dataNode = this.MoveToNextNodeByOutput1(dataNode)
                     nameNode = dataNode.name;
                     startoutputs = startoutputs + 1;
                     while (nameNode != "end") {
-                        if (nameNode == "ImportExcel") {
-                            dataExcel = dataNode.data.excelData;
-                            idNode = parseFloat(dataNode.outputs?.output_1?.connections[0]?.node);
-                            dataNode = this.editor.value.getNodeFromId(idNode);
+                        if (nameNode == "ImportExcel" && nameNode != "end") {
+                            nameNode=await this.generateNodeExcel(dataNode);
+                        }
+                        if (nameNode == "Generatepdf" && nameNode != "end") {
+                            await this.generateNodePdf(nameNode, null, dataNode);
+                        }
+                        if (nameNode != "end") {
+                            dataNode = this.MoveToNextNodeByOutput1(dataNode);
                             nameNode = dataNode.name;
+                        }
+                        else {
+                            this.showSucess();
+                        }
+                    }
+                }
+            }
+
+        },
+        async generateNodeExcel(dataNodeFlow:any){
+            var dataExcel = dataNodeFlow.data.excelData;
+            var dataNode = this.MoveToNextNodeByOutput1(dataNodeFlow);
+            var nameNode = dataNode.name;
                             if (nameNode == "condition") {
-                                var dataAccepted = [] as any;
-                                var dataNotAccepted = [] as any;
+                             nameNode=await this.generateNodeCondition(dataNode,dataExcel);
+                            }
+                            return nameNode;
+        },
+        async generateNodeCondition(dataNode :any,dataExcel:any){
+            var dataAccepted = [] as any;
+            var dataNotAccepted = [] as any;
+            var nameNode=dataNode.name;
                                 while (nameNode != "end") {
                                     var dataOutput1 = dataNode;
                                     var dataOutput2 = dataNode;
                                     var idNodeoutput2 = 0;
-                                    headerCondition = dataNode.data.variable1;
+                                   var headerCondition = dataNode.data.variable1;
+                                   var symbole=dataNode.data.symbole;
+                                   var valeur=dataNode.data.variable2;
                                     for (var i = 0; i < dataExcel.length; i++) {
                                         var element = dataExcel[i];
-                                        if (element[headerCondition] > 0) {
-                                            dataAccepted.push(dataExcel[i]);
-                                        } else {
-                                            dataNotAccepted.push(dataExcel[i]);
-                                        }
+                                    if (this.compare(symbole,element[headerCondition], valeur)) {
+                                    dataAccepted.push(dataExcel[i]);
+                                    console.log(element.LastName+" accepted")
+                                    } else {
+                                    dataNotAccepted.push(dataExcel[i]);
+                                    console.log(element.LastName+" not accepted")
+                                    }
                                     }
                                     if (dataNode.outputs?.output_1?.connections[0]) {
                                         var idNodeoutput1 = parseFloat(dataOutput1.outputs.output_1.connections[0].node)
@@ -188,33 +212,18 @@ export default {
                                     dataAccepted = [];
                                     dataNotAccepted = [];
                                     if (nameNode != "end") {
-                                        idNode = parseFloat(dataNode.outputs?.output_1?.connections[0]?.node);
-                                        if (idNode) {
-                                            dataNode = this.editor.value.getNodeFromId(idNode);
-                                        }
+                                        dataNode = this.MoveToNextNodeByOutput1(dataNode);
                                         nameNode = dataNode.name;
                                     }
                                 }
-                            }
-                            this.showSucess();
-                        }
-                        if (nameNode == "Generatepdf") {
-                            await this.generateNodePdf(nameNode, null, dataNode);
-                        }
-                        if (nameNode != "end") {
-                            idNode = parseFloat(dataNode.outputs?.output_1?.connections[0]?.node);
-                            if (idNode) {
-                                dataNode = this.editor.value.getNodeFromId(idNode);
-                            }
-                            nameNode = dataNode.name;
-                        }
-                    }
-                }
-            }
-
+                                return nameNode;
         },
         async generateNodePdf(nameNodeOutput: any, dataExcel: any, dataNode :any) {
+            var templateName = "";
             while (nameNodeOutput !== "end") {
+                if(nameNodeOutput=="file-input"){
+                    templateName=dataNode.data.mytemplate;
+                }
                 if (nameNodeOutput == "Generatepdf") {
                     var group='';
                     const idoutput = parseFloat(dataNode.outputs.output_1.connections[0].node)
@@ -235,11 +244,7 @@ export default {
                     }
                     for (var i = 0; i < lenghtData; i++) {
                         if (dataExcel) { var employee = dataExcel[i]; }
-                        
-                        const idInput = parseFloat(dataNode.inputs.input_1.connections[0].node)
-                        if (idInput) {
-                            const dataNodeinput = this.editor.value.getNodeFromId(idInput)
-                            response = await ipcRenderer.invoke('getQuillContentData', { name: dataNodeinput.data.mytemplate });
+                            response = await ipcRenderer.invoke('getQuillContentData', { name: templateName });
                             if (response) {
                                 if (dataExcel) {
                                     replacedResponse = this.replaceVariables(response, employee);
@@ -259,17 +264,46 @@ export default {
                             else {
                                 this.modalMessage('Error!', 'Something wrong.', 'error')
                             }
-                        }
+                        
                     }
                     if (!dataExcel) {
                         this.downloadPdf(response, this.selectedOption + "-" + currentDateStr, dataNode.data.pdfpath + '/')
                     }
 
                 }
-                var idNodeoutput = parseFloat(dataNode.outputs?.output_1?.connections[0]?.node);
-                dataNode = this.editor.value.getNodeFromId(idNodeoutput);
+                dataNode = this.MoveToNextNodeByOutput1(dataNode);
                 nameNodeOutput = dataNode.name;
             }
+        },
+        compare(symbole, valeur1,valeur2) {
+        switch (symbole) {
+            case ">":
+            return valeur1 > valeur2;
+            case "<":
+            return valeur1 < valeur2;
+            case ">=":
+            return valeur1 >= valeur2;
+            case "<=":
+            return valeur1 <= valeur2;
+            case "==":
+            return valeur1 == valeur2;
+            case "!=":
+            return valeur1 != valeur2;
+        }
+        },
+        MoveToNextNodeByOutput1(dataNode){
+           var idNode = parseFloat(dataNode.outputs?.output_1?.connections[0]?.node);
+                            if (idNode) {
+                                dataNode = this.editor.value.getNodeFromId(idNode);
+                    }
+            return dataNode;
+        },
+        MoveToNextNodeByOutput2(dataNode){
+           var idNode = parseFloat(dataNode.outputs?.output_2?.connections[0]?.node);
+                            if (idNode) {
+                                dataNode = this.editor.value.getNodeFromId(idNode);
+                    }
+            return dataNode;
         },
         replaceVariables(response, employee) {
             for (var prop in employee) {
@@ -293,16 +327,6 @@ export default {
             if (!idEnd) {
                 this.modalMessage('Error!', 'To generate the flow, include at least one End node.', 'error')
             }
-        },
-        searchNodeGeneratepdf() {
-            const editorData = this.editor.value.export().drawflow.Home.data;
-            let variableName = "";
-            Object.keys(editorData).forEach(function (i) {
-                if (editorData[i].name === "Generatepdf") {
-                    variableName = editorData[i].mytemplate;
-                }
-            });
-            return variableName
         },
         getStartId() {
             const editorData = this.editor.value.export().drawflow.Home.data;
