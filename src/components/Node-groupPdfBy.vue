@@ -1,10 +1,12 @@
 <template>
-    <h2 id="node-title">Group PDF By</h2>
-    <div ref="el" class="-end-px w-64 text-black">
-        <select v-model="variable1" df-variable1 class="w-36 text-primary-dark ml-1 h-6">
+  <div ref="el">
+    <h2 id="node-title">Path</h2>
+    <input v-model="pdfpath" class="text-black mb-1 ml-2 w-36 align-middle" type="text" df-pdfpath/>
+    <select v-model="variable1" df-variable1 class="w-36 text-primary-dark ml-2 h-6">
+            <option disabled>choose a group</option>
             <option v-for="header in headers" :key="header" :value="header">{{ header }}</option>
-        </select>
-    </div>
+    </select>
+  </div>
 </template>
 
 <script lang="ts">
@@ -20,6 +22,7 @@ export default {
             dataNode: {} as any,
             df: null as any,
             variable1: '',
+            pdfpath:"",
         }
     },
     async mounted() {
@@ -31,7 +34,8 @@ export default {
         if (this.nodeId) {
             this.dataNode = this.df.getNodeFromId(this.nodeId);
             await nextTick()
-            this.variable1 = this.dataNode.data.variable1;            
+            this.variable1 = this.dataNode.data.variable1;   
+            this.pdfpath = this.dataNode.data.pdfpath         
         }
 
 

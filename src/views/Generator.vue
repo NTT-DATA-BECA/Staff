@@ -50,6 +50,7 @@ import { nodesList } from '../utils/nodesList'
 import { ipcRenderer } from 'electron';
 import quillCSS from 'quill/dist/quill.snow.css'
 import 'vue3-toastify/dist/index.css';
+import {mapActions } from 'vuex';
 
 export default {
     name: "DrawflowDashboard",
@@ -86,6 +87,7 @@ export default {
         this.editor.value.registerNode("zip-folder", NodeZipFolder, {}, {});
     },
     methods: {
+        ...mapActions(['setHeaders', 'setExcelData']),
         touchScreenPosition(ev: any) {
             this.node_last_move = ev;
         }
@@ -121,6 +123,10 @@ export default {
                     }
                 };
                 this.editor.value.import(ob);
+                const nodeExcelData :any=this.searchNodeExcel();
+                var headNames = [] as string[];
+                headNames=nodeExcelData.data.headers;
+                this.setHeaders(headNames);
             }
         },
         cleanEditor() {
@@ -181,10 +187,8 @@ export default {
                                         var element = dataExcel[i];
                                     if (this.compare(symbole,element[headerCondition], valeur)) {
                                     dataAccepted.push(dataExcel[i]);
-                                    console.log(element.LastName+" accepted")
                                     } else {
                                     dataNotAccepted.push(dataExcel[i]);
-                                    console.log(element.LastName+" not accepted")
                                     }
                                     }
                                     if (dataNode.outputs?.output_1?.connections[0]) {
@@ -224,14 +228,10 @@ export default {
                 if(nameNodeOutput=="file-input"){
                     templateName=dataNode.data.mytemplate;
                 }
-                if (nameNodeOutput == "Generatepdf") {
+                if (nameNodeOutput == "Generatepdf" || nameNodeOutput == "groupPdfBy") {
                     var group='';
-                    const idoutput = parseFloat(dataNode.outputs.output_1.connections[0].node)
-                    if(idoutput){
-                    const dataNodeoutput = this.editor.value.getNodeFromId(idoutput);
-                    if(dataNodeoutput.name=="groupPdfBy"){
-                       group=dataNodeoutput.data.variable1;    
-                    }
+                    if(dataNode.data.variable1){
+                       group=dataNode.data.variable1;    
                     }
                     var replacedResponse = "";
                     var response = "";
@@ -278,17 +278,17 @@ export default {
         compare(symbole, valeur1,valeur2) {
         switch (symbole) {
             case ">":
-            return valeur1 > valeur2;
+            return parseFloat(valeur1) > parseFloat(valeur2);
             case "<":
-            return valeur1 < valeur2;
+            return parseFloat(valeur1) < parseFloat(valeur2);
             case ">=":
-            return valeur1 >= valeur2;
+            return parseFloat(valeur1) >= parseFloat(valeur2);
             case "<=":
-            return valeur1 <= valeur2;
+            return parseFloat(valeur1) <= parseFloat(valeur2);
             case "==":
-            return valeur1 == valeur2;
+            return parseFloat(valeur1) == parseFloat(valeur2);
             case "!=":
-            return valeur1 != valeur2;
+            return parseFloat(valeur1) != parseFloat(valeur2);
         }
         },
         MoveToNextNodeByOutput1(dataNode){
@@ -328,6 +328,16 @@ export default {
                 this.modalMessage('Error!', 'To generate the flow, include at least one End node.', 'error')
             }
         },
+        searchNodeExcel() {
+            const editorData = this.editor.value.export().drawflow.Home.data;
+            let data = "";
+            Object.keys(editorData).forEach(function (i) {
+                if (editorData[i].name === "ImportExcel") {
+                    data = editorData[i];
+                }
+            });
+            return data;
+        }, 
         getStartId() {
             const editorData = this.editor.value.export().drawflow.Home.data;
             let idStart = "";
