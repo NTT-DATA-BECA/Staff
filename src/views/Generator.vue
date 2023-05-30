@@ -42,6 +42,7 @@ import NodeFileInput from '../components/Node-file-input.vue'
 import NodeStart from '../components/Node-start.vue'
 import NodeEnd from '../components/Node-end.vue'
 import NodeCondition from '../components/Node-Condition.vue'
+import NodeZipFolder from '../components/Node-zipFolder.vue'
 import NodeGeneratePdf from '../components/Node-GeneratePdf.vue'
 import { nodesList } from '../utils/nodesList'
 import { ipcRenderer } from 'electron';
@@ -78,6 +79,8 @@ export default {
         this.editor.value.registerNode("end", NodeEnd, {}, {});
         this.editor.value.registerNode("Generatepdf", NodeGeneratePdf, {}, {});
         this.editor.value.registerNode("condition", NodeCondition, {}, {});
+        this.editor.value.registerNode("zip-folder", NodeZipFolder, {}, {});
+
 
     },
     methods: {
@@ -200,6 +203,9 @@ export default {
                         if (nameNode == "Generatepdf") {
                             await this.generateNodePdf(nameNode, null, dataNode);
                         }
+                        if (nameNode == "zip-folder") {
+                            await this.generateNodeZip(nameNode, null, dataNode);
+                        }
                         if (nameNode != "end") {
                             idNode = parseFloat(dataNode.outputs?.output_1?.connections[0]?.node);
                             if (idNode) {
@@ -257,6 +263,82 @@ export default {
                 dataOutput = this.editor.value.getNodeFromId(idNodeoutput);
                 nameNodeOutput = dataOutput.name;
             }
+        },
+        async generateNodeZip(nameNodeOutput: any, dataExcel: any, dataOutput){
+            while (nameNodeOutput !== "end") {
+                if (nameNodeOutput == "zip-folder") {
+                    var replacedResponse = "";
+                    var response = "";
+                    var lenghtData = 1;
+                    const currentDate = new Date();
+                    const currentYear = currentDate.getFullYear();
+                    const currentDateStr = currentDate.toISOString().split('T')[0];
+                    if (dataExcel) {
+                        lenghtData = dataExcel.length;
+                    }
+                    for (var i = 0; i < lenghtData; i++) {
+                        if (dataExcel) { var employee = dataExcel[i]; }
+                        const idInput = parseFloat(dataOutput.inputs.input_1.connections[0].node)
+                        if (idInput) {
+                            const dataNodeinput = this.editor.value.getNodeFromId(idInput)
+                            response = await ipcRenderer.invoke('getQuillContentData', { name: dataNodeinput.data.mytemplate });
+                            if (response) {
+                                if (dataExcel) {
+                                    replacedResponse = this.replaceVariables(response, employee);
+                                    if (dataExcel) {
+                                        response = replacedResponse;
+                                        response = response.replace(/{Name}/g, employee.Name);
+                                        response = response.replace(/{DOC_YEAR}/g, "" + currentYear);
+                                        response = response.replace(/{DOC_DATE}/g, currentDateStr);
+                                        await this.downloadPdf(response, employee.Name + "-" + currentDateStr, dataOutput.data.pdfPath + '/')
+                                        await this.createZipFile("C:/pdfsApp/Ayoub/El ImraniSara-2023.pdf");
+
+                                    }
+                                }
+                            }
+                            else {
+                                this.modalMessage('Error!', 'Something wrong.', 'error')
+                            }
+                        }
+                    }
+                    if (!dataExcel) {
+                        this.downloadPdf(response, this.selectedOption + "-" + currentDateStr, dataOutput.data.pdfPath + '/')
+                    }
+
+                }
+                var idNodeoutput = parseFloat(dataOutput.outputs?.output_1?.connections[0]?.node);
+                dataOutput = this.editor.value.getNodeFromId(idNodeoutput);
+                nameNodeOutput = dataOutput.name;
+            }
+        },
+        async createZipFile(pdfPath) {
+            const fs = require('fs');
+            const archiver = require('archiver');
+            const zipPath = pdfPath.replace('.pdf', '.zip');
+            return new Promise((resolve, reject) => {
+                const output = fs.createWriteStream(zipPath);
+                const archive = archiver('zip', {
+                    zlib: { level: 9 }
+                });
+                output.on('close', function () {
+                    console.log(archive.pointer() + ' total bytes');
+                    console.log('Zip file created:', zipPath);
+                    resolve(zipPath);
+                });
+                archive.on('warning', function (err) {
+                    if (err.code === 'ENOENT') {
+                        console.warn(err);
+                    } else {
+                        reject(err);
+                    }
+                });
+                archive.on('error', function (err) {
+                    reject(err);
+                });
+                archive.pipe(output);
+                archive.file(pdfPath, { name: 'document.pdf' });
+                archive.finalize();
+            });
         },
         replaceVariables(response, employee) {
             for (var prop in employee) {
