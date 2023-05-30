@@ -8,6 +8,8 @@
         <input type="hidden" v-model="excelName" df-excelName>
         {{ excelName || 'Import Excel' }}
       </div>
+      <input df-excelData type="hidden" v-model="excelData">
+      <input type="hidden" v-model="excelName" df-excelName>
     </label>
     
   </div>

@@ -51,4 +51,10 @@ export const nodesList = readonly([
         input: 1,
         output: 1,
     },
+    {
+        name: "groupPdfBy",
+        item: "groupPdfBy",
+        input: 1,
+        output: 1,
+    }
 ]);

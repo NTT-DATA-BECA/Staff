@@ -43,7 +43,11 @@ import NodeStart from '../components/Node-start.vue'
 import NodeEnd from '../components/Node-end.vue'
 import NodeCondition from '../components/Node-Condition.vue'
 import NodeZipFolder from '../components/Node-zipFolder.vue'
+import Condition from '../components/Node-Condition.vue'
 import NodeGeneratePdf from '../components/Node-GeneratePdf.vue'
+import NodeZipFolder from '../components/Node-zipFolder.vue'
+import sendEmail from '../components/Node-sendEmail.vue'
+import groupPdfBy from '../components/Node-groupPdfBy.vue'
 import { nodesList } from '../utils/nodesList'
 import { ipcRenderer } from 'electron';
 import quillCSS from 'quill/dist/quill.snow.css'
@@ -78,10 +82,10 @@ export default {
         this.editor.value.registerNode("start", NodeStart, {}, {});
         this.editor.value.registerNode("end", NodeEnd, {}, {});
         this.editor.value.registerNode("Generatepdf", NodeGeneratePdf, {}, {});
-        this.editor.value.registerNode("condition", NodeCondition, {}, {});
+        this.editor.value.registerNode("condition", Condition, {}, {});
+        this.editor.value.registerNode("groupPdfBy", groupPdfBy, {}, {});
+        this.editor.value.registerNode("send-email", sendEmail, {}, {});
         this.editor.value.registerNode("zip-folder", NodeZipFolder, {}, {});
-
-
     },
     methods: {
         touchScreenPosition(ev: any) {
@@ -94,7 +98,7 @@ export default {
             pos_y = pos_y * (this.editor.value.precanvas.clientHeight / (this.editor.value.precanvas.clientHeight * this.editor.value.zoom)) - (this.editor.value.precanvas.getBoundingClientRect().y
                 * (this.editor.value.precanvas.clientHeight / (this.editor.value.precanvas.clientHeight * this.editor.value.zoom)));
             const nodeSelected: any = nodesList.find(object => object.item === name);
-            this.editor.value.addNode(name, nodeSelected.input, nodeSelected.output, pos_x, pos_y, name, { mytemplate: "", excelName: "", headers: [], excelData: "",symbole: "", pdfPath: "", myzip: "", varaible1: "", varaible2: "" }, name, "vue");
+            this.editor.value.addNode(name, nodeSelected.input, nodeSelected.output, pos_x, pos_y, name, { mytemplate: "", excelName: "", headers: [], excelData: "",symbole: "", pdfpath: "", myzip: "", varaible1: "", varaible2: "" }, name, "vue");
         },
         addProgramName(event: any) {
             this.programName = event.target.value;
@@ -124,10 +128,6 @@ export default {
         cleanEditor() {
             this.editor.value.clear();
         },
-        /* Node generatePdf the path stored in the symbole 
-           The Data of the Excel file is retrieved from the NodeExcel and is stored in the symbole
-           the Header option is retrieved from the NodeCondition and is stored in mytemplate
-        */
         async generateFlow() {
             var idNode = parseFloat(this.getStartId());
             this.searchNodeEnd();
@@ -136,34 +136,58 @@ export default {
                 var dataNodeStart = this.editor.value.getNodeFromId(idNode)
                 var nameNode = dataNode.name;
                 var startoutputs = 0;
-                var headerCondition = [] as any;
-                var dataExcel = [] as any;
-                while (dataNodeStart.outputs?.output_1?.connections[startoutputs]) {
-                    idNode = parseFloat(dataNodeStart.outputs.output_1.connections[startoutputs].node)
-                    dataNode = this.editor.value.getNodeFromId(idNode)
+                while (dataNodeStart.outputs?.output_1?.connections[startoutputs]) {   
+                    dataNode = this.MoveToNextNodeByOutput1(dataNode)
                     nameNode = dataNode.name;
                     startoutputs = startoutputs + 1;
                     while (nameNode != "end") {
-                        if (nameNode == "ImportExcel") {
-                            dataExcel = dataNode.data.excelData;
-                            idNode = parseFloat(dataNode.outputs?.output_1?.connections[0]?.node);
-                            dataNode = this.editor.value.getNodeFromId(idNode);
+                        if (nameNode == "ImportExcel" && nameNode != "end") {
+                            nameNode=await this.generateNodeExcel(dataNode);
+                        }
+                        if (nameNode == "Generatepdf" && nameNode != "end") {
+                            await this.generateNodePdf(nameNode, null, dataNode);
+                        }
+                        if (nameNode != "end") {
+                            dataNode = this.MoveToNextNodeByOutput1(dataNode);
                             nameNode = dataNode.name;
+                        }
+                        else {
+                            this.showSucess();
+                        }
+                    }
+                }
+            }
+
+        },
+        async generateNodeExcel(dataNodeFlow:any){
+            var dataExcel = dataNodeFlow.data.excelData;
+            var dataNode = this.MoveToNextNodeByOutput1(dataNodeFlow);
+            var nameNode = dataNode.name;
                             if (nameNode == "condition") {
-                                var dataAccepted = [] as any;
-                                var dataNotAccepted = [] as any;
+                             nameNode=await this.generateNodeCondition(dataNode,dataExcel);
+                            }
+                            return nameNode;
+        },
+        async generateNodeCondition(dataNode :any,dataExcel:any){
+            var dataAccepted = [] as any;
+            var dataNotAccepted = [] as any;
+            var nameNode=dataNode.name;
                                 while (nameNode != "end") {
                                     var dataOutput1 = dataNode;
                                     var dataOutput2 = dataNode;
                                     var idNodeoutput2 = 0;
-                                    headerCondition = dataNode.data.variable1;
+                                   var headerCondition = dataNode.data.variable1;
+                                   var symbole=dataNode.data.symbole;
+                                   var valeur=dataNode.data.variable2;
                                     for (var i = 0; i < dataExcel.length; i++) {
                                         var element = dataExcel[i];
-                                        if (element[headerCondition] > 0) {
-                                            dataAccepted.push(dataExcel[i]);
-                                        } else {
-                                            dataNotAccepted.push(dataExcel[i]);
-                                        }
+                                    if (this.compare(symbole,element[headerCondition], valeur)) {
+                                    dataAccepted.push(dataExcel[i]);
+                                    console.log(element.LastName+" accepted")
+                                    } else {
+                                    dataNotAccepted.push(dataExcel[i]);
+                                    console.log(element.LastName+" not accepted")
+                                    }
                                     }
                                     if (dataNode.outputs?.output_1?.connections[0]) {
                                         var idNodeoutput1 = parseFloat(dataOutput1.outputs.output_1.connections[0].node)
@@ -190,155 +214,98 @@ export default {
                                     dataAccepted = [];
                                     dataNotAccepted = [];
                                     if (nameNode != "end") {
-                                        idNode = parseFloat(dataNode.outputs?.output_1?.connections[0]?.node);
-                                        if (idNode) {
-                                            dataNode = this.editor.value.getNodeFromId(idNode);
-                                        }
+                                        dataNode = this.MoveToNextNodeByOutput1(dataNode);
                                         nameNode = dataNode.name;
                                     }
                                 }
+                                return nameNode;
+        },
+        async generateNodePdf(nameNodeOutput: any, dataExcel: any, dataNode :any) {
+            var templateName = "";
+            while (nameNodeOutput !== "end") {
+                if(nameNodeOutput=="file-input"){
+                    templateName=dataNode.data.mytemplate;
+                }
+                if (nameNodeOutput == "Generatepdf") {
+                    var group='';
+                    const idoutput = parseFloat(dataNode.outputs.output_1.connections[0].node)
+                    if(idoutput){
+                    const dataNodeoutput = this.editor.value.getNodeFromId(idoutput);
+                    if(dataNodeoutput.name=="groupPdfBy"){
+                       group=dataNodeoutput.data.variable1;    
+                    }
+                    }
+                    var replacedResponse = "";
+                    var response = "";
+                    var lenghtData = 1;
+                    const currentDate = new Date();
+                    const currentYear = currentDate.getFullYear();
+                    const currentDateStr = currentDate.toISOString().split('T')[0];
+                    if (dataExcel) {
+                        lenghtData = dataExcel.length;
+                    }
+                    for (var i = 0; i < lenghtData; i++) {
+                        if (dataExcel) { var employee = dataExcel[i]; }
+                            response = await ipcRenderer.invoke('getQuillContentData', { name: templateName });
+                            if (response) {
+                                if (dataExcel) {
+                                    replacedResponse = this.replaceVariables(response, employee);
+                                    if (dataExcel) {
+                                        response = replacedResponse;
+                                        response = response.replace(/{Name}/g, employee.Name);
+                                        response = response.replace(/{DOC_YEAR}/g, "" + currentYear);
+                                        response = response.replace(/{DOC_DATE}/g, currentDateStr);
+                                        if(group){
+                                        this.downloadPdf(response, employee.LastName+employee.FirstName + "-" + employee.Year, dataNode.data.pdfpath + '/'+employee[group]+'/')
+                                        } else {
+                                        this.downloadPdf(response, employee.LastName+employee.FirstName + "-" + employee.Year, dataNode.data.pdfpath + '/')
+                                       }
+                                    }
+                                }
                             }
-                            this.showSucess();
-                        }
-                        if (nameNode == "Generatepdf") {
-                            await this.generateNodePdf(nameNode, null, dataNode);
-                        }
-                        if (nameNode == "zip-folder") {
-                            await this.generateNodeZip(nameNode, null, dataNode);
-                        }
-                        if (nameNode != "end") {
-                            idNode = parseFloat(dataNode.outputs?.output_1?.connections[0]?.node);
+                            else {
+                                this.modalMessage('Error!', 'Something wrong.', 'error')
+                            }
+                        
+                    }
+                    if (!dataExcel) {
+                        this.downloadPdf(response, this.selectedOption + "-" + currentDateStr, dataNode.data.pdfpath + '/')
+                    }
+
+                }
+                dataNode = this.MoveToNextNodeByOutput1(dataNode);
+                nameNodeOutput = dataNode.name;
+            }
+        },
+        compare(symbole, valeur1,valeur2) {
+        switch (symbole) {
+            case ">":
+            return valeur1 > valeur2;
+            case "<":
+            return valeur1 < valeur2;
+            case ">=":
+            return valeur1 >= valeur2;
+            case "<=":
+            return valeur1 <= valeur2;
+            case "==":
+            return valeur1 == valeur2;
+            case "!=":
+            return valeur1 != valeur2;
+        }
+        },
+        MoveToNextNodeByOutput1(dataNode){
+           var idNode = parseFloat(dataNode.outputs?.output_1?.connections[0]?.node);
                             if (idNode) {
                                 dataNode = this.editor.value.getNodeFromId(idNode);
-                            }
-                            nameNode = dataNode.name;
-                        }
                     }
-                }
-            }
-
+            return dataNode;
         },
-        async generateNodePdf(nameNodeOutput: any, dataExcel: any, dataOutput) {
-            while (nameNodeOutput !== "end") {
-                if (nameNodeOutput == "Generatepdf") {
-                    var replacedResponse = "";
-                    var response = "";
-                    var lenghtData = 1;
-                    const currentDate = new Date();
-                    const currentYear = currentDate.getFullYear();
-                    const currentDateStr = currentDate.toISOString().split('T')[0];
-                    if (dataExcel) {
-                        lenghtData = dataExcel.length;
+        MoveToNextNodeByOutput2(dataNode){
+           var idNode = parseFloat(dataNode.outputs?.output_2?.connections[0]?.node);
+                            if (idNode) {
+                                dataNode = this.editor.value.getNodeFromId(idNode);
                     }
-                    for (var i = 0; i < lenghtData; i++) {
-                        if (dataExcel) { var employee = dataExcel[i]; }
-                        const idInput = parseFloat(dataOutput.inputs.input_1.connections[0].node)
-                        if (idInput) {
-                            const dataNodeinput = this.editor.value.getNodeFromId(idInput)
-                            response = await ipcRenderer.invoke('getQuillContentData', { name: dataNodeinput.data.mytemplate });
-                            if (response) {
-                                if (dataExcel) {
-                                    replacedResponse = this.replaceVariables(response, employee);
-                                    if (dataExcel) {
-                                        response = replacedResponse;
-                                        response = response.replace(/{Name}/g, employee.Name);
-                                        response = response.replace(/{DOC_YEAR}/g, "" + currentYear);
-                                        response = response.replace(/{DOC_DATE}/g, currentDateStr);
-                                        this.downloadPdf(response, employee.Name + "-" + currentDateStr, dataOutput.data.pdfPath + '/')
-
-                                    }
-                                }
-                            }
-                            else {
-                                this.modalMessage('Error!', 'Something wrong.', 'error')
-                            }
-                        }
-                    }
-                    if (!dataExcel) {
-                        this.downloadPdf(response, this.selectedOption + "-" + currentDateStr, dataOutput.data.pdfPath + '/')
-                    }
-
-                }
-                var idNodeoutput = parseFloat(dataOutput.outputs?.output_1?.connections[0]?.node);
-                dataOutput = this.editor.value.getNodeFromId(idNodeoutput);
-                nameNodeOutput = dataOutput.name;
-            }
-        },
-        async generateNodeZip(nameNodeOutput: any, dataExcel: any, dataOutput){
-            while (nameNodeOutput !== "end") {
-                if (nameNodeOutput == "zip-folder") {
-                    var replacedResponse = "";
-                    var response = "";
-                    var lenghtData = 1;
-                    const currentDate = new Date();
-                    const currentYear = currentDate.getFullYear();
-                    const currentDateStr = currentDate.toISOString().split('T')[0];
-                    if (dataExcel) {
-                        lenghtData = dataExcel.length;
-                    }
-                    for (var i = 0; i < lenghtData; i++) {
-                        if (dataExcel) { var employee = dataExcel[i]; }
-                        const idInput = parseFloat(dataOutput.inputs.input_1.connections[0].node)
-                        if (idInput) {
-                            const dataNodeinput = this.editor.value.getNodeFromId(idInput)
-                            response = await ipcRenderer.invoke('getQuillContentData', { name: dataNodeinput.data.mytemplate });
-                            if (response) {
-                                if (dataExcel) {
-                                    replacedResponse = this.replaceVariables(response, employee);
-                                    if (dataExcel) {
-                                        response = replacedResponse;
-                                        response = response.replace(/{Name}/g, employee.Name);
-                                        response = response.replace(/{DOC_YEAR}/g, "" + currentYear);
-                                        response = response.replace(/{DOC_DATE}/g, currentDateStr);
-                                        await this.downloadPdf(response, employee.Name + "-" + currentDateStr, dataOutput.data.pdfPath + '/')
-                                        await this.createZipFile("C:/pdfsApp/Ayoub/El ImraniSara-2023.pdf");
-
-                                    }
-                                }
-                            }
-                            else {
-                                this.modalMessage('Error!', 'Something wrong.', 'error')
-                            }
-                        }
-                    }
-                    if (!dataExcel) {
-                        this.downloadPdf(response, this.selectedOption + "-" + currentDateStr, dataOutput.data.pdfPath + '/')
-                    }
-
-                }
-                var idNodeoutput = parseFloat(dataOutput.outputs?.output_1?.connections[0]?.node);
-                dataOutput = this.editor.value.getNodeFromId(idNodeoutput);
-                nameNodeOutput = dataOutput.name;
-            }
-        },
-        async createZipFile(pdfPath) {
-            const fs = require('fs');
-            const archiver = require('archiver');
-            const zipPath = pdfPath.replace('.pdf', '.zip');
-            return new Promise((resolve, reject) => {
-                const output = fs.createWriteStream(zipPath);
-                const archive = archiver('zip', {
-                    zlib: { level: 9 }
-                });
-                output.on('close', function () {
-                    console.log(archive.pointer() + ' total bytes');
-                    console.log('Zip file created:', zipPath);
-                    resolve(zipPath);
-                });
-                archive.on('warning', function (err) {
-                    if (err.code === 'ENOENT') {
-                        console.warn(err);
-                    } else {
-                        reject(err);
-                    }
-                });
-                archive.on('error', function (err) {
-                    reject(err);
-                });
-                archive.pipe(output);
-                archive.file(pdfPath, { name: 'document.pdf' });
-                archive.finalize();
-            });
+            return dataNode;
         },
         replaceVariables(response, employee) {
             for (var prop in employee) {
@@ -362,16 +329,6 @@ export default {
             if (!idEnd) {
                 this.modalMessage('Error!', 'To generate the flow, include at least one End node.', 'error')
             }
-        },
-        searchNodeGeneratepdf() {
-            const editorData = this.editor.value.export().drawflow.Home.data;
-            let variableName = "";
-            Object.keys(editorData).forEach(function (i) {
-                if (editorData[i].name === "Generatepdf") {
-                    variableName = editorData[i].mytemplate;
-                }
-            });
-            return variableName
         },
         getStartId() {
             const editorData = this.editor.value.export().drawflow.Home.data;
@@ -402,7 +359,6 @@ export default {
             };
             pdf.create(html, options).toFile(path + name + '.pdf', function (err, res) {
                 if (err) return console.log(err);
-                //console.log(res);
             });
         },
         showSucess() {
