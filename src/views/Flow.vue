@@ -436,10 +436,13 @@ export default {
                     }
                 };
                 this.editor.value.import(ob);
+                
                 const nodeExcelData :any=this.searchNodeExcel();
+                if(nodeExcelData){
                 var headNames = [] as string[];
                 headNames=nodeExcelData.data.headers;
                 this.setHeaders(headNames);
+            }
             }
         },
         cleanEditor() {

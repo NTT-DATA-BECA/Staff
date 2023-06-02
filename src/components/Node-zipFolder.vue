@@ -1,9 +1,7 @@
 <template>
     <div ref="el">
       <h2 id="node-title">Zip Folder</h2>
-      <input for="mytemplate" type="hidden" v-model="mytemplate" df-mytemplate>
-      <!-- <input for="headers" type="hidden" v-model="headers" df-headers>
-      <input for="variable1" type="hidden" v-model="variable1" df-variable1> -->
+      <input for="myzip" type="hidden" v-model="myzip" df-myzip>
     </div>
   </template>
 
@@ -17,9 +15,7 @@ export default {
       el:null as any,
       nodeId:0,
       df:null as any,
-      mytemplate:[],
-    //   headers: [],
-    //   variable1: [],
+      myzip:"",
       dataNode : {} as any,
     }},  
     async mounted(){
@@ -31,16 +27,10 @@ export default {
      console.log( this.nodeId +"  this.nodeId ")
      if (this.nodeId) {
      this.dataNode = this.df.getNodeFromId(this.nodeId)
-     this.mytemplate = this.dataNode.data.mytemplate;
-    //  this.headers = this.dataNode.data.headers;
-    //  this.variable1 = this.dataNode.data.variable1;
+     this.myzip = this.dataNode.data.myzip;
+
      }
-     this.df.on('connectionCreated', (data) => {
-        const inputData = this.df.getNodeFromId(data.input_id);
-        if (inputData.name === "zip-folder" || inputData.name === "Generatepdf") {
-          this.mytemplate = inputData.data.mytemplate;
-         }
-      });
+ 
     },
     
      
