@@ -30,6 +30,7 @@ export default {
             variable1: '',
             symbole:'',
             variable2:0,
+            headerTester:[] as any,
         }
     },
     async mounted() {

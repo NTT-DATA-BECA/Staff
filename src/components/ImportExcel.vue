@@ -4,8 +4,6 @@
     <label>
       <input class="cursor-pointer w-36 hidden" type="file" @change="loadExcelFile" />
       <div class="text-white bg-blue font-bold rounded-lg text-sm text-center">
-        <input df-excelData type="hidden" v-model="excelData">
-        <input type="hidden" v-model="excelName" df-excelName>
         {{ excelName || 'Import Excel' }}
       </div>
       <input df-excelData type="hidden" v-model="excelData">
@@ -47,15 +45,6 @@ export default {
     this.excelName = this.dataNode.data.excelName;
     this.headersName = this.dataNode.data.headers;
     this.excelData = this.dataNode.data.excelData;
-
-    // Retrieve state data from local storage
-    const storedHeaders = localStorage.getItem('headers');
-    const storedExcelData = localStorage.getItem('excelData');
-    if (storedHeaders && storedExcelData) {
-      this.setHeaders(JSON.parse(storedHeaders));
-      this.setExcelData(JSON.parse(storedExcelData));
-    }
-
   },
   computed: {
     ...mapState(['headers', 'excelData']),
@@ -101,7 +90,7 @@ export default {
         if (!fs.existsSync(dir)) {
           fs.mkdirSync(dir);
         }
-         const outputFile = path.join(dir, `${this.excelName}`);
+        const outputFile = path.join(dir, `${this.excelName}`);
         this.el = this.$refs.el;
         this.excelName = outputFile;
         this.excelName = event.target.files[0].name;
@@ -109,12 +98,8 @@ export default {
         this.nodeId = this.el?.parentElement?.parentElement?.id?.slice(5);
         this.dataNode = this.df.getNodeFromId(this.nodeId)
         this.headersName = headNames;
-
-        // Update Vuex state with new headers and excelData
         this.setHeaders(headNames);
         this.setExcelData(dataRows);
-
-        // Save the state data to local storage
         localStorage.setItem('headers', JSON.stringify(headNames));
         localStorage.setItem('excelData', JSON.stringify(dataRows));
        

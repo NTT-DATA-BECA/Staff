@@ -98,7 +98,7 @@ import { ipcRenderer } from 'electron';
 import { toast } from 'vue3-toastify';
 import 'vue3-toastify/dist/index.css';
 import { useStore } from 'vuex';
-
+import {mapActions } from 'vuex';
 
 export default {
     name: "DrawflowDashboard",
@@ -250,7 +250,8 @@ export default {
 
 
     },
-    methods: {
+    methods: {     
+        ...mapActions(['setHeaders', 'setExcelData']),
         notify(message) {
             toast.success(message, {
                 autoClose: 3000,
@@ -408,6 +409,16 @@ export default {
                 }
             })
         },
+        searchNodeExcel() {
+            const editorData = this.editor.value.export().drawflow.Home.data;
+            let data = "";
+            Object.keys(editorData).forEach(function (i) {
+                if (editorData[i].name === "ImportExcel") {
+                    data = editorData[i];
+                }
+            });
+            return data;
+        },
         async onChangeFile() {
             const selectedFile = this.selectedOption;
             this.action = "edit"
@@ -425,7 +436,17 @@ export default {
                     }
                 };
                 this.editor.value.import(ob);
+                
+                const nodeExcelData :any=this.searchNodeExcel();
+                if (nodeExcelData) {
+                    var headNames = [] as string[];
+                    var dataRows = [] as string[];
+                    headNames = nodeExcelData.data.headers;
+                    dataRows = nodeExcelData.data.excelData;
+                    this.setHeaders(headNames);
+                    this.setExcelData(dataRows);
 
+                }
             }
         },
         cleanEditor() {

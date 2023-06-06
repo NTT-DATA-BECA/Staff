@@ -40,9 +40,12 @@ async function createWindow() {
     }
     console.log('Connected to the database.');
   });
-  // Create a transporter for sending emails
+
+// Create a transporter for sending emails
   const transporter = nodemailer.createTransport({
-    service: 'gmail',
+    host: 'smtp-mail.outlook.com',
+    port: 587,
+    secure: false, // use TLS
     auth: {
       user: process.env.EMAIL,
       pass: process.env.PASSWORD
@@ -66,6 +69,33 @@ async function createWindow() {
       throw error;
     }
   });
+
+  // // Create a transporter for sending emails
+  // const transporter = nodemailer.createTransport({
+  //   service: 'gmail',
+  //   auth: {
+  //     user: process.env.EMAIL,
+  //     pass: process.env.PASSWORD
+  //   }
+  // });
+
+  // ipcMain.handle('sendEmail', async (event, emailData) => {
+  //   try {
+  //     const mailOptions = {
+  //       from: process.env.EMAIL,
+  //       to: emailData.to,
+  //       subject: emailData.subject,
+  //       text: emailData.text,
+  //       attachments: emailData.attachments
+  //     };
+
+  //     await transporter.sendMail(mailOptions);
+  //     console.log('Email sent!');
+  //   } catch (error) {
+  //     console.error('Error sending email:', error);
+  //     throw error;
+  //   }
+  // });
   
   win = new BrowserWindow({
     title: 'Main window',
