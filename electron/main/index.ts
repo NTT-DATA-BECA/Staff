@@ -202,7 +202,7 @@ async function createWindow() {
   ipcMain.handle('insertJsonFile', async (event, arg) => {
     return new Promise<void>((resolve, reject) => {
       const formattedData = JSON.stringify(arg.data).replace(/\\/g, '').slice(1, -1);
-      db.run(`INSERT INTO flow (name, data) VALUES (?, ?)`, [arg.name, formattedData], (err) => {
+      db.run(`INSERT INTO flow (name, data, year) VALUES (?, ?, ?)`, [arg.name, formattedData, arg.year], (err) => {
         if (err) {
           console.error(err);
           reject(err);
@@ -330,24 +330,6 @@ async function createWindow() {
       })
     })
   });
-  // ipcMain.handle('uploadFile', async (event, arg) => {
-  //   try {
-  //     const file = arg.file;
-  //     const filePath = join(process.env.UPLOADS, file.name);
-  //     const fileData = file.data;
-  
-  //     // Write the file to disk
-  //     await promisify(fs.writeFile)(filePath, fileData);
-  
-  //     // Return the file path to the renderer process
-  //     return filePath;
-  //   } catch (error) {
-  //     console.error(error);
-  //     return null;
-  //   }
-  // });
-  
-  
 }  
   
 app.whenReady().then(createWindow)

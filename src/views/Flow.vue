@@ -1,4 +1,4 @@
-<template>
+            <template>
     <div className="h-full w-full flex flex-col p-4">
         <div class="flex justify-between">
             <v-select v-model="selectedOption" label="name" class="h-9 text-primary-dark rounded w-60 mr-3"
@@ -13,6 +13,15 @@
                             d="M8 2a.5.5 0 0 1 .5.5v5h5a.5.5 0 0 1 0 1h-5v5a.5.5 0 0 1-1 0v-5h-5a.5.5 0 0 1 0-1h5v-5A.5.5 0 0 1 8 2Z" />
                     </svg>
                     New Flow
+                </button>
+                <button className="btn mr-2 flex items-center" @click="historyFlow();">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="mr-2 bi bi-clock-history" viewBox="0 0 16 16">
+                        <path d="M8.515 1.019A7 7 0 0 0 8 1V0a8 8 0 0 1 .589.022l-.074.997zm2.004.45a7.003 7.003 0 0 0-.985-.299l.219-.976c.383.086.76.2 1.126.342l-.36.933zm1.37.71a7.01 7.01 0 0 0-.439-.27l.493-.87a8.025 8.025 0 0 1 .979.654l-.615.789a6.996 6.996 0 0 0-.418-.302zm1.834 1.79a6.99 6.99 0 0 0-.653-.796l.724-.69c.27.285.52.59.747.91l-.818.576zm.744 1.352a7.08 7.08 0 0 0-.214-.468l.893-.45a7.976 7.976 0 0 1 .45 1.088l-.95.313a7.023 7.023 0 0 0-.179-.483zm.53 2.507a6.991 6.991 0 0 0-.1-1.025l.985-.17c.067.386.106.778.116 1.17l-1 .025zm-.131 1.538c.033-.17.06-.339.081-.51l.993.123a7.957 7.957 0 0 1-.23 1.155l-.964-.267c.046-.165.086-.332.12-.501zm-.952 2.379c.184-.29.346-.594.486-.908l.914.405c-.16.36-.345.706-.555 1.038l-.845-.535zm-.964 1.205c.122-.122.239-.248.35-.378l.758.653a8.073 8.073 0 0 1-.401.432l-.707-.707z"/>
+                        <path d="M8 1a7 7 0 1 0 4.95 11.95l.707.707A8.001 8.001 0 1 1 8 0v1z"/>
+                        <path d="M7.5 3a.5.5 0 0 1 .5.5v5.21l3.248 1.856a.5.5 0 0 1-.496.868l-3.5-2A.5.5 0 0 1 7 9V3.5a.5.5 0 0 1 .5-.5z"/>
+                    </svg>
+
+                    History Flow
                 </button>
                 <button className="btn mr-2 flex items-center" @click="addEditFlow(nodeProgramName); nodeProgramName = ''">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
@@ -144,8 +153,8 @@ export default {
         let mytemplate = ""
         let excelName = ""
         const store = useStore()
-        let headers = store.getters.getHeaders // Access headers from Vuex getter
-        let excelData = store.getters.getExcelData // Access excelData from Vuex getter
+        let headers = store.getters.getHeaders 
+        let excelData = store.getters.getExcelData 
         let symbole = ""
         let pdfpath = ""      
         let myzip = ""
@@ -167,29 +176,6 @@ export default {
             const input_id = inputNodeData.id;
             this.editor.value.updateNodeDataFromId(input_id, { mytemplate: mytemplate, excelName: excelName, headers: headers, excelData: excelData, symbole: symbole, pdfpath: pdfpath, myzip: myzip, variable1: variable1, variable2: variable2 });
         }
-
-        // this.editor.value.on("nodeDataChanged", (data: any) => {
-        //     const nodeData = this.editor.value.getNodeFromId(data);
-
-        //     const outputNode = nodeData.outputs.output_1.connections;
-        //     if (outputNode.length > 0) {
-        //         const outputTemplate = nodeData.data.mytemplate;
-        //         const outputExcelName = nodeData.data.excelName;
-        //         const outputHeaders = nodeData.data.headers;
-        //         const outputExcelData = nodeData.data.excelData;
-        //         const outputSymbole = nodeData.data.symbole;
-        //         const outputpdfpath = nodeData.data.pdfpath;
-        //         const outputMyzip = nodeData.data.myzip;
-        //         const outputVariable1 = nodeData.data.variable1;
-        //         const outputVariable2 = nodeData.data.variable2;
-        //         const output_class = nodeData.outputs.output_1.connections[0].output;
-        //         const inputNodeId = nodeData.outputs.output_1.connections[0].node;
-        //         const inputNodeData = this.editor.value.getNodeFromId(inputNodeId);
-        //         updateNodeOperation(output_class, outputTemplate, outputExcelName, outputHeaders, outputExcelData, outputSymbole, outputpdfpath, outputMyzip,outputVariable1, outputVariable2, inputNodeData)
-
-        //     }
-
-        // });
 
         this.editor.value.on("connectionCreated", (data: any) => {
             const outputData = this.editor.value.getNodeFromId(data.output_id);
@@ -304,6 +290,7 @@ export default {
             this.programs = response;
         },
         async addEditFlow(nodeProgramName: string) {
+            const currentYear = new Date().getFullYear();
             var exist = await ipcRenderer.invoke('checkFileNameExists', { name: nodeProgramName })
             const editorState = this.editor.value.export();
             const jsonString = JSON.stringify(editorState);
@@ -336,7 +323,7 @@ export default {
                     if (nodeProgramName.length === 0) {
                         Swal.fire('Empty Name', 'The field cannot be left empty, please input a name.', 'error')
                     } else {
-                        await ipcRenderer.invoke('insertJsonFile', { name: nodeProgramName, data: jsonString })
+                        await ipcRenderer.invoke('insertJsonFile', { name: nodeProgramName, data: jsonString, year: currentYear })
                             .then((result) => {
                                 this.notify("The insertion has been completed")
                                 this.selectedOption = nodeProgramName;
@@ -408,6 +395,42 @@ export default {
                     )
                 }
             })
+        },
+        async historyFlow(){
+            Swal.fire({
+                title: 'The History of our flows',
+                html: '<v-treeview :items="treeData"></v-treeview>',
+                onBeforeOpen: () => {
+                    new Vue({
+                    el: '#app',
+                    vuetify: new Vuetify(),
+                    data: {
+                        treeData: [
+                        {
+                            id: 1,
+                            label: 'Node 1',
+                            children: [
+                            { id: 2, label: 'Node 1.1' },
+                            { id: 3, label: 'Node 1.2' },
+                            ],
+                        },
+                        {
+                            id: 4,
+                            label: 'Node 2',
+                            children: [
+                            { id: 5, label: 'Node 2.1' },
+                            { id: 6, label: 'Node 2.2' },
+                            ],
+                        },
+                        ],
+                    },
+                    components: {
+                        'v-treeview': VTreeview,
+                    },
+                    });
+                },
+            });
+
         },
         searchNodeExcel() {
             const editorData = this.editor.value.export().drawflow.Home.data;
