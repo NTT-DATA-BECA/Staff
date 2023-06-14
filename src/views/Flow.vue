@@ -92,11 +92,13 @@ import NodeZipFolder from '../components/Node-zipFolder.vue'
 import Condition from '../components/Node-Condition.vue'
 import sendEmail from '../components/Node-sendEmail.vue'
 import groupPdfBy from '../components/Node-groupPdfBy.vue'
+import alert from '../components/Node-alert.vue'
 import Swal from 'sweetalert2'
 import { nodesList } from '../utils/nodesList'
 import { ipcRenderer } from 'electron';
 import { toast } from 'vue3-toastify';
 import 'vue3-toastify/dist/index.css';
+
 import { useStore } from 'vuex';
 import {mapActions } from 'vuex';
 
@@ -141,6 +143,7 @@ export default {
         this.editor.value.registerNode("condition", Condition, {}, {});
         this.editor.value.registerNode("send-email", sendEmail, {}, {});
         this.editor.value.registerNode("groupPdfBy", groupPdfBy, {}, {});
+        this.editor.value.registerNode("alert", alert, {}, {});
         let mytemplate = ""
         let excelName = ""
         const store = useStore()
@@ -148,11 +151,11 @@ export default {
         let excelData = store.getters.getExcelData // Access excelData from Vuex getter
         let symbole = ""
         let pdfpath = ""      
-        let myzip = ""
+        let message = ""
         let variable2 = ""
         let variable1 = ""
-       
-        const updateNodeOperation = (output_class: any, outputTemplate: any, outputExcelName: any, outputHeaders: any, outputExcelData: any, outputSymbole: any, outputpdfpath: any, outputMyzip: any, outputVariable2: any, outputVariable1: any ,inputNodeData: any) => {
+        let myzip=""
+        const updateNodeOperation = (output_class: any, outputTemplate: any, outputExcelName: any, outputHeaders: any, outputExcelData: any, outputSymbole: any, outputpdfpath: any, outputmessage: any, outputVariable2: any, outputVariable1: any,outputMyzip:any ,inputNodeData: any) => {
             if (output_class == "input_1") {
                 mytemplate = outputTemplate;
                 excelName = outputExcelName;
@@ -160,36 +163,14 @@ export default {
                 excelData = outputExcelData;
                 symbole = outputSymbole;
                 pdfpath = outputpdfpath;
-                myzip = outputMyzip;
+                message = outputmessage;
                 variable2 = outputVariable2;
                 variable1 = outputVariable1;
+                myzip= outputMyzip;
             }
             const input_id = inputNodeData.id;
-            this.editor.value.updateNodeDataFromId(input_id, { mytemplate: mytemplate, excelName: excelName, headers: headers, excelData: excelData, symbole: symbole, pdfpath: pdfpath, myzip: myzip, variable1: variable1, variable2: variable2 });
+            this.editor.value.updateNodeDataFromId(input_id, { mytemplate: mytemplate, excelName: excelName, headers: headers, excelData: excelData, symbole: symbole, pdfpath: pdfpath, message: message, variable1: variable1, variable2: variable2,myzip: myzip});
         }
-
-        // this.editor.value.on("nodeDataChanged", (data: any) => {
-        //     const nodeData = this.editor.value.getNodeFromId(data);
-
-        //     const outputNode = nodeData.outputs.output_1.connections;
-        //     if (outputNode.length > 0) {
-        //         const outputTemplate = nodeData.data.mytemplate;
-        //         const outputExcelName = nodeData.data.excelName;
-        //         const outputHeaders = nodeData.data.headers;
-        //         const outputExcelData = nodeData.data.excelData;
-        //         const outputSymbole = nodeData.data.symbole;
-        //         const outputpdfpath = nodeData.data.pdfpath;
-        //         const outputMyzip = nodeData.data.myzip;
-        //         const outputVariable1 = nodeData.data.variable1;
-        //         const outputVariable2 = nodeData.data.variable2;
-        //         const output_class = nodeData.outputs.output_1.connections[0].output;
-        //         const inputNodeId = nodeData.outputs.output_1.connections[0].node;
-        //         const inputNodeData = this.editor.value.getNodeFromId(inputNodeId);
-        //         updateNodeOperation(output_class, outputTemplate, outputExcelName, outputHeaders, outputExcelData, outputSymbole, outputpdfpath, outputMyzip,outputVariable1, outputVariable2, inputNodeData)
-
-        //     }
-
-        // });
 
         this.editor.value.on("connectionCreated", (data: any) => {
             const outputData = this.editor.value.getNodeFromId(data.output_id);
@@ -199,24 +180,17 @@ export default {
             const outputExcelData = outputData.data.excelData;
             const outputSymbole = outputData.data.symbole;
             const outputpdfpath = outputData.data.pdfpath;
-            const outputMyzip = outputData.data.myzip;
+            const outputmessage = outputData.data.message;
             const outputVariable2 = outputData.data.variable2;
             const outputVariable1 = outputData.data.variable1;
+            const outputMyzip = outputData.data.myzip;
             const output_class = data.input_class;
             const inputNodeData = this.editor.value.getNodeFromId(data.input_id);
-
-            updateNodeOperation(output_class, outputTemplate, outputExcelName, outputHeaders, outputExcelData, outputSymbole, outputpdfpath, outputMyzip,outputVariable1, outputVariable2, inputNodeData)
-            outputData.data.mytemplate = inputNodeData.data.mytemplate;
-            outputData.data.excelName = inputNodeData.data.excelName;
-
-
-
-
+            updateNodeOperation(output_class, outputTemplate, outputExcelName, outputHeaders, outputExcelData, outputSymbole, outputpdfpath, outputmessage,outputVariable1, outputVariable2,outputMyzip, inputNodeData);
         });
 
         this.editor.value.on("import", () => {
             const editorData = this.editor.value.export().drawflow.Home.data;
-
             Object.keys(editorData).forEach(function (i) {
                 mytemplate = editorData[i].data.mytemplate;
                 excelName = editorData[i].data.excelName;
@@ -224,9 +198,10 @@ export default {
                 excelData = editorData[i].data.excelData;
                 symbole = editorData[i].data.symbole;
                 pdfpath = editorData[i].data.pdfpath;
-                myzip = editorData[i].data.myzip;
+                message = editorData[i].data.message;
                 variable2 = editorData[i].data.variable2;
                 variable1 = editorData[i].data.variable1;
+                myzip = editorData[i].data.myzip;
             });
 
         });
@@ -235,7 +210,7 @@ export default {
             const editorData = this.editor.value.export().drawflow.Home.data;
             Object.keys(editorData).forEach((i) => {
                 const input_id = editorData[i].id;
-                this.editor.value.updateNodeDataFromId(input_id, { mytemplate: mytemplate, excelName: excelName, headers: headers, excelData: excelData, symbole: symbole, pdfpath: pdfpath, myzip: myzip,variable1: variable1, variable2: variable2 });
+                this.editor.value.updateNodeDataFromId(input_id, { mytemplate: mytemplate, excelName: excelName, headers: headers, excelData: excelData, symbole: symbole, pdfpath: pdfpath, message: message,variable1: variable1, variable2: variable2,myzip: myzip});
             });
         });
 
@@ -294,7 +269,7 @@ export default {
             pos_y = pos_y * (this.editor.value.precanvas.clientHeight / (this.editor.value.precanvas.clientHeight * this.editor.value.zoom)) - (this.editor.value.precanvas.getBoundingClientRect().y
                 * (this.editor.value.precanvas.clientHeight / (this.editor.value.precanvas.clientHeight * this.editor.value.zoom)));
             const nodeSelected: any = nodesList.find(object => object.item === name);
-            this.editor.value.addNode(name, nodeSelected.input, nodeSelected.output, pos_x, pos_y, name, { mytemplate: "", excelName: "", headers: [], excelData: "",symbole: "", pdfpath: "", myzip: "", varaible1: "", varaible2: "" }, name, "vue");
+            this.editor.value.addNode(name, nodeSelected.input, nodeSelected.output, pos_x, pos_y, name, { mytemplate: "", excelName: "", headers: [], excelData: "",symbole: "", pdfpath: "", message: "", varaible1: "", varaible2: "",myzip:"" }, name, "vue");
         },
         addProgramName(event: any) {
             this.programName = event.target.value;
@@ -435,14 +410,16 @@ export default {
                         }
                     }
                 };
-                this.editor.value.import(ob);
-                
+                this.editor.value.import(ob);      
                 const nodeExcelData :any=this.searchNodeExcel();
-                if(nodeExcelData){
-                var headNames = [] as string[];
-                headNames=nodeExcelData.data.headers;
-                this.setHeaders(headNames);
-            }
+                if (nodeExcelData) {
+                    var headNames = [] as string[];
+                    var dataRows = [] as string[];
+                    headNames = nodeExcelData.data.headers;
+                    dataRows = nodeExcelData.data.excelData;
+                    this.setHeaders(headNames);
+                    this.setExcelData(dataRows);
+                }
             }
         },
         cleanEditor() {

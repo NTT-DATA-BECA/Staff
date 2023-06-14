@@ -18,17 +18,22 @@
                         </div>
                     </div>
                 </div>
-                <a className="absolute m-2 right-0 top-0 cursor-pointer text-primary-dark hover:text-primary-light"
-                    @click=" cleanEditor()" title="Press to clear">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" fill="currentColor"
-                        class="bi bi-arrow-clockwise" viewBox="0 0 16 16">
-                        <path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z" />
-                        <path
-                            d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z" />
-                    </svg>
-                </a>
             </div>
         </div>
+    </div>
+    <div class="text-center">
+        <v-dialog v-model="dialog" width="auto">
+            <template v-slot:activator="{ props }">
+            </template>
+            <v-card class="w-80 text-center">
+                <v-card-text>
+                    <h1 class="text-primary-dark font-mono">Please wait, the flow is being generated</h1>
+                    <v-card-actions>
+                        <v-progress-linear indeterminate></v-progress-linear>
+                    </v-card-actions>
+                </v-card-text>
+            </v-card>
+        </v-dialog>
     </div>
 </template>
 
@@ -46,10 +51,12 @@ import NodeGeneratePdf from '../components/Node-GeneratePdf.vue'
 import NodeZipFolder from '../components/Node-zipFolder.vue'
 import sendEmail from '../components/Node-sendEmail.vue'
 import groupPdfBy from '../components/Node-groupPdfBy.vue'
+import alert from '../components/Node-alert.vue'
 import { nodesList } from '../utils/nodesList'
 import { ipcRenderer } from 'electron';
 import quillCSS from 'quill/dist/quill.snow.css'
 import 'vue3-toastify/dist/index.css';
+
 import { mapActions } from 'vuex';
 
 export default {
@@ -68,7 +75,9 @@ export default {
             node_last_move: null as any,
             nodesList: nodesList,
             dynamicConditionJson: {},
-            groups:[] as any,
+            groups: [] as any,
+            alertMessages: [] as any,
+            dialog: false,
         };
     },
     mounted() {
@@ -87,20 +96,12 @@ export default {
         this.editor.value.registerNode("groupPdfBy", groupPdfBy, {}, {});
         this.editor.value.registerNode("send-email", sendEmail, {}, {});
         this.editor.value.registerNode("zip-folder", NodeZipFolder, {}, {});
+        this.editor.value.registerNode("alert", alert, {}, {});
     },
     methods: {
         ...mapActions(['setHeaders', 'setExcelData']),
         touchScreenPosition(ev: any) {
             this.node_last_move = ev;
-        }
-        ,
-        addNodeToDrawFlow(name: any, pos_x: any, pos_y: any) {
-            pos_x = pos_x * (this.editor.value.precanvas.clientWidth / (this.editor.value.precanvas.clientWidth * this.editor.value.zoom)) - (this.editor.value.precanvas.getBoundingClientRect().x
-                * (this.editor.value.precanvas.clientWidth / (this.editor.value.precanvas.clientWidth * this.editor.value.zoom)));
-            pos_y = pos_y * (this.editor.value.precanvas.clientHeight / (this.editor.value.precanvas.clientHeight * this.editor.value.zoom)) - (this.editor.value.precanvas.getBoundingClientRect().y
-                * (this.editor.value.precanvas.clientHeight / (this.editor.value.precanvas.clientHeight * this.editor.value.zoom)));
-            const nodeSelected: any = nodesList.find(object => object.item === name);
-            this.editor.value.addNode(name, nodeSelected.input, nodeSelected.output, pos_x, pos_y, name, { mytemplate: "", excelName: "", headers: [], excelData: "", symbole: "", pdfpath: "", myzip: "", varaible1: "", varaible2: "" }, name, "vue");
         },
         addProgramName(event: any) {
             this.programName = event.target.value;
@@ -133,9 +134,6 @@ export default {
                 }
             }
         },
-        cleanEditor() {
-            this.editor.value.clear();
-        },
         async generateFlow() {
             var idNode = parseFloat(this.getStartId());
             this.searchNodeEnd();
@@ -148,6 +146,11 @@ export default {
                 var templateName = "";
                 var genebasic = "yes";
                 var pdfPathGrpBy = "";
+                var nbreAlert = this.countNodeAlert();
+                var messagesAlert = "";
+                var zipPathGrpBy = "";
+                var headersExcel = []
+                this.dialog = true;
                 while (dataNodeStart.outputs?.output_1?.connections[startoutputs]) {
                     dataNode = this.MoveToNextNodeByOutput1(dataNode)
                     nameNode = dataNode.name;
@@ -156,7 +159,8 @@ export default {
                         if (nameNode == "ImportExcel") {
                             var genebasic = "no";
                             dataExcel = dataNode.data.excelData;
-                            await this.generateNodeExcel(dataNode, dataExcel);
+                            headersExcel = dataNode.data.headers;
+                            await this.generateNodeExcel(dataNode);
                         }
                         if (nameNode == "file-input") {
                             templateName = dataNode.data.mytemplate;
@@ -166,12 +170,15 @@ export default {
                                 for (var i = 0; i < dataExcel.length; i++) {
                                     var dataemployee = dataExcel[i];
                                     if (nameNode == "groupPdfBy") {
-                                        pdfPathGrpBy=dataNode.data.pdfpath;
+                                        pdfPathGrpBy = dataNode.data.pdfpath;
                                         this.groups.push(dataemployee[dataNode.data.variable1]);
                                         await this.generateNodePdf(dataNode, this.dynamicConditionJson, dataemployee, dataNode.data.variable1);
                                     } else {
                                         await this.generateNodePdf(dataNode, this.dynamicConditionJson, dataemployee, null);
                                     }
+                                }
+                                if (nameNode == "groupPdfBy") {
+                                    this.groups = [...new Set(this.groups)];
                                 }
                             }
                             else if (dataExcel) {
@@ -191,31 +198,107 @@ export default {
 
                         }
                         if (nameNode == "zip-folder") {
-                           if(pdfPathGrpBy){
-                            for(var i=0;i<this.groups.length;i++){ 
-                                console.log(pdfPathGrpBy+"/"+this.groups[i])
-                                await this.zipFolder(pdfPathGrpBy+"/"+this.groups[i]);
+                            if (pdfPathGrpBy) {
+                                zipPathGrpBy = dataNode.data.myzip;
+                                const fs = require('fs');
+                                if (!fs.existsSync(zipPathGrpBy)) {
+                                    fs.mkdirSync(zipPathGrpBy, { recursive: true });
+                                }
+                                for (let i = 0; i < this.groups.length; i++) {
+                                    const folderPath = pdfPathGrpBy + "/" + this.groups[i];
+                                    const zipFolderPath = zipPathGrpBy + "/" + this.groups[i] + '.zip';
+                                    await this.zipFolder(folderPath, zipFolderPath);
+                                }
                             }
-                           }
+                        }
+
+                        if (nameNode == "send-email") {
+                            if (zipPathGrpBy) {
+                                await new Promise(resolve => setTimeout(resolve, 2000));
+                                var selectedHeader = dataNode.data.mytemplate;
+                                if (selectedHeader) {
+                                    const headerIndex = headersExcel.findIndex((header) => header === selectedHeader);
+                                    if (headerIndex !== -1) {
+                                        selectedHeader = selectedHeader.replace(/\s+/g, "_");
+                                        selectedHeader = selectedHeader.replace(/([[\]()])/g, "\\$1");
+                                        selectedHeader = selectedHeader.replace(/[\[\]]/g, "\\$1");
+                                        selectedHeader = selectedHeader.replace(/([[\]\/])/g, "\\$1");
+                                        selectedHeader = selectedHeader.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&");
+                                        selectedHeader = selectedHeader.replace(/\//g, "_");
+                                        selectedHeader = selectedHeader.replace(/[\(\)]/g, "_");
+                                        selectedHeader = selectedHeader.replace(/_%/g, "");
+                                        const columnData = dataExcel.map((row) => row[selectedHeader]);
+                                        const validEmails = columnData.filter((value) => /\S+@\S+\.\S+/.test(value));
+                                        if (validEmails.length > 0) {
+                                            for (let i = 0; i < Math.min(validEmails.length, this.groups.length); i++) {
+                                                const email = validEmails[i];
+                                                const group = this.groups[i];
+                                                const groupZipPath = zipPathGrpBy + "/" + group + '.zip';
+                                                await this.sendEmailWithAttachment(email, groupZipPath);
+                                            }
+                                        } else {
+                                            console.log("No valid emails found in the selected header column.");
+                                        }
+
+                                    } else {
+                                        console.log("Invalid column data: header not found");
+                                    }
+                                }
+
+                            }
+
+                        }
+                        if (nameNode == "alert") {
+                            nbreAlert--;
+                            if (dataExcel) {
+                                var valeur1 = dataNode.data.variable1;
+                                var valeur2 = dataNode.data.variable2;
+                                var symbole = dataNode.data.symbole;
+                                for (var i = 0; i < dataExcel.length; i++) {
+                                    var dataemployee = dataExcel[i];
+                                    if (this.compare(symbole, parseFloat(dataemployee[valeur1]), parseFloat(valeur2))) {
+                                        this.alertMessages.push(dataNode.data.message);
+                                        break;
+                                    }
+                                }
+                                for (var i = 0; i < this.alertMessages.length; i++) {
+                                    if (messagesAlert) {
+                                        messagesAlert = messagesAlert + " and " + this.alertMessages[i];
+                                    }
+                                    else {
+                                        messagesAlert = this.alertMessages[i];
+                                    }
+                                }
+                                if (nbreAlert == 0) {
+                                    this.modalMessage('Alert', 'Your flow has been generated successfully, but ' + messagesAlert, 'warning');
+                                    this.alertMessages = [];
+                                }
+                            }
                         }
                         dataNode = this.MoveToNextNodeByOutput1(dataNode);
                         nameNode = dataNode.name;
-                        if (nameNode == "end") {
-                            this.showSucess();
+
+                        if (nameNode == "end" && !messagesAlert) {
+                            setTimeout(async () => {
+                                this.dialog = false;
+                            }, 3000);
+                        } else if (messagesAlert) {
+                            messagesAlert = "";
                         }
                     }
                 }
             }
 
         },
-        async generateNodeExcel(dataNodeFlow: any, dataExcel: any) {
-            dataExcel = dataNodeFlow.data.excelData;
-            var dataNode = this.MoveToNextNodeByOutput1(dataNodeFlow);
-            var nameNode = dataNode.name;
-            if (nameNode == "condition") {
-                nameNode = await this.generateNodeCondition(dataNode);
+        async generateNodeExcel(dataNode: any) {
+            while (dataNode.name != "condition" && dataNode.name != "end") {
+                var dataNode = this.MoveToNextNodeByOutput1(dataNode);
+                var nameNode = dataNode.name;
+                if (nameNode == "condition") {
+                    nameNode = await this.generateNodeCondition(dataNode);
+                }
             }
-            return nameNode;
+            // return nameNode;
         },
         async generateNodeCondition(dataNode: any) {
             var pointer = require('json-pointer');
@@ -224,8 +307,12 @@ export default {
             pointer.set(this.dynamicConditionJson, '/number', dataNode.data.variable2);
             var dataOutput1 = this.MoveToNextNodeByOutput1(dataNode);
             var dataOutput2 = this.MoveToNextNodeByOutput2(dataNode);
-            pointer.set(this.dynamicConditionJson, '/accept', (dataOutput1.name === "condition") ? dataOutput1.id : dataOutput1?.data.mytemplate);
-            pointer.set(this.dynamicConditionJson, '/refuse', (dataOutput2.name === "condition") ? dataOutput2.id : dataOutput2?.data.mytemplate);
+            if (dataOutput1.name != "end") {
+                pointer.set(this.dynamicConditionJson, '/accept', (dataOutput1?.name === "condition") ? dataOutput1.id : dataOutput1?.data.mytemplate);
+            }
+            if (dataOutput2.name != "end") {
+                pointer.set(this.dynamicConditionJson, '/refuse', (dataOutput2?.name === "condition") ? dataOutput2.id : dataOutput2?.data.mytemplate);
+            }
             if (dataOutput1.name === "condition") {
                 this.fillJSONCondition('/accept', dataOutput1);
             }
@@ -257,12 +344,13 @@ export default {
         async generateNodePdf(dataNode: any, conditions: any, dataemployee: any, group: any) {
             var headerCondition = conditions.label;
             var symbole = conditions.symbole;
-            var number = conditions.number;
+            var number = parseFloat(conditions.number);
+            headerCondition = this.replaceHeader(headerCondition);
             var value = parseFloat(dataemployee[headerCondition]);
-            if (isNaN(value)) {
+            if (isNaN(value) || dataemployee[headerCondition] === "-") {
                 value = 0
             }
-            if (this.compare(symbole, value, parseFloat(number))) {
+            if (this.compare(symbole, value, number)) {
                 if (typeof conditions.accept === 'object' && conditions.accept) {
                     conditions = conditions.accept;
                     await this.generateNodePdf(dataNode, conditions, dataemployee, group);
@@ -285,19 +373,40 @@ export default {
             const currentDate = new Date();
             const currentYear = currentDate.getFullYear();
             const currentDateStr = currentDate.toISOString().split('T')[0];
+            const lastNameKeys = ["LastName", "Last Name", "Lastname", "Last name", "Surname", "SurName"];
+            var lastName = this.searchAndReplace(lastNameKeys, dataemployee, lastName);
+            const firstNameKeys = ["FirstName", "First Name", "Firstname", "First name", "name", "Name"];
+            var firstName = this.searchAndReplace(firstNameKeys, dataemployee, firstName);
+            const fullNameKeys = ["Full Name", "FullName", "Fullname", "Full name"];
+            var fullName = this.searchAndReplace(fullNameKeys, dataemployee, fullName);
             var response = await ipcRenderer.invoke('getQuillContentData', { name: template });
+            response = response.replace(/{([^{}]+)}/g, (match, var1) => {
+                var1 = this.replaceHeader(var1);
+                return `{${var1}}`;
+            });
             if (response) {
                 if (dataemployee) {
                     var replacedResponse = this.replaceVariables(response, dataemployee);
                     if (dataemployee) {
                         response = replacedResponse;
-                        response = response.replace(/{Name}/g, dataemployee.Name);
-                        response = response.replace(/{DOC_YEAR}/g, "" + currentYear);
-                        response = response.replace(/{DOC_DATE}/g, currentDateStr);
+                        response = response.replace(/{ANS}/g, "" + currentYear);
+                        response = response.replace(/{ANS-(\d+)}/g, function (match, number) {
+                            const previousYear = currentYear - parseInt(number);
+                            return "" + previousYear;
+                        });
+                        response = response.replace(/{DATE}/g, currentDateStr);
                         if (group) {
-                            this.downloadPdf(response, dataemployee.LastName + dataemployee.FirstName + "-" + dataemployee.Year, dataNode.data.pdfpath + '/' + dataemployee[group] + '/')
+                            if (!lastName || !firstName) {
+                                this.downloadPdf(response, "NTT DATA Morocco Centers -" + fullName, dataNode.data.pdfpath + '/' + dataemployee[group] + '/')
+                            } else {
+                                this.downloadPdf(response, "NTT DATA Morocco Centers -" + lastName + "_" + firstName, dataNode.data.pdfpath + '/' + dataemployee[group] + '/')
+                            }
                         } else {
-                            this.downloadPdf(response, dataemployee.LastName + dataemployee.FirstName + "-" + dataemployee.Year, dataNode.data.pdfpath + '/')
+                            if (!lastName || !firstName) {
+                                this.downloadPdf(response, "NTT DATA Morocco Centers -" + fullName, dataNode.data.pdfpath + '/')
+                            } else {
+                                this.downloadPdf(response, "NTT DATA Morocco Centers -" + lastName + "_" + firstName, dataNode.data.pdfpath + '/')
+                            }
                         }
                     }
                 }
@@ -326,8 +435,17 @@ export default {
                 default:
                     throw new Error('Invalid comparison operator');
             }
-        }
+        },
+        searchAndReplace(list: any, employees, valeur: any) {
+            for (const key of list) {
+                if (key in employees) {
+                    valeur = employees[key];
+                    break;
+                }
 
+            }
+            return valeur;
+        }
         ,
         MoveToNextNodeByOutput1(dataNode) {
             var idNode = parseFloat(dataNode.outputs?.output_1?.connections[0]?.node);
@@ -348,7 +466,7 @@ export default {
                 if (employee.hasOwnProperty(prop)) {
                     const variableName = `{${prop}}`;
                     const variableValue = employee[prop];
-                    response = response.split(variableName).join(variableValue);
+                    response = response.split(new RegExp(variableName, 'g')).join(variableValue);
                 }
             }
             return response;
@@ -376,6 +494,16 @@ export default {
             });
             return data;
         },
+        countNodeAlert() {
+            const editorData = this.editor.value.export().drawflow.Home.data;
+            var nbre = 0;
+            Object.keys(editorData).forEach(function (i) {
+                if (editorData[i].name === "alert") {
+                    nbre++;
+                }
+            });
+            return nbre;
+        },
         getStartId() {
             const editorData = this.editor.value.export().drawflow.Home.data;
             let idStart = "";
@@ -394,60 +522,47 @@ export default {
             }
             return idStart
         },
-        async zipFolder(folderPath) {
-            const archiver = require('archiver');
+        async zipFolder(folderPath, zipFolderPath) {
             const fs = require('fs');
-            const path = require('path');
-            const outputZip = fs.createWriteStream(folderPath + '.zip');
-            const archive = archiver('zip', {
-                zlib: { level: 9 } // Compression level
-            });
-            outputZip.on('close', function () {
-                console.log(archive.pointer() + ' total bytes');
-                console.log('Archiver has been finalized and the output file descriptor has closed.');
-                const zipFileName = path.basename(folderPath) + '.zip';
-                const zipFilePath = path.join(folderPath, zipFileName);
-                const data = fs.readFileSync(zipFilePath);
-                const blob = new Blob([data], { type: 'application/octet-stream' });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = zipFileName;
-                a.click();
-                URL.revokeObjectURL(url);
-                fs.unlinkSync(zipFilePath);
-
-            });
-
-
-
-
-            archive.on('error', function (err) {
-
-                throw err;
-
-            });
-
-
-
-
-            archive.pipe(outputZip);
-
-            archive.directory(folderPath, false);
-
-            if (!fs.existsSync(folderPath)) {
-
-                console.log('Folder does not exist:', folderPath);
-
-                return;
-
+            const archiver = require('archiver');
+            try {
+                const output = fs.createWriteStream(zipFolderPath);
+                const archive = archiver('zip', {
+                    zlib: { level: 9 } // Set compression level
+                });
+                output.on('close', () => {
+                });
+                archive.on('error', (err) => {
+                    console.error('Error while creating zip folder:', err);
+                });
+                archive.pipe(output);
+                archive.directory(folderPath, false);
+                await archive.finalize();
+            } catch (error) {
+                console.error('Error while creating zip folder:', error);
             }
-
-
-
-
-            archive.finalize();
-
+        },
+        async sendEmailWithAttachment(email: any, zipPath: any) {
+            const path = require('path');
+            const filename = path.basename(zipPath);
+            const emailData = {
+                to: email,
+                subject: 'Augmentation_Bonus',
+                text: 'Hello, you find here the recapulatif of your employees',
+                attachments: [
+                    {
+                        filename: filename,
+                        path: zipPath
+                    }
+                ]
+            };
+            await ipcRenderer.invoke('sendEmail', emailData)
+                .then(() => {
+                    console.log('Email sent successfully');
+                })
+                .catch((error) => {
+                    console.error('Error sending email:', error);
+                });
         },
         async downloadPdf(htmlforpdf: any, namefile: any, path: any) {
 
@@ -462,33 +577,29 @@ export default {
                 if (err) return console.log(err);
             });
         },
-        showSucess() {
-            Swal.fire({
-                toast: true,
-                icon: 'success',
-                title: 'Your flow has been successfully generated!',
-                position: 'bottom-left',
-                timer: 2000,
-                showConfirmButton: false,
-                timerProgressBar: true,
-            })
-        },
         modalMessage(title: string, type: string, message: SweetAlertIcon) {
             Swal.fire(
                 title,
                 type,
                 message
             );
+        },
+        replaceHeader(header: string) {
+            header = header.replace(/\s+/g, "_");
+            header = header.replace(/([[\]()])/g, "\\$1");
+            header = header.replace(/[\[\]]/g, "\\$1");
+            header = header.replace(/([[\]\/])/g, "\\$1");
+            header = header.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&");
+            header = header.replace(/\//g, "_");
+            header = header.replace(/[\(\)]/g, "_");
+            header = header.replace(/_%/g, "");
+            return header;
         }
     }
 }
 </script>
 
 <style scoped>
-.node {
-    @apply bg-primary-light border border-collapse text-white p-3 rounded w-full cursor-pointer sm:text-sm flex hover:bg-primary-dark hover:border hover:border-gray-800;
-}
-
 #drawflow {
     text-align: initial;
     width: 100%;

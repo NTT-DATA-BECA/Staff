@@ -37,8 +37,6 @@ export default {
             this.variable1 = this.dataNode.data.variable1;   
             this.pdfpath = this.dataNode.data.pdfpath         
         }
-
-
     },
     computed: {
     ...mapState(['headers']),

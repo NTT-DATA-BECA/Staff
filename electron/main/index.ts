@@ -40,9 +40,12 @@ async function createWindow() {
     }
     console.log('Connected to the database.');
   });
-  // Create a transporter for sending emails
+
+// Create a transporter for sending emails
   const transporter = nodemailer.createTransport({
-    service: 'gmail',
+    host: 'smtp-mail.outlook.com',
+    port: 587,
+    secure: false, // use TLS
     auth: {
       user: process.env.EMAIL,
       pass: process.env.PASSWORD
@@ -92,11 +95,95 @@ async function createWindow() {
     win?.webContents.send('main-process-message', new Date().toLocaleString())
   })
 
-  // Make all links open with the browser, not with the application
   win.webContents.setWindowOpenHandler(({ url }) => {
     if (url.startsWith('https:')) shell.openExternal(url)
     return { action: 'deny' }
   })
+  
+  ipcMain.handle('getManagers', async (event, arg) => {
+    return await new Promise((resolve, reject) => {
+      db.all(`SELECT last_name,first_name,email,category FROM managers`, [], (err, rows) => {
+        if (err) reject(err)
+        resolve(rows)
+      })
+    })
+  })
+
+  ipcMain.handle('insertManager', async (event, arg) => {
+    const [first_name, last_name, email, category ] = arg;
+    return await new Promise((resolve, reject) => {
+      db.run(
+        'INSERT INTO managers (first_name, last_name, email, category) VALUES (?, ?, ?, ?)',
+        [first_name, last_name, email, category],
+        function (err) {
+          if (err) reject(err);
+          resolve(this.lastID);
+        }
+      );
+    });
+  });  
+  
+  ipcMain.handle('editManagerByEmail', async (event, arg) => {
+    const [first_name, last_name,email, category,oldemail] = arg;
+    return await new Promise((resolve, reject) => {
+      db.run(
+        'UPDATE managers SET first_name = ?, last_name = ?, category = ?,email=? WHERE email = ?',
+        [first_name, last_name, category, email,oldemail],
+        function (err) {
+          if (err) reject(err);
+          resolve(this.changes);
+        }
+      );
+    });
+  });
+  ipcMain.handle('EmptyManagers', async (event) => {
+    return await new Promise((resolve, reject) => {
+      db.run(
+        'DELETE FROM managers',
+        function (err) {
+          if (err) reject(err);
+          resolve(this.changes);
+        }
+      );
+    });
+  });
+  
+  ipcMain.handle('insertMultiManagers', async (event, arg) => {
+    const managerss = arg; 
+     console.log(JSON.stringify(managerss));
+    return await Promise.all(
+      managerss.map((managers) => {
+        const [first_name, last_name, email, category] = managers;
+  
+        return new Promise((resolve, reject) => {
+          db.run(
+            'INSERT INTO managers (first_name, last_name, email, category) VALUES (?, ?, ?, ?)',
+            [first_name, last_name, email, category],
+            function (err) {
+              if (err) reject(err);
+              resolve(this.lastID);
+            }
+          );
+        });
+      })
+    );
+  });
+  
+
+  ipcMain.handle('deleteManagersbyemail', async (event, emailsToDelete) => {
+    return await new Promise((resolve, reject) => {
+      const placeholders = emailsToDelete.map(() => '?').join(',');
+      const query = `DELETE FROM managers WHERE email IN (${placeholders})`;
+      const values = emailsToDelete;
+      db.run(query, values, function (err) {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(this.changes);
+        }
+      });
+    });
+  });
   
   ipcMain.handle('getJsonFiles', async (event, arg) => {
     return await new Promise((resolve, reject) => {
@@ -107,7 +194,6 @@ async function createWindow() {
     })
   })
   
-  // Handle the 'update' message from the renderer process
   ipcMain.handle('updateJsonFileName', async (event, arg) => {
     return new Promise<void>((resolve, reject) => {
       db.run(`UPDATE flow SET name = ? WHERE name = ?`, [arg.newName, arg.oldName], (err) => {
@@ -299,24 +385,7 @@ async function createWindow() {
         resolve(rows.map(row => row.name))
       })
     })
-  });
-  // ipcMain.handle('uploadFile', async (event, arg) => {
-  //   try {
-  //     const file = arg.file;
-  //     const filePath = join(process.env.UPLOADS, file.name);
-  //     const fileData = file.data;
-  
-  //     // Write the file to disk
-  //     await promisify(fs.writeFile)(filePath, fileData);
-  
-  //     // Return the file path to the renderer process
-  //     return filePath;
-  //   } catch (error) {
-  //     console.error(error);
-  //     return null;
-  //   }
-  // });
-  
+  });  
   
 }  
   
