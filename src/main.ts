@@ -8,9 +8,7 @@ import App from './App.vue';
 import router from './router';
 import vSelect from 'vue-select';
 import store from './store';
-import '@mdi/font/css/materialdesignicons.css';
-import 'vuetify/dist/vuetify.css';
-import Vuetify from 'vuetify';
+
 
 
 createApp(App)
@@ -18,8 +16,7 @@ createApp(App)
 .use(store)
 .component('v-select', vSelect)
 .provide('ipcRenderer', ipcRenderer)
-.use(Vuetify)
-  .mount('#app')
+.mount('#app')
   .$nextTick(() => {
     postMessage({ payload: 'removeLoading' }, '*')
   })

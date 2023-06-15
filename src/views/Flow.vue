@@ -1,4 +1,4 @@
-            <template>
+<template>
     <div className="h-full w-full flex flex-col p-4">
         <div class="flex justify-between">
             <v-select v-model="selectedOption" label="name" class="h-9 text-primary-dark rounded w-60 mr-3"
@@ -14,7 +14,7 @@
                     </svg>
                     New Flow
                 </button>
-                <button className="btn mr-2 flex items-center" @click="historyFlow();">
+                <button className="btn mr-2 flex items-center" @click="historyFlow();" >
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="mr-2 bi bi-clock-history" viewBox="0 0 16 16">
                         <path d="M8.515 1.019A7 7 0 0 0 8 1V0a8 8 0 0 1 .589.022l-.074.997zm2.004.45a7.003 7.003 0 0 0-.985-.299l.219-.976c.383.086.76.2 1.126.342l-.36.933zm1.37.71a7.01 7.01 0 0 0-.439-.27l.493-.87a8.025 8.025 0 0 1 .979.654l-.615.789a6.996 6.996 0 0 0-.418-.302zm1.834 1.79a6.99 6.99 0 0 0-.653-.796l.724-.69c.27.285.52.59.747.91l-.818.576zm.744 1.352a7.08 7.08 0 0 0-.214-.468l.893-.45a7.976 7.976 0 0 1 .45 1.088l-.95.313a7.023 7.023 0 0 0-.179-.483zm.53 2.507a6.991 6.991 0 0 0-.1-1.025l.985-.17c.067.386.106.778.116 1.17l-1 .025zm-.131 1.538c.033-.17.06-.339.081-.51l.993.123a7.957 7.957 0 0 1-.23 1.155l-.964-.267c.046-.165.086-.332.12-.501zm-.952 2.379c.184-.29.346-.594.486-.908l.914.405c-.16.36-.345.706-.555 1.038l-.845-.535zm-.964 1.205c.122-.122.239-.248.35-.378l.758.653a8.073 8.073 0 0 1-.401.432l-.707-.707z"/>
                         <path d="M8 1a7 7 0 1 0 4.95 11.95l.707.707A8.001 8.001 0 1 1 8 0v1z"/>
@@ -101,6 +101,7 @@ import NodeZipFolder from '../components/Node-zipFolder.vue'
 import Condition from '../components/Node-Condition.vue'
 import sendEmail from '../components/Node-sendEmail.vue'
 import groupPdfBy from '../components/Node-groupPdfBy.vue'
+import TreeComponent from '../components/TreeComponent.vue'
 import Swal from 'sweetalert2'
 import { nodesList } from '../utils/nodesList'
 import { ipcRenderer } from 'electron';
@@ -396,41 +397,10 @@ export default {
                 }
             })
         },
-        async historyFlow(){
+        async historyFlow() {
             Swal.fire({
-                title: 'The History of our flows',
-                html: '<v-treeview :items="treeData"></v-treeview>',
-                onBeforeOpen: () => {
-                    new Vue({
-                    el: '#app',
-                    vuetify: new Vuetify(),
-                    data: {
-                        treeData: [
-                        {
-                            id: 1,
-                            label: 'Node 1',
-                            children: [
-                            { id: 2, label: 'Node 1.1' },
-                            { id: 3, label: 'Node 1.2' },
-                            ],
-                        },
-                        {
-                            id: 4,
-                            label: 'Node 2',
-                            children: [
-                            { id: 5, label: 'Node 2.1' },
-                            { id: 6, label: 'Node 2.2' },
-                            ],
-                        },
-                        ],
-                    },
-                    components: {
-                        'v-treeview': VTreeview,
-                    },
-                    });
-                },
+                title: 'History of Flows',
             });
-
         },
         searchNodeExcel() {
             const editorData = this.editor.value.export().drawflow.Home.data;
