@@ -16,6 +16,11 @@ const routes = [
     name: 'generator',
     component: () => import('../views/Generator.vue'),
   },
+  {
+    path: '/managers',
+    name: 'Managers',
+    component: () => import('../views/Managers.vue'),
+  },
 ];
 
 const router = createRouter({

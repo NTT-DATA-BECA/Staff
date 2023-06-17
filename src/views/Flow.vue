@@ -14,15 +14,6 @@
                     </svg>
                     New Flow
                 </button>
-                <button className="btn mr-2 flex items-center" @click="historyFlow();" >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="mr-2 bi bi-clock-history" viewBox="0 0 16 16">
-                        <path d="M8.515 1.019A7 7 0 0 0 8 1V0a8 8 0 0 1 .589.022l-.074.997zm2.004.45a7.003 7.003 0 0 0-.985-.299l.219-.976c.383.086.76.2 1.126.342l-.36.933zm1.37.71a7.01 7.01 0 0 0-.439-.27l.493-.87a8.025 8.025 0 0 1 .979.654l-.615.789a6.996 6.996 0 0 0-.418-.302zm1.834 1.79a6.99 6.99 0 0 0-.653-.796l.724-.69c.27.285.52.59.747.91l-.818.576zm.744 1.352a7.08 7.08 0 0 0-.214-.468l.893-.45a7.976 7.976 0 0 1 .45 1.088l-.95.313a7.023 7.023 0 0 0-.179-.483zm.53 2.507a6.991 6.991 0 0 0-.1-1.025l.985-.17c.067.386.106.778.116 1.17l-1 .025zm-.131 1.538c.033-.17.06-.339.081-.51l.993.123a7.957 7.957 0 0 1-.23 1.155l-.964-.267c.046-.165.086-.332.12-.501zm-.952 2.379c.184-.29.346-.594.486-.908l.914.405c-.16.36-.345.706-.555 1.038l-.845-.535zm-.964 1.205c.122-.122.239-.248.35-.378l.758.653a8.073 8.073 0 0 1-.401.432l-.707-.707z"/>
-                        <path d="M8 1a7 7 0 1 0 4.95 11.95l.707.707A8.001 8.001 0 1 1 8 0v1z"/>
-                        <path d="M7.5 3a.5.5 0 0 1 .5.5v5.21l3.248 1.856a.5.5 0 0 1-.496.868l-3.5-2A.5.5 0 0 1 7 9V3.5a.5.5 0 0 1 .5-.5z"/>
-                    </svg>
-
-                    History Flow
-                </button>
                 <button className="btn mr-2 flex items-center" @click="addEditFlow(nodeProgramName); nodeProgramName = ''">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
                         class="mr-2 bi bi-file-earmark-arrow-up-fill" viewBox="0 0 16 16">
@@ -101,12 +92,13 @@ import NodeZipFolder from '../components/Node-zipFolder.vue'
 import Condition from '../components/Node-Condition.vue'
 import sendEmail from '../components/Node-sendEmail.vue'
 import groupPdfBy from '../components/Node-groupPdfBy.vue'
-import TreeComponent from '../components/TreeComponent.vue'
+import alert from '../components/Node-alert.vue'
 import Swal from 'sweetalert2'
 import { nodesList } from '../utils/nodesList'
 import { ipcRenderer } from 'electron';
 import { toast } from 'vue3-toastify';
 import 'vue3-toastify/dist/index.css';
+
 import { useStore } from 'vuex';
 import {mapActions } from 'vuex';
 
@@ -151,18 +143,19 @@ export default {
         this.editor.value.registerNode("condition", Condition, {}, {});
         this.editor.value.registerNode("send-email", sendEmail, {}, {});
         this.editor.value.registerNode("groupPdfBy", groupPdfBy, {}, {});
+        this.editor.value.registerNode("alert", alert, {}, {});
         let mytemplate = ""
         let excelName = ""
         const store = useStore()
-        let headers = store.getters.getHeaders 
-        let excelData = store.getters.getExcelData 
+        let headers = store.getters.getHeaders // Access headers from Vuex getter
+        let excelData = store.getters.getExcelData // Access excelData from Vuex getter
         let symbole = ""
         let pdfpath = ""      
-        let myzip = ""
+        let message = ""
         let variable2 = ""
         let variable1 = ""
-       
-        const updateNodeOperation = (output_class: any, outputTemplate: any, outputExcelName: any, outputHeaders: any, outputExcelData: any, outputSymbole: any, outputpdfpath: any, outputMyzip: any, outputVariable2: any, outputVariable1: any ,inputNodeData: any) => {
+        let myzip=""
+        const updateNodeOperation = (output_class: any, outputTemplate: any, outputExcelName: any, outputHeaders: any, outputExcelData: any, outputSymbole: any, outputpdfpath: any, outputmessage: any, outputVariable2: any, outputVariable1: any,outputMyzip:any ,inputNodeData: any) => {
             if (output_class == "input_1") {
                 mytemplate = outputTemplate;
                 excelName = outputExcelName;
@@ -170,12 +163,13 @@ export default {
                 excelData = outputExcelData;
                 symbole = outputSymbole;
                 pdfpath = outputpdfpath;
-                myzip = outputMyzip;
+                message = outputmessage;
                 variable2 = outputVariable2;
                 variable1 = outputVariable1;
+                myzip= outputMyzip;
             }
             const input_id = inputNodeData.id;
-            this.editor.value.updateNodeDataFromId(input_id, { mytemplate: mytemplate, excelName: excelName, headers: headers, excelData: excelData, symbole: symbole, pdfpath: pdfpath, myzip: myzip, variable1: variable1, variable2: variable2 });
+            this.editor.value.updateNodeDataFromId(input_id, { mytemplate: mytemplate, excelName: excelName, headers: headers, excelData: excelData, symbole: symbole, pdfpath: pdfpath, message: message, variable1: variable1, variable2: variable2,myzip: myzip});
         }
 
         this.editor.value.on("connectionCreated", (data: any) => {
@@ -186,24 +180,17 @@ export default {
             const outputExcelData = outputData.data.excelData;
             const outputSymbole = outputData.data.symbole;
             const outputpdfpath = outputData.data.pdfpath;
-            const outputMyzip = outputData.data.myzip;
+            const outputmessage = outputData.data.message;
             const outputVariable2 = outputData.data.variable2;
             const outputVariable1 = outputData.data.variable1;
+            const outputMyzip = outputData.data.myzip;
             const output_class = data.input_class;
             const inputNodeData = this.editor.value.getNodeFromId(data.input_id);
-
-            updateNodeOperation(output_class, outputTemplate, outputExcelName, outputHeaders, outputExcelData, outputSymbole, outputpdfpath, outputMyzip,outputVariable1, outputVariable2, inputNodeData)
-            outputData.data.mytemplate = inputNodeData.data.mytemplate;
-            outputData.data.excelName = inputNodeData.data.excelName;
-
-
-
-
+            updateNodeOperation(output_class, outputTemplate, outputExcelName, outputHeaders, outputExcelData, outputSymbole, outputpdfpath, outputmessage,outputVariable1, outputVariable2,outputMyzip, inputNodeData);
         });
 
         this.editor.value.on("import", () => {
             const editorData = this.editor.value.export().drawflow.Home.data;
-
             Object.keys(editorData).forEach(function (i) {
                 mytemplate = editorData[i].data.mytemplate;
                 excelName = editorData[i].data.excelName;
@@ -211,9 +198,10 @@ export default {
                 excelData = editorData[i].data.excelData;
                 symbole = editorData[i].data.symbole;
                 pdfpath = editorData[i].data.pdfpath;
-                myzip = editorData[i].data.myzip;
+                message = editorData[i].data.message;
                 variable2 = editorData[i].data.variable2;
                 variable1 = editorData[i].data.variable1;
+                myzip = editorData[i].data.myzip;
             });
 
         });
@@ -222,7 +210,7 @@ export default {
             const editorData = this.editor.value.export().drawflow.Home.data;
             Object.keys(editorData).forEach((i) => {
                 const input_id = editorData[i].id;
-                this.editor.value.updateNodeDataFromId(input_id, { mytemplate: mytemplate, excelName: excelName, headers: headers, excelData: excelData, symbole: symbole, pdfpath: pdfpath, myzip: myzip,variable1: variable1, variable2: variable2 });
+                this.editor.value.updateNodeDataFromId(input_id, { mytemplate: mytemplate, excelName: excelName, headers: headers, excelData: excelData, symbole: symbole, pdfpath: pdfpath, message: message,variable1: variable1, variable2: variable2,myzip: myzip});
             });
         });
 
@@ -281,7 +269,7 @@ export default {
             pos_y = pos_y * (this.editor.value.precanvas.clientHeight / (this.editor.value.precanvas.clientHeight * this.editor.value.zoom)) - (this.editor.value.precanvas.getBoundingClientRect().y
                 * (this.editor.value.precanvas.clientHeight / (this.editor.value.precanvas.clientHeight * this.editor.value.zoom)));
             const nodeSelected: any = nodesList.find(object => object.item === name);
-            this.editor.value.addNode(name, nodeSelected.input, nodeSelected.output, pos_x, pos_y, name, { mytemplate: "", excelName: "", headers: [], excelData: "",symbole: "", pdfpath: "", myzip: "", varaible1: "", varaible2: "" }, name, "vue");
+            this.editor.value.addNode(name, nodeSelected.input, nodeSelected.output, pos_x, pos_y, name, { mytemplate: "", excelName: "", headers: [], excelData: "",symbole: "", pdfpath: "", message: "", varaible1: "", varaible2: "",myzip:"" }, name, "vue");
         },
         addProgramName(event: any) {
             this.programName = event.target.value;
@@ -291,7 +279,6 @@ export default {
             this.programs = response;
         },
         async addEditFlow(nodeProgramName: string) {
-            const currentYear = new Date().getFullYear();
             var exist = await ipcRenderer.invoke('checkFileNameExists', { name: nodeProgramName })
             const editorState = this.editor.value.export();
             const jsonString = JSON.stringify(editorState);
@@ -324,7 +311,7 @@ export default {
                     if (nodeProgramName.length === 0) {
                         Swal.fire('Empty Name', 'The field cannot be left empty, please input a name.', 'error')
                     } else {
-                        await ipcRenderer.invoke('insertJsonFile', { name: nodeProgramName, data: jsonString, year: currentYear })
+                        await ipcRenderer.invoke('insertJsonFile', { name: nodeProgramName, data: jsonString })
                             .then((result) => {
                                 this.notify("The insertion has been completed")
                                 this.selectedOption = nodeProgramName;
@@ -397,11 +384,6 @@ export default {
                 }
             })
         },
-        async historyFlow() {
-            Swal.fire({
-                title: 'History of Flows',
-            });
-        },
         searchNodeExcel() {
             const editorData = this.editor.value.export().drawflow.Home.data;
             let data = "";
@@ -428,8 +410,7 @@ export default {
                         }
                     }
                 };
-                this.editor.value.import(ob);
-                
+                this.editor.value.import(ob);      
                 const nodeExcelData :any=this.searchNodeExcel();
                 if (nodeExcelData) {
                     var headNames = [] as string[];
@@ -438,7 +419,6 @@ export default {
                     dataRows = nodeExcelData.data.excelData;
                     this.setHeaders(headNames);
                     this.setExcelData(dataRows);
-
                 }
             }
         },

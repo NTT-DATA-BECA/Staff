@@ -2,15 +2,12 @@
   <div ref="el">
     <h2 id="node-title">Zip Folder</h2>
     <input v-model="myzip" class="text-black ml-2 w-36 align-middle" type="text" df-myzip/>
-
   </div>
 </template>
-
-<script lang="ts"> 
+<script lang="ts">
 import { getCurrentInstance , nextTick } from 'vue'
-
 export default {
-  name: 'NodeZipFolder', 
+  name: 'NodeZipFolder',
   data(){
   return {
     el:null as any,
@@ -18,7 +15,6 @@ export default {
     df:null as any,
     myzip:"",
     dataNode : {} as any,
-
   }},  
   async mounted(){
    this.el=this.$refs.el;
@@ -26,17 +22,12 @@ export default {
    this.df = internalInstance.appContext.config.globalProperties.$df.value;
    await nextTick()
    this.nodeId = this.el?.parentElement?.parentElement?.id?.slice(5);
-   console.log( this.nodeId +"  this.nodeId ")
    if (this.nodeId) {
       this.dataNode = this.df.getNodeFromId(this.nodeId)
       this.myzip = this.dataNode.data.myzip;
    };
-   this.df.updateNodeDataFromId(this.nodeId, { myzip: this.myzip })   
-
-   
-
+   this.df.updateNodeDataFromId(this.nodeId, { myzip: this.myzip })  
   },
-  
-   
 }
+
 </script>

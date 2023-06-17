@@ -3,7 +3,7 @@
     <p id="node-title">Data :</p>
     <label>
       <input class="cursor-pointer w-36 hidden" type="file" @change="loadExcelFile" />
-      <div class="text-white bg-blue font-bold rounded-lg text-sm text-center">
+      <div class="w-36 text-white bg-blue font-bold rounded-lg text-sm text-center">
         {{ excelName || 'Import Excel' }}
       </div>
       <input df-excelData type="hidden" v-model="excelData">
@@ -79,7 +79,15 @@ export default {
             const row: any = {};
             for (let C = range.s.c; C <= range.e.c; ++C) {
               const cell = sheet[XLSX.utils.encode_cell({ r: R, c: C })];
-              const columnName: string = columns[C];
+              var columnName: string = columns[C];
+              columnName=columnName.replace(/\s+/g, "_");
+              columnName=columnName.replace(/([[\]()])/g, "\\$1");
+              columnName=columnName.replace(/[\[\]]/g, "\\$1");
+              columnName=columnName.replace(/([[\]\/])/g, "\\$1");
+              columnName=columnName.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&");
+              columnName=columnName.replace(/\//g, "_");
+              columnName=columnName.replace(/[\(\)]/g, "_");
+              columnName = columnName.replace(/_%/g, "");
               const cellValue: string = XLSX.utils.format_cell(cell);
               row[columnName] = cellValue;
             }
@@ -90,7 +98,7 @@ export default {
         if (!fs.existsSync(dir)) {
           fs.mkdirSync(dir);
         }
-        const outputFile = path.join(dir, `${this.excelName}`);
+         const outputFile = path.join(dir, `${this.excelName}`);
         this.el = this.$refs.el;
         this.excelName = outputFile;
         this.excelName = event.target.files[0].name;
@@ -106,7 +114,6 @@ export default {
         this.df.updateNodeDataFromId(this.nodeId, {excelName: this.excelName, headers: this.headersName, excelData: this.excelData})
       };
       reader.readAsBinaryString(file);
-       
     }
 
   },
