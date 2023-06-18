@@ -23,8 +23,7 @@
     </div>
     <div class="text-center">
         <v-dialog v-model="dialog" width="auto">
-            <template v-slot:activator="{ props }">
-            </template>
+            <template v-slot:activator="{ props }"></template>
             <v-card class="w-80 text-center">
                 <v-card-text>
                     <h1 class="text-primary-dark font-mono">Please wait, the flow is being generated</h1>
@@ -78,6 +77,7 @@ export default {
             groups: [] as any,
             alertMessages: [] as any,
             dialog: false,
+            loading: false,
         };
     },
     mounted() {
@@ -135,144 +135,151 @@ export default {
             }
         },
         async generateFlow() {
-            var idNode = parseFloat(this.getStartId());
-            this.searchNodeEnd();
-            if (idNode) {
-                var dataNode = this.editor.value.getNodeFromId(idNode);
-                var dataNodeStart = this.editor.value.getNodeFromId(idNode);
-                var nameNode = dataNode.name;
-                var startoutputs = 0;
-                var dataExcel = [];
-                var templateName = "";
-                var genebasic = "yes";
-                var pdfPathGrpBy = "";
-                var nbreAlert = this.countNodeAlert();
-                var messagesAlert = "";
-                var zipPathGrpBy = "";
-                var headersExcel = [];
-                var promises = [];
+            try {
+              this.loading = true;
+                var idNode = parseFloat(this.getStartId());
+                this.searchNodeEnd();
+                if (idNode) {
+                    var dataNode = this.editor.value.getNodeFromId(idNode);
+                    var dataNodeStart = this.editor.value.getNodeFromId(idNode);
+                    var nameNode = dataNode.name;
+                    var startoutputs = 0;
+                    var dataExcel = [];
+                    var templateName = "";
+                    var genebasic = "yes";
+                    var pdfPathGrpBy = "";
+                    var nbreAlert = this.countNodeAlert();
+                    var messagesAlert = "";
+                    var zipPathGrpBy = "";
+                    var headersExcel = [];
+                    this.dialog = true;
+                    var promises = [];
 
-                while (dataNodeStart.outputs?.output_1?.connections[startoutputs]) {
-                dataNode = this.MoveToNextNodeByOutput1(dataNode);
-                nameNode = dataNode.name;
-                startoutputs = startoutputs + 1;
-
-                while (nameNode != "end") {
-                    if (nameNode == "ImportExcel") {
-                    genebasic = "no";
-                    dataExcel = dataNode.data.excelData;
-                    headersExcel = dataNode.data.headers;
-                    await this.generateNodeExcel(dataNode);
-                    }
-                    if (nameNode == "file-input") {
-                    templateName = dataNode.data.mytemplate;
-                    }
-                    if (nameNode == "Generatepdf" || nameNode == "groupPdfBy") {
-                    if (JSON.stringify(this.dynamicConditionJson) != "{}") {
-                        await Promise.all(dataExcel.map(async (dataemployee) => {
-                        if (nameNode == "groupPdfBy") {
-                            pdfPathGrpBy = dataNode.data.pdfpath;
-                            this.groups.push(dataemployee[dataNode.data.variable1]);
-                            await this.generateNodePdf(dataNode, this.dynamicConditionJson, dataemployee, dataNode.data.variable1);
-                        } else {
-                            await this.generateNodePdf(dataNode, this.dynamicConditionJson, dataemployee, null);
-                        }
-                        }));
-
-                        if (nameNode == "groupPdfBy") {
-                        this.groups = [...new Set(this.groups)];
-                        }
-                    } else if (dataExcel) {
-                        await Promise.all(dataExcel.map(async (dataemployee) => {
-                        if (nameNode == "groupPdfBy") {
-                            await this.startgenerationpdf(dataNode, dataemployee, dataNode.data.variable1, templateName);
-                        } else {
-                            await this.startgenerationpdf(dataNode, dataemployee, null, templateName);
-                        }
-                        }));
-                    }
-
-                    if (genebasic == "yes") {
-                        await this.startgenerationpdf(dataNode, null, null, templateName);
-                    }
-                    }
-                    if (nameNode == "zip-folder") {
-                    if (pdfPathGrpBy) {
-                        zipPathGrpBy = dataNode.data.myzip;
-                        const fs = require('fs');
-                        if (!fs.existsSync(zipPathGrpBy)) {
-                        fs.mkdirSync(zipPathGrpBy, { recursive: true });
-                        }
-                        await Promise.all(this.groups.map(async (group) => {
-                        const folderPath = pdfPathGrpBy + "/" + group;
-                        const zipFolderPath = zipPathGrpBy + "/" + group + '.zip';
-                        await this.zipFolder(folderPath, zipFolderPath);
-                        }));
-                    }
-                    }
-                    if (nameNode == "send-email") {
-                    if (zipPathGrpBy) {
-                        await new Promise(resolve => setTimeout(resolve, 2000));
-                        var selectedHeader = dataNode.data.mytemplate;
-                        if (selectedHeader) {
-                        const headerIndex = headersExcel.findIndex((header) => header === selectedHeader);
-                        if (headerIndex !== -1) {
-                            selectedHeader = selectedHeader.replace(/\s+/g, "_");
-                            selectedHeader = selectedHeader.replace(/([[\]()])/g, "\\$1");
-                            selectedHeader = selectedHeader.replace(/[\[\]]/g, "\\$1");
-                            selectedHeader = selectedHeader.replace(/([[\]\/])/g, "\\$1");
-                            selectedHeader = selectedHeader.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&");
-                            selectedHeader = selectedHeader.replace(/\//g, "_");
-                            selectedHeader = selectedHeader.replace(/[\(\)]/g, "_");
-                            selectedHeader = selectedHeader.replace(/_%/g, "");
-                            const columnData = dataExcel.map((row) => row[selectedHeader]);
-                            const validEmails = columnData.filter((value) => /\S+@\S+\.\S+/.test(value));
-                            if (validEmails.length > 0) {
-                            await Promise.all(validEmails.slice(0, Math.min(validEmails.length, this.groups.length)).map(async (email, i) => {
-                                const group = this.groups[i];
-                                const groupZipPath = zipPathGrpBy + "/" + group + '.zip';
-                                await this.sendEmailWithAttachment(email, groupZipPath);
-                            }));
-                            } else {
-                            console.log("No valid emails found in the selected header column.");
-                            }
-                        } else {
-                            console.log("Invalid column data: header not found");
-                        }
-                        }
-                    }
-                    }
-                    if (nameNode == "alert") {
-                    nbreAlert--;
-                    if (dataExcel) {
-                        var valeur1 = dataNode.data.variable1;
-                        var valeur2 = dataNode.data.variable2;
-                        var symbole = dataNode.data.symbole;
-                        for (var i = 0; i < dataExcel.length; i++) {
-                        var dataemployee = dataExcel[i];
-                        if (this.compare(symbole, parseFloat(dataemployee[valeur1]), parseFloat(valeur2))) {
-                            this.alertMessages.push(dataNode.data.message);
-                            break;
-                        }
-                        }
-                        for (var i = 0; i < this.alertMessages.length; i++) {
-                        if (messagesAlert) {
-                            messagesAlert = messagesAlert + " and " + this.alertMessages[i];
-                        } else {
-                            messagesAlert = this.alertMessages[i];
-                        }
-                        }
-                        if (nbreAlert == 0) {
-                        this.modalMessage('Alert', 'Your flow has been generated successfully, but ' + messagesAlert, 'warning');
-                        this.alertMessages = [];
-                        }
-                    }
-                    }
+                    while (dataNodeStart.outputs?.output_1?.connections[startoutputs]) {
                     dataNode = this.MoveToNextNodeByOutput1(dataNode);
                     nameNode = dataNode.name;
+                    startoutputs = startoutputs + 1;
+
+                    while (nameNode != "end") {
+                        if (nameNode == "ImportExcel") {
+                        genebasic = "no";
+                        dataExcel = dataNode.data.excelData;
+                        headersExcel = dataNode.data.headers;
+                        await this.generateNodeExcel(dataNode);
+                        }
+                        if (nameNode == "file-input") {
+                        templateName = dataNode.data.mytemplate;
+                        }
+                        if (nameNode == "Generatepdf" || nameNode == "groupPdfBy") {
+                        if (JSON.stringify(this.dynamicConditionJson) != "{}") {
+                            await Promise.all(dataExcel.map(async (dataemployee) => {
+                            if (nameNode == "groupPdfBy") {
+                                pdfPathGrpBy = dataNode.data.pdfpath;
+                                this.groups.push(dataemployee[dataNode.data.variable1]);
+                                await this.generateNodePdf(dataNode, this.dynamicConditionJson, dataemployee, dataNode.data.variable1);
+                            } else {
+                                await this.generateNodePdf(dataNode, this.dynamicConditionJson, dataemployee, null);
+                            }
+                            }));
+
+                            if (nameNode == "groupPdfBy") {
+                            this.groups = [...new Set(this.groups)];
+                            }
+                        } else if (dataExcel) {
+                            await Promise.all(dataExcel.map(async (dataemployee) => {
+                            if (nameNode == "groupPdfBy") {
+                                await this.startgenerationpdf(dataNode, dataemployee, dataNode.data.variable1, templateName);
+                            } else {
+                                await this.startgenerationpdf(dataNode, dataemployee, null, templateName);
+                            }
+                            }));
+                        }
+
+                        if (genebasic == "yes") {
+                            await this.startgenerationpdf(dataNode, null, null, templateName);
+                        }
+                        }
+                        if (nameNode == "zip-folder") {
+                        if (pdfPathGrpBy) {
+                            zipPathGrpBy = dataNode.data.myzip;
+                            const fs = require('fs');
+                            if (!fs.existsSync(zipPathGrpBy)) {
+                            fs.mkdirSync(zipPathGrpBy, { recursive: true });
+                            }
+                            await Promise.all(this.groups.map(async (group) => {
+                            const folderPath = pdfPathGrpBy + "/" + group;
+                            const zipFolderPath = zipPathGrpBy + "/" + group + '.zip';
+                            await this.zipFolder(folderPath, zipFolderPath);
+                            }));
+                        }
+                        }
+                        if (nameNode == "send-email") {
+                        if (zipPathGrpBy) {
+                            await new Promise(resolve => setTimeout(resolve, 2000));
+                            var selectedHeader = dataNode.data.mytemplate;
+                            if (selectedHeader) {
+                            const headerIndex = headersExcel.findIndex((header) => header === selectedHeader);
+                            if (headerIndex !== -1) {
+                                selectedHeader = selectedHeader.replace(/\s+/g, "_");
+                                selectedHeader = selectedHeader.replace(/([[\]()])/g, "\\$1");
+                                selectedHeader = selectedHeader.replace(/[\[\]]/g, "\\$1");
+                                selectedHeader = selectedHeader.replace(/([[\]\/])/g, "\\$1");
+                                selectedHeader = selectedHeader.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&");
+                                selectedHeader = selectedHeader.replace(/\//g, "_");
+                                selectedHeader = selectedHeader.replace(/[\(\)]/g, "_");
+                                selectedHeader = selectedHeader.replace(/_%/g, "");
+                                const columnData = dataExcel.map((row) => row[selectedHeader]);
+                                const validEmails = columnData.filter((value) => /\S+@\S+\.\S+/.test(value));
+                                if (validEmails.length > 0) {
+                                await Promise.all(validEmails.slice(0, Math.min(validEmails.length, this.groups.length)).map(async (email, i) => {
+                                    const group = this.groups[i];
+                                    const groupZipPath = zipPathGrpBy + "/" + group + '.zip';
+                                    await this.sendEmailWithAttachment(email, groupZipPath);
+                                }));
+                                } else {
+                                console.log("No valid emails found in the selected header column.");
+                                }
+                            } else {
+                                console.log("Invalid column data: header not found");
+                            }
+                            }
+                        }
+                        }
+                        if (nameNode == "alert") {
+                        nbreAlert--;
+                        if (dataExcel) {
+                            var valeur1 = dataNode.data.variable1;
+                            var valeur2 = dataNode.data.variable2;
+                            var symbole = dataNode.data.symbole;
+                            for (var i = 0; i < dataExcel.length; i++) {
+                            var dataemployee = dataExcel[i];
+                            if (this.compare(symbole, parseFloat(dataemployee[valeur1]), parseFloat(valeur2))) {
+                                this.alertMessages.push(dataNode.data.message);
+                                break;
+                            }
+                            }
+                            for (var i = 0; i < this.alertMessages.length; i++) {
+                            if (messagesAlert) {
+                                messagesAlert = messagesAlert + " and " + this.alertMessages[i];
+                            } else {
+                                messagesAlert = this.alertMessages[i];
+                            }
+                            }
+                            if (nbreAlert == 0) {
+                            this.modalMessage('Alert', 'Your flow has been generated successfully, but ' + messagesAlert, 'warning');
+                            this.alertMessages = [];
+                            }
+                        }
+                        }
+                        dataNode = this.MoveToNextNodeByOutput1(dataNode);
+                        nameNode = dataNode.name;
+                    }
+                    }
+                    await Promise.all(promises);
                 }
-                }
-                await Promise.all(promises);
+                this.loading = false;
+            } catch (error) {
+                console.error(error);
             }
         },
         async generateNodeExcel(dataNode: any) {
