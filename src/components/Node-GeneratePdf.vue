@@ -24,6 +24,7 @@ export default {
      this.nodeId = this.el?.parentElement?.parentElement?.id?.slice(5);
      this.dataNode = this.df.getNodeFromId(this.nodeId)
      this.pdfpath = this.dataNode.data.pdfpath
+
   } 
 };
 </script>

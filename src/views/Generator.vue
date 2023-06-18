@@ -56,7 +56,6 @@ import { nodesList } from '../utils/nodesList'
 import { ipcRenderer } from 'electron';
 import quillCSS from 'quill/dist/quill.snow.css'
 import 'vue3-toastify/dist/index.css';
-
 import { mapActions } from 'vuex';
 
 export default {
@@ -78,6 +77,7 @@ export default {
             groups: [] as any,
             alertMessages: [] as any,
             dialog: false,
+            allow: false,
         };
     },
     mounted() {
@@ -166,9 +166,13 @@ export default {
                             templateName = dataNode.data.mytemplate;
                         }
                         if (nameNode == "Generatepdf" || nameNode == "groupPdfBy") {
-                            if (JSON.stringify(this.dynamicConditionJson) != "{}") {
-                                for (var i = 0; i < dataExcel.length; i++) {
-                                    var dataemployee = dataExcel[i];
+                            
+                            if (JSON.stringify(this.dynamicConditionJson) != "{}") {     
+                                for (var i = 0; i < dataExcel.length; i++) { 
+                                    if(this.allow){
+                                        await new Promise((resolve) => setTimeout(resolve, 400)); 
+                                    }
+                                    var dataemployee = dataExcel[i]; 
                                     if (nameNode == "groupPdfBy") {
                                         pdfPathGrpBy = dataNode.data.pdfpath;
                                         this.groups.push(dataemployee[dataNode.data.variable1]);
@@ -176,6 +180,7 @@ export default {
                                     } else {
                                         await this.generateNodePdf(dataNode, this.dynamicConditionJson, dataemployee, null);
                                     }
+                                    
                                 }
                                 if (nameNode == "groupPdfBy") {
                                     this.groups = [...new Set(this.groups)];
@@ -183,15 +188,18 @@ export default {
                             }
                             else if (dataExcel) {
                                 for (var i = 0; i < dataExcel.length; i++) {
-                                    var dataemployee = dataExcel[i];
+                                    if(this.allow){
+                                        await new Promise((resolve) => setTimeout(resolve, 400)); 
+                                    }
+                                    var dataemployee = dataExcel[i]; 
                                     if (nameNode == "groupPdfBy") {
                                         await this.startgenerationpdf(dataNode, dataemployee, dataNode.data.variable1, templateName);
                                     }
                                     else {
                                         await this.startgenerationpdf(dataNode, dataemployee, null, templateName);
-                                    }
+                                    }}
+                                  
                                 }
-                            }
                             if (genebasic == "yes") {
                                 await this.startgenerationpdf(dataNode, null, null, templateName);
                             }
@@ -214,37 +222,16 @@ export default {
 
                         if (nameNode == "send-email") {
                             if (zipPathGrpBy) {
-                                await new Promise(resolve => setTimeout(resolve, 2000));
-                                var selectedHeader = dataNode.data.mytemplate;
-                                if (selectedHeader) {
-                                    const headerIndex = headersExcel.findIndex((header) => header === selectedHeader);
-                                    if (headerIndex !== -1) {
-                                        selectedHeader = selectedHeader.replace(/\s+/g, "_");
-                                        selectedHeader = selectedHeader.replace(/([[\]()])/g, "\\$1");
-                                        selectedHeader = selectedHeader.replace(/[\[\]]/g, "\\$1");
-                                        selectedHeader = selectedHeader.replace(/([[\]\/])/g, "\\$1");
-                                        selectedHeader = selectedHeader.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&");
-                                        selectedHeader = selectedHeader.replace(/\//g, "_");
-                                        selectedHeader = selectedHeader.replace(/[\(\)]/g, "_");
-                                        selectedHeader = selectedHeader.replace(/_%/g, "");
-                                        const columnData = dataExcel.map((row) => row[selectedHeader]);
-                                        const validEmails = columnData.filter((value) => /\S+@\S+\.\S+/.test(value));
-                                        if (validEmails.length > 0) {
-                                            for (let i = 0; i < Math.min(validEmails.length, this.groups.length); i++) {
-                                                const email = validEmails[i];
-                                                const group = this.groups[i];
-                                                const groupZipPath = zipPathGrpBy + "/" + group + '.zip';
-                                                await this.sendEmailWithAttachment(email, groupZipPath);
-                                            }
-                                        } else {
-                                            console.log("No valid emails found in the selected header column.");
-                                        }
-
-                                    } else {
-                                        console.log("Invalid column data: header not found");
-                                    }
+                                for (let i = 0; i < this.groups.length; i++) {
+                                    ipcRenderer.invoke('getEmailByManager', this.groups[i], this.groups[i])
+                                        .then(email => {
+                                            const groupZipPath = zipPathGrpBy + "/" + this.groups[i] + '.zip';
+                                            this.sendEmailWithAttachment(email, groupZipPath);
+                                        })
+                                        .catch(error => {
+                                            Swal.fire('Error', error, 'error')
+                                        });
                                 }
-
                             }
 
                         }
@@ -279,9 +266,7 @@ export default {
                         nameNode = dataNode.name;
 
                         if (nameNode == "end" && !messagesAlert) {
-                            setTimeout(async () => {
-                                this.dialog = false;
-                            }, 3000);
+                            this.dialog = false;
                         } else if (messagesAlert) {
                             messagesAlert = "";
                         }
@@ -298,7 +283,6 @@ export default {
                     nameNode = await this.generateNodeCondition(dataNode);
                 }
             }
-            // return nameNode;
         },
         async generateNodeCondition(dataNode: any) {
             var pointer = require('json-pointer');
@@ -342,6 +326,7 @@ export default {
             }
         },
         async generateNodePdf(dataNode: any, conditions: any, dataemployee: any, group: any) {
+            this.allow=true;
             var headerCondition = conditions.label;
             var symbole = conditions.symbole;
             var number = parseFloat(conditions.number);
@@ -356,7 +341,7 @@ export default {
                     await this.generateNodePdf(dataNode, conditions, dataemployee, group);
                 }
                 else if (conditions.accept) {
-                    await this.startgenerationpdf(dataNode, dataemployee, group, conditions.accept);
+                   await this.startgenerationpdf(dataNode, dataemployee, group, conditions.accept);
                 }
             }
             else {
@@ -364,8 +349,8 @@ export default {
                     conditions = conditions.refuse;
                     await this.generateNodePdf(dataNode, conditions, dataemployee, group);
                 }
-                else if (conditions.refuse) {
-                    this.startgenerationpdf(dataNode, dataemployee, group, conditions.refuse);
+                else if (conditions.refuse) {  
+                  await this.startgenerationpdf(dataNode, dataemployee, group, conditions.refuse);
                 }
             }
         },
@@ -380,43 +365,43 @@ export default {
             const fullNameKeys = ["Full Name", "FullName", "Fullname", "Full name"];
             var fullName = this.searchAndReplace(fullNameKeys, dataemployee, fullName);
             var response = await ipcRenderer.invoke('getQuillContentData', { name: template });
-            response = response.replace(/{([^{}]+)}/g, (match, var1) => {
-                var1 = this.replaceHeader(var1);
-                return `{${var1}}`;
-            });
             if (response) {
                 if (dataemployee) {
-                    var replacedResponse = this.replaceVariables(response, dataemployee);
                     if (dataemployee) {
-                        response = replacedResponse;
                         response = response.replace(/{ANS}/g, "" + currentYear);
                         response = response.replace(/{ANS-(\d+)}/g, function (match, number) {
                             const previousYear = currentYear - parseInt(number);
                             return "" + previousYear;
                         });
                         response = response.replace(/{DATE}/g, currentDateStr);
+                        response = response.replace(/{([^{}]+)}/g, (match, var1) => {
+                            var1 = this.replaceHeader(var1);
+                            return `{${var1}}`;
+                        });
+                        response = this.replaceVariables(response, dataemployee);
                         if (group) {
                             if (!lastName || !firstName) {
                                 this.downloadPdf(response, "NTT DATA Morocco Centers -" + fullName, dataNode.data.pdfpath + '/' + dataemployee[group] + '/')
                             } else {
-                                this.downloadPdf(response, "NTT DATA Morocco Centers -" + lastName + "_" + firstName, dataNode.data.pdfpath + '/' + dataemployee[group] + '/')
+                                 this.downloadPdf(response, "NTT DATA Morocco Centers -" + lastName + "_" + firstName, dataNode.data.pdfpath + '/' + dataemployee[group] + '/')
                             }
                         } else {
                             if (!lastName || !firstName) {
-                                this.downloadPdf(response, "NTT DATA Morocco Centers -" + fullName, dataNode.data.pdfpath + '/')
+                                 this.downloadPdf(response, "NTT DATA Morocco Centers -" + fullName, dataNode.data.pdfpath + '/')
                             } else {
-                                this.downloadPdf(response, "NTT DATA Morocco Centers -" + lastName + "_" + firstName, dataNode.data.pdfpath + '/')
+                                 this.downloadPdf(response, "NTT DATA Morocco Centers -" + lastName + "_" + firstName, dataNode.data.pdfpath + '/')
                             }
                         }
                     }
                 }
                 else {
-                    this.downloadPdf(response, template, dataNode.data.pdfpath + '/')
+                     this.downloadPdf(response, template, dataNode.data.pdfpath + '/')
                 }
             }
             else {
                 this.modalMessage('Error!', 'Something wrong.', 'error')
             }
+            this.allow=false;
         },
         compare(operator: any, num1: number, num2: number): boolean {
             switch (operator.toLowerCase()) {
@@ -533,13 +518,13 @@ export default {
                 output.on('close', () => {
                 });
                 archive.on('error', (err) => {
-                    console.error('Error while creating zip folder:', err);
+                    Swal.fire('Error', 'Error while creating zip folder: ' + err, 'error')
                 });
                 archive.pipe(output);
                 archive.directory(folderPath, false);
                 await archive.finalize();
             } catch (error) {
-                console.error('Error while creating zip folder:', error);
+                Swal.fire('Error', 'Error while creating zip folder:' + error, 'error')
             }
         },
         async sendEmailWithAttachment(email: any, zipPath: any) {
@@ -558,23 +543,23 @@ export default {
             };
             await ipcRenderer.invoke('sendEmail', emailData)
                 .then(() => {
-                    console.log('Email sent successfully');
                 })
                 .catch((error) => {
-                    console.error('Error sending email:', error);
+                    Swal.fire('Error', 'Error sending email: ' + error, 'error')
                 });
         },
-        async downloadPdf(htmlforpdf: any, namefile: any, path: any) {
-
+         downloadPdf(htmlforpdf: any, namefile: any, path: any) {
             var name = namefile
-            var html = '<html><head><style> footer{position: fixed;bottom: 0;}' + quillCSS + '</style></head><body><div class="ql-editor">' + htmlforpdf + ' <footer style="padding-top: 100px;"><div style="border-top: 2px solid gray;"><div style="font-size :15px; text-align:center; color:gray;margin-left:0px;margin-right:5px;"><p> NTT DATA Morocco Centers – SARL au capital de 7.700.000 Dhs – Parc Technologique de Tétouanshore, Route de Cabo Negro, Martil – Maroc – RC: 19687 – IF : 15294847 – CNSS : 4639532 – </br>Taxe Prof. :51840121</p></div></footer> </div></body></html>'
+            var html = '<html><head><style> footer{position: fixed;bottom: 0;margin-left:90px; margin-right:130px}' + quillCSS + '</style></head><body><div class="ql-editor">' + htmlforpdf + ' <footer style="padding-top: 100px;"><div style="border-top: 2px solid #011627;"><div style="font-size :15px; text-align:center; color:#011627;margin-left:0px;margin-right:5px;"><p> NTT DATA Morocco Centers – SARL au capital de 7.700.000 Dhs – Parc Technologique de Tétouanshore, Route de Cabo Negro, Martil – Maroc – RC: 19687 – IF : 15294847 – CNSS : 4639532 – Taxe Prof. :51840121</p></div></footer> </div></body></html>'
+
             var pdf = require('hm-html-pdf');
             var options = {
-                format: 'A4',
-                orientation: "portrait",
+                "height": "1700px",
+                "width": "1375px",
+
             };
             pdf.create(html, options).toFile(path + name + '.pdf', function (err, res) {
-                if (err) return console.log(err);
+                if (err) { Swal.fire('Error', err, 'error'); }
             });
         },
         modalMessage(title: string, type: string, message: SweetAlertIcon) {

@@ -2,7 +2,8 @@
   <div class="h-full w-full flex flex-col p-4">
     <div class="flex items-center justify-between mb-5">
       <div class="flex items-center">
-        <input class=" h-9 p-2 text-slate-700 border border-slate-400 hover:bg-gray-100 rounded" placeholder="search value" v-model="searchValue" />
+        <input class=" h-9 p-2 text-slate-700 border border-slate-400 hover:bg-gray-100 rounded"
+          placeholder="search value" v-model="searchValue" />
       </div>
       <div class="flex items-center">
         <v-row justify="center mr-2">
@@ -22,9 +23,9 @@
                 <input id="file-upload" type="file"
                   accept=".xls,.xlsx,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
                   class="hidden" @change="loadExcelFile" />
-                <EasyDataTable body-text-direction="center" header-text-direction="center" class="mt-4" :headers="headersExcel" :items="itemsExcel"
-                  :search-value="searchValue" :rowsPerPageMessage="message" buttons-pagination
-                  :rowsPerPage="5" :loading="loading">
+                <EasyDataTable body-text-direction="center" header-text-direction="center" class="mt-4"
+                  :headers="headersExcel" :items="itemsExcel" :search-value="searchValue" :rowsPerPageMessage="message"
+                  buttons-pagination :rowsPerPage="5" :loading="loading">
                 </EasyDataTable>
               </v-card-text>
               <v-divider></v-divider>
@@ -39,14 +40,16 @@
             </v-card>
           </v-dialog>
         </v-row>
+        <button class="w-36 text-sm btn mr-2" @click="() => downloadExcel()">Download Data</button>
         <button class="w-36 text-sm btn mr-2" @click="() => addManager()">Add Manager</button>
         <button class="w-36 text-sm btn" @click="() => deleteManagers()">Delete Manager</button>
       </div>
     </div>
     <div class="w-full h-full">
-      <EasyDataTable table-class-name="customize-table" body-text-direction="center" header-text-direction="center" v-model:items-selected="itemsSelected" :headers="headers" :items="items"
-        :rowsPerPage="17" :search-field="['first_name', 'last_name', 'email', 'category']" :search-value="searchValue" :rowsPerPageMessage="message"
-        :loading="loading" border-cell buttons-pagination alternating>
+      <EasyDataTable table-class-name="customize-table" body-text-direction="center" header-text-direction="center"
+        v-model:items-selected="itemsSelected" :headers="headers" :items="items" :rowsPerPage="17"
+        :search-field="['first_name', 'last_name', 'email', 'category']" :search-value="searchValue"
+        :rowsPerPageMessage="message" :loading="loading" border-cell buttons-pagination alternating>
         <template #header-category="header">
           <div class="flex flex-row customize-header">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="mr-2 bi bi-person"
@@ -159,6 +162,18 @@ export default {
 
   },
   methods: {
+    downloadExcel() {
+      const headers = ['first_name', 'last_name', 'email', 'category'];
+
+      const data = this.items.map(item => {
+        return headers.map(header => item[header]);
+      });
+
+      const wb = XLSX.utils.book_new();
+      const ws = XLSX.utils.aoa_to_sheet([headers, ...data]);
+      XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
+      XLSX.writeFile(wb, 'data.xlsx');
+    },
     async pushNewData() {
       await Swal.fire({
         html: '<h4>Would you like to append data to the existing data or reset the array and add the new data?</h4>',
@@ -258,25 +273,25 @@ export default {
     },
     async deleteManagers() {
       if (this.itemsSelected.length === 0) {
-        Swal.fire('Error','Please select a row to delete.', 'error');
+        Swal.fire('Error', 'Please select a row to delete.', 'error');
       } else {
-      var emails = [] as any;
-      var success = false;
-      for (var i = 0; i < this.itemsSelected.length; i++) {
-        emails.push(this.itemsSelected[i].email)
+        var emails = [] as any;
+        var success = false;
+        for (var i = 0; i < this.itemsSelected.length; i++) {
+          emails.push(this.itemsSelected[i].email)
+        }
+        await ipcRenderer.invoke('deleteManagersbyemail', emails)
+          .then(changes => {
+            Swal.fire('Success', "Successful deletion. " + changes + " lines removed.", 'success');
+            success = true;
+          })
+          .catch(error => {
+            Swal.fire('Error', error.message, 'error');
+          });
+        if (success) {
+          this.items = await this.getManagersFromDb();
+        }
       }
-      await ipcRenderer.invoke('deleteManagersbyemail', emails)
-        .then(changes => {
-          Swal.fire('Success', 'Suppression effectuée avec succès.' + changes + ' lignes supprimées.', 'success');
-          success = true;
-        })
-        .catch(error => {
-          Swal.fire('Error', error.message, 'error');
-        });
-      if (success) {
-        this.items = await this.getManagersFromDb();
-      }
-     }
     },
     async editManager(manager: any) {
       var oldemail = manager.email;
@@ -315,7 +330,6 @@ export default {
           Swal.fire('Invalid Email', 'Please enter a valid email address.', 'error');
           return;
         }
-        console.log("formvalues: " + formValues)
         await ipcRenderer.invoke('editManagerByEmail', [first_name, last_name, email, category, oldemail])
           .then(
             this.items = await this.getManagersFromDb()
@@ -343,5 +357,4 @@ export default {
   --easy-checkbox-background-color: #6785c1;
 
 }
-
 </style>

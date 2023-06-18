@@ -185,6 +185,23 @@ async function createWindow() {
     });
   });
   
+  ipcMain.handle('getEmailByManager', async (event, first_name, last_name) => {
+    try {
+      const row :any = await new Promise((resolve, reject) => {
+        db.get(`SELECT email FROM managers WHERE first_name = ? OR last_name = ?`, [first_name, last_name], (err, row) => {
+          if (err) reject(err);
+          resolve(row);
+        });
+      });
+  
+      return row ? row.email : null;
+    } catch (error) {
+      console.error(error);
+      return null;
+    }
+  });
+  
+
   ipcMain.handle('getJsonFiles', async (event, arg) => {
     return await new Promise((resolve, reject) => {
       db.all(`SELECT name FROM flow`, [], (err, rows) => {

@@ -123,7 +123,8 @@ export default {
     mounted() {
         const internalInstance: any = getCurrentInstance();
         internalInstance.appContext.app._context.config.globalProperties.$df = this.editor;
-
+        this.setHeaders([]);
+        this.setExcelData([]);
         var elements = document.getElementsByClassName('nodes-list');
         for (var i = 0; i < elements.length; i++) {
             elements[i].addEventListener('touchend', this.drop, false);
@@ -172,22 +173,22 @@ export default {
             this.editor.value.updateNodeDataFromId(input_id, { mytemplate: mytemplate, excelName: excelName, headers: headers, excelData: excelData, symbole: symbole, pdfpath: pdfpath, message: message, variable1: variable1, variable2: variable2,myzip: myzip});
         }
 
-        this.editor.value.on("connectionCreated", (data: any) => {
-            const outputData = this.editor.value.getNodeFromId(data.output_id);
-            const outputTemplate = outputData.data.mytemplate;
-            const outputExcelName = outputData.data.excelName;
-            const outputHeaders = outputData.data.headers;
-            const outputExcelData = outputData.data.excelData;
-            const outputSymbole = outputData.data.symbole;
-            const outputpdfpath = outputData.data.pdfpath;
-            const outputmessage = outputData.data.message;
-            const outputVariable2 = outputData.data.variable2;
-            const outputVariable1 = outputData.data.variable1;
-            const outputMyzip = outputData.data.myzip;
-            const output_class = data.input_class;
-            const inputNodeData = this.editor.value.getNodeFromId(data.input_id);
-            updateNodeOperation(output_class, outputTemplate, outputExcelName, outputHeaders, outputExcelData, outputSymbole, outputpdfpath, outputmessage,outputVariable1, outputVariable2,outputMyzip, inputNodeData);
-        });
+        // this.editor.value.on("connectionCreated", (data: any) => {
+        //     const outputData = this.editor.value.getNodeFromId(data.output_id);
+        //     const outputTemplate = outputData.data.mytemplate;
+        //     const outputExcelName = outputData.data.excelName;
+        //     const outputHeaders = outputData.data.headers;
+        //     const outputExcelData = outputData.data.excelData;
+        //     const outputSymbole = outputData.data.symbole;
+        //     const outputpdfpath = outputData.data.pdfpath;
+        //     const outputmessage = outputData.data.message;
+        //     const outputVariable2 = outputData.data.variable2;
+        //     const outputVariable1 = outputData.data.variable1;
+        //     const outputMyzip = outputData.data.myzip;
+        //     const output_class = data.input_class;
+        //     const inputNodeData = this.editor.value.getNodeFromId(data.input_id);
+        //     updateNodeOperation(output_class, outputTemplate, outputExcelName, outputHeaders, outputExcelData, outputSymbole, outputpdfpath, outputmessage,outputVariable1, outputVariable2,outputMyzip, inputNodeData);
+        // });
 
         this.editor.value.on("import", () => {
             const editorData = this.editor.value.export().drawflow.Home.data;
@@ -432,6 +433,8 @@ export default {
             this.isEditName = false;
             this.nodeProgramName = "";
             this.cleanEditor();
+            this.setHeaders([]);
+           this.setExcelData([]);
         },
         showinput() {
             this.isEditName = true;
