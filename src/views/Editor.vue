@@ -116,10 +116,13 @@ import beautify from 'js-beautify'
 import mammoth from 'mammoth-style/mammoth.browser.js'
 import Swal from 'sweetalert2'
 import { ipcRenderer } from 'electron';
-
+import {reactive} from 'vue';
+import QuillImageDropAndPaste from 'quill-image-drop-and-paste'
 
 // Quil configuration
-const Embed = Quill.import('blots/embed');
+Quill.register('modules/imageDropAndPaste', QuillImageDropAndPaste)
+const Embed = Quill.
+import('blots/embed');
 Quill.register(class extends Embed {
   static create(key) {
     let node = super.create()
@@ -159,25 +162,46 @@ export default {
     }
   },
   mounted() {
+   
+    const image = reactive({
+      type: '', 
+      dataUrl: null,
+      blob: null, 
+      file: null, 
+    })
+    const imageHandler = (dataUrl, type, imageData) => {
+      imageData.minify({
+        maxWidth: 80,
+        maxHeight: 80,
+        quality: .7
+      }).then((miniImageData) => {
+        image.type = type
+        image.dataUrl = dataUrl  
+        this.editor.root.innerHTML = this.editor.root.innerHTML + "<img src='"+dataUrl+"' style='width:100px;height:100px'>" ;
+      })
+    }
     var toolbarOptions = [
-      ['bold', 'italic', 'underline', 'strike'],        // toggled buttons
+      ['bold', 'italic', 'underline', 'strike'],  
       ['image', 'blockquote', 'code-block'],
-      [{ 'header': 1 }, { 'header': 2 }],               // custom button values
+      [{ 'header': 1 }, { 'header': 2 }],               
       [{ 'list': 'ordered' }, { 'list': 'bullet' }],
-      [{ 'script': 'sub' }, { 'script': 'super' }],      // superscript/subscript
-      [{ 'indent': '-1' }, { 'indent': '+1' }],          // outdent/indent
+      [{ 'script': 'sub' }, { 'script': 'super' }],     
+      [{ 'indent': '-1' }, { 'indent': '+1' }],         
       [{ 'direction': 'rtl' }],
-      [{ 'size': ['small', false, 'large', 'huge'] }],                        // text direction
+      [{ 'size': ['small', false, 'large', 'huge'] }],                        
       [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
-      [{ 'color': [] }, { 'background': [] }],          // dropdown with defaults from theme
+      [{ 'color': [] }, { 'background': [] }],          
       [{ 'font': [] }],
       [{ 'align': [] }],
-      ['clean'],  // remove formatting button
+      ['clean'],  
     ];
     this.editor = new Quill(this.$refs.editor, {
       theme: 'snow',
       modules: {
         toolbar: toolbarOptions,
+        imageDropAndPaste: {
+            handler: imageHandler
+          },
         resize: {
           locale: {
             altTip: "altTip",
@@ -309,26 +333,24 @@ export default {
     async downloadPdf() {
       var contenu = this.editor.root.innerHTML;
       var name = this.selectedOption
-      var html = '<html><head><style> footer{position: fixed;bottom: 0;margin-left:200px; margin-right:200px}' + quillCSS + '</style></head><body><div class="ql-editor">' + contenu + ' <footer style="padding-top: 100px;"><div style="border-top: 2px solid gray;"><div style="font-size :15px; text-align:center; color:gray;margin-left:0px;margin-right:5px;"><p> NTT DATA Morocco Centers – SARL au capital de 7.700.000 Dhs – Parc Technologique de Tétouanshore, Route de Cabo Negro, Martil – Maroc – RC: 19687 – IF : 15294847 – CNSS : 4639532 – Taxe Prof. :51840121</p></div></footer> </div></body></html>'
+      var html = '<html><head><style> footer{position: fixed;bottom: 0;margin-left:90px; margin-right:130px}' + quillCSS + '</style></head><body><div class="ql-editor">' + contenu + ' <footer style="padding-top: 100px;"><div style="border-top: 2px solid #011627;"><div style="font-size :15px; text-align:center; color:#011627;margin-left:0px;margin-right:5px;"><p> NTT DATA Morocco Centers – SARL au capital de 7.700.000 Dhs – Parc Technologique de Tétouanshore, Route de Cabo Negro, Martil – Maroc – RC: 19687 – IF : 15294847 – CNSS : 4639532 – Taxe Prof. :51840121</p></div></footer> </div></body></html>'
+      
       var pdf = require('hm-html-pdf');
       var options = {
-        format: 'A4',
+        "height": "1700px",     
+        "width": "1375px", 
+         
       };
-      const { value: path } = await Swal.fire({
-        title: 'Choose the Path',
-        html:
-          '<input id="swal-input1" class="swal2-input">',
-        focusConfirm: false,
-        preConfirm: () => {
-          const inputElement = document.getElementById('swal-input1') as HTMLInputElement
-          return inputElement.value;
-        }
-      })
-      if (path) {
-        pdf.create(html, options).toFile(path + "/" + name + '.pdf', function (err, res) {
+      pdf.create(html, options).toFile( "C:/pdfsApp/" + name + '.pdf', function (err, res) {
           if (err) return console.log(err);
+          else {
+            Swal.fire(
+                'Generated!',
+                'Your PDF has been generated.',
+                'success'
+              );
+          }
         });
-      }
     },
     async saveToDatabase() {
       if (this.fileName) {
@@ -418,4 +440,3 @@ export default {
   @apply p-2 mb-2 block text-white bg-primary-light hover:bg-primary-dark rounded-lg w-full text-center;
 }
 </style>
-

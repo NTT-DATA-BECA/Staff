@@ -214,36 +214,19 @@ export default {
                         }
                         }
                         if (nameNode == "send-email") {
-                        if (zipPathGrpBy) {
-                            await new Promise(resolve => setTimeout(resolve, 2000));
-                            var selectedHeader = dataNode.data.mytemplate;
-                            if (selectedHeader) {
-                            const headerIndex = headersExcel.findIndex((header) => header === selectedHeader);
-                            if (headerIndex !== -1) {
-                                selectedHeader = selectedHeader.replace(/\s+/g, "_");
-                                selectedHeader = selectedHeader.replace(/([[\]()])/g, "\\$1");
-                                selectedHeader = selectedHeader.replace(/[\[\]]/g, "\\$1");
-                                selectedHeader = selectedHeader.replace(/([[\]\/])/g, "\\$1");
-                                selectedHeader = selectedHeader.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&");
-                                selectedHeader = selectedHeader.replace(/\//g, "_");
-                                selectedHeader = selectedHeader.replace(/[\(\)]/g, "_");
-                                selectedHeader = selectedHeader.replace(/_%/g, "");
-                                const columnData = dataExcel.map((row) => row[selectedHeader]);
-                                const validEmails = columnData.filter((value) => /\S+@\S+\.\S+/.test(value));
-                                if (validEmails.length > 0) {
-                                await Promise.all(validEmails.slice(0, Math.min(validEmails.length, this.groups.length)).map(async (email, i) => {
-                                    const group = this.groups[i];
-                                    const groupZipPath = zipPathGrpBy + "/" + group + '.zip';
-                                    await this.sendEmailWithAttachment(email, groupZipPath);
-                                }));
-                                } else {
-                                console.log("No valid emails found in the selected header column.");
+                            if (zipPathGrpBy) {
+                                for (let i = 0; i < this.groups.length; i++) {
+                                    ipcRenderer.invoke('getEmailByManager', this.groups[i], this.groups[i])
+                                        .then(email => {
+                                            const groupZipPath = zipPathGrpBy + "/" + this.groups[i] + '.zip';
+                                            this.sendEmailWithAttachment(email, groupZipPath);
+                                        })
+                                        .catch(error => {
+                                            Swal.fire('Error', error, 'error')
+                                        });
                                 }
-                            } else {
-                                console.log("Invalid column data: header not found");
                             }
-                            }
-                        }
+
                         }
                         if (nameNode == "alert") {
                         nbreAlert--;
@@ -280,7 +263,10 @@ export default {
                 this.loading = false;
             } catch (error) {
                 console.error(error);
-            }
+            }finally {
+        this.dialog = false;
+        this.loading = false;
+    }
         },
         async generateNodeExcel(dataNode: any) {
             while (dataNode.name != "condition" && dataNode.name != "end") {
