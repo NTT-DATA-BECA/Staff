@@ -117,10 +117,10 @@ export default {
             editor: [] as any,
             node_select: '',
             node_last_move: null as any,
-            nodesList: nodesList
+            nodesList: nodesList,
         };
     },
-    mounted() {
+   async mounted() {
         const internalInstance: any = getCurrentInstance();
         internalInstance.appContext.app._context.config.globalProperties.$df = this.editor;
         this.setHeaders([]);
@@ -155,8 +155,9 @@ export default {
         let message = ""
         let variable2 = ""
         let variable1 = ""
+        let group = ""
         let myzip=""
-        const updateNodeOperation = (output_class: any, outputTemplate: any, outputExcelName: any, outputHeaders: any, outputExcelData: any, outputSymbole: any, outputpdfpath: any, outputmessage: any, outputVariable2: any, outputVariable1: any,outputMyzip:any ,inputNodeData: any) => {
+        const updateNodeOperation = (output_class: any, outputTemplate: any, outputExcelName: any, outputHeaders: any, outputExcelData: any, outputSymbole: any, outputpdfpath: any, outputmessage: any, outputVariable2: any, outputVariable1: any,outputMyzip:any ,outputGroup:any,inputNodeData: any) => {
             if (output_class == "input_1") {
                 mytemplate = outputTemplate;
                 excelName = outputExcelName;
@@ -168,28 +169,11 @@ export default {
                 variable2 = outputVariable2;
                 variable1 = outputVariable1;
                 myzip= outputMyzip;
+                group=outputGroup;
             }
             const input_id = inputNodeData.id;
-            this.editor.value.updateNodeDataFromId(input_id, { mytemplate: mytemplate, excelName: excelName, headers: headers, excelData: excelData, symbole: symbole, pdfpath: pdfpath, message: message, variable1: variable1, variable2: variable2,myzip: myzip});
+            this.editor.value.updateNodeDataFromId(input_id, { mytemplate: mytemplate, excelName: excelName, headers: headers, excelData: excelData, symbole: symbole, pdfpath: pdfpath, message: message, variable1: variable1, variable2: variable2,myzip: myzip,group:group});
         }
-
-        // this.editor.value.on("connectionCreated", (data: any) => {
-        //     const outputData = this.editor.value.getNodeFromId(data.output_id);
-        //     const outputTemplate = outputData.data.mytemplate;
-        //     const outputExcelName = outputData.data.excelName;
-        //     const outputHeaders = outputData.data.headers;
-        //     const outputExcelData = outputData.data.excelData;
-        //     const outputSymbole = outputData.data.symbole;
-        //     const outputpdfpath = outputData.data.pdfpath;
-        //     const outputmessage = outputData.data.message;
-        //     const outputVariable2 = outputData.data.variable2;
-        //     const outputVariable1 = outputData.data.variable1;
-        //     const outputMyzip = outputData.data.myzip;
-        //     const output_class = data.input_class;
-        //     const inputNodeData = this.editor.value.getNodeFromId(data.input_id);
-        //     updateNodeOperation(output_class, outputTemplate, outputExcelName, outputHeaders, outputExcelData, outputSymbole, outputpdfpath, outputmessage,outputVariable1, outputVariable2,outputMyzip, inputNodeData);
-        // });
-
         this.editor.value.on("import", () => {
             const editorData = this.editor.value.export().drawflow.Home.data;
             Object.keys(editorData).forEach(function (i) {
@@ -203,16 +187,9 @@ export default {
                 variable2 = editorData[i].data.variable2;
                 variable1 = editorData[i].data.variable1;
                 myzip = editorData[i].data.myzip;
+                group = editorData[i].data.group;
             });
 
-        });
-
-        this.editor.value.on("nodeRemoved", () => {
-            const editorData = this.editor.value.export().drawflow.Home.data;
-            Object.keys(editorData).forEach((i) => {
-                const input_id = editorData[i].id;
-                this.editor.value.updateNodeDataFromId(input_id, { mytemplate: mytemplate, excelName: excelName, headers: headers, excelData: excelData, symbole: symbole, pdfpath: pdfpath, message: message,variable1: variable1, variable2: variable2,myzip: myzip});
-            });
         });
 
         this.editor.value.on("nodeSelected", () => {
@@ -223,7 +200,6 @@ export default {
         }
     });
         });
-
 
     },
     methods: {     
@@ -312,7 +288,9 @@ export default {
                     if (nodeProgramName.length === 0) {
                         Swal.fire('Empty Name', 'The field cannot be left empty, please input a name.', 'error')
                     } else {
-                        await ipcRenderer.invoke('insertJsonFile', { name: nodeProgramName, data: jsonString })
+                        const currentDate = new Date();
+                        const currentYear = currentDate.getFullYear();
+                        await ipcRenderer.invoke('insertJsonFile', { name: nodeProgramName, data: jsonString,year:currentYear })
                             .then((result) => {
                                 this.notify("The insertion has been completed")
                                 this.selectedOption = nodeProgramName;
@@ -445,6 +423,15 @@ export default {
             this.createNewFlow()
             this.nodeProgramName=nameprograme+"-copy";
             this.editor.value.import(editorState);
+            const nodeExcelData :any=this.searchNodeExcel();
+                if (nodeExcelData) {
+                    var headNames = [] as string[];
+                    var dataRows = [] as string[];
+                    headNames = nodeExcelData.data.headers;
+                    dataRows = nodeExcelData.data.excelData;
+                    this.setHeaders(headNames);
+                    this.setExcelData(dataRows);
+                }
         }
     }
 }

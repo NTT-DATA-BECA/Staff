@@ -2,7 +2,7 @@
   <div ref="el">
     <h2 id="node-title">Path</h2>
     <input v-model="pdfpath" class="text-black mb-1 ml-2 w-36 align-middle" type="text" df-pdfpath/>
-    <select v-model="variable1" df-variable1 class="w-36 text-primary-dark ml-2 h-6">
+    <select v-model="group" df-group class="w-36 text-primary-dark ml-2 h-6">
             <option disabled>choose a group</option>
             <option v-for="header in headers" :key="header" :value="header">{{ header }}</option>
     </select>
@@ -21,7 +21,7 @@ export default {
             nodeId: 0,
             dataNode: {} as any,
             df: null as any,
-            variable1: '',
+            group: '',
             pdfpath:"",
         }
     },
@@ -34,7 +34,7 @@ export default {
         if (this.nodeId) {
             this.dataNode = this.df.getNodeFromId(this.nodeId);
             await nextTick()
-            this.variable1 = this.dataNode.data.variable1;   
+            this.group = this.dataNode.data.group;   
             this.pdfpath = this.dataNode.data.pdfpath         
         }
     },

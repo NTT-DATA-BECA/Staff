@@ -77,7 +77,7 @@ export default {
             groups: [] as any,
             alertMessages: [] as any,
             dialog: false,
-            allow: false,
+            dataList:[] as any
         };
     },
     mounted() {
@@ -126,11 +126,14 @@ export default {
                     }
                 };
                 this.editor.value.import(ob);
-                const nodeExcelData: any = this.searchNodeExcel();
+                const nodeExcelData :any=this.searchNodeExcel();
                 if (nodeExcelData) {
                     var headNames = [] as string[];
+                    var dataRows = [] as string[];
                     headNames = nodeExcelData.data.headers;
+                    dataRows = nodeExcelData.data.excelData;
                     this.setHeaders(headNames);
+                    this.setExcelData(dataRows);
                 }
             }
         },
@@ -166,21 +169,18 @@ export default {
                             templateName = dataNode.data.mytemplate;
                         }
                         if (nameNode == "Generatepdf" || nameNode == "groupPdfBy") {
-                            
-                            if (JSON.stringify(this.dynamicConditionJson) != "{}") {     
-                                for (var i = 0; i < dataExcel.length; i++) { 
-                                    if(this.allow){
-                                        await new Promise((resolve) => setTimeout(resolve, 400)); 
-                                    }
-                                    var dataemployee = dataExcel[i]; 
+
+                            if (JSON.stringify(this.dynamicConditionJson) != "{}") {
+                                for (var i = 0; i < dataExcel.length; i++) {
+                                    var dataemployee = dataExcel[i];
                                     if (nameNode == "groupPdfBy") {
                                         pdfPathGrpBy = dataNode.data.pdfpath;
-                                        this.groups.push(dataemployee[dataNode.data.variable1]);
-                                        await this.generateNodePdf(dataNode, this.dynamicConditionJson, dataemployee, dataNode.data.variable1);
+                                        this.groups.push(dataemployee[dataNode.data.group]);
+                                        await this.generateNodePdf(dataNode, this.dynamicConditionJson, dataemployee, dataNode.data.group);
                                     } else {
                                         await this.generateNodePdf(dataNode, this.dynamicConditionJson, dataemployee, null);
                                     }
-                                    
+
                                 }
                                 if (nameNode == "groupPdfBy") {
                                     this.groups = [...new Set(this.groups)];
@@ -188,18 +188,16 @@ export default {
                             }
                             else if (dataExcel) {
                                 for (var i = 0; i < dataExcel.length; i++) {
-                                    if(this.allow){
-                                        await new Promise((resolve) => setTimeout(resolve, 400)); 
-                                    }
-                                    var dataemployee = dataExcel[i]; 
+                                    var dataemployee = dataExcel[i];
                                     if (nameNode == "groupPdfBy") {
-                                        await this.startgenerationpdf(dataNode, dataemployee, dataNode.data.variable1, templateName);
+                                        await this.startgenerationpdf(dataNode, dataemployee, dataNode.data.group, templateName);
                                     }
                                     else {
                                         await this.startgenerationpdf(dataNode, dataemployee, null, templateName);
-                                    }}
-                                  
+                                    }
                                 }
+
+                            }
                             if (genebasic == "yes") {
                                 await this.startgenerationpdf(dataNode, null, null, templateName);
                             }
@@ -326,7 +324,6 @@ export default {
             }
         },
         async generateNodePdf(dataNode: any, conditions: any, dataemployee: any, group: any) {
-            this.allow=true;
             var headerCondition = conditions.label;
             var symbole = conditions.symbole;
             var number = parseFloat(conditions.number);
@@ -338,10 +335,10 @@ export default {
             if (this.compare(symbole, value, number)) {
                 if (typeof conditions.accept === 'object' && conditions.accept) {
                     conditions = conditions.accept;
-                    await this.generateNodePdf(dataNode, conditions, dataemployee, group);
+                   return await this.generateNodePdf(dataNode, conditions, dataemployee, group);
                 }
                 else if (conditions.accept) {
-                   await this.startgenerationpdf(dataNode, dataemployee, group, conditions.accept);
+                    await this.startgenerationpdf(dataNode, dataemployee, group, conditions.accept);
                 }
             }
             else {
@@ -349,8 +346,8 @@ export default {
                     conditions = conditions.refuse;
                     await this.generateNodePdf(dataNode, conditions, dataemployee, group);
                 }
-                else if (conditions.refuse) {  
-                  await this.startgenerationpdf(dataNode, dataemployee, group, conditions.refuse);
+                else if (conditions.refuse) {
+                    await this.startgenerationpdf(dataNode, dataemployee, group, conditions.refuse);
                 }
             }
         },
@@ -364,9 +361,9 @@ export default {
             var firstName = this.searchAndReplace(firstNameKeys, dataemployee, firstName);
             const fullNameKeys = ["Full Name", "FullName", "Fullname", "Full name"];
             var fullName = this.searchAndReplace(fullNameKeys, dataemployee, fullName);
+            console.log(template+" template")
             var response = await ipcRenderer.invoke('getQuillContentData', { name: template });
             if (response) {
-                if (dataemployee) {
                     if (dataemployee) {
                         response = response.replace(/{ANS}/g, "" + currentYear);
                         response = response.replace(/{ANS-(\d+)}/g, function (match, number) {
@@ -383,26 +380,31 @@ export default {
                             if (!lastName || !firstName) {
                                 this.downloadPdf(response, "NTT DATA Morocco Centers -" + fullName, dataNode.data.pdfpath + '/' + dataemployee[group] + '/')
                             } else {
-                                 this.downloadPdf(response, "NTT DATA Morocco Centers -" + lastName + "_" + firstName, dataNode.data.pdfpath + '/' + dataemployee[group] + '/')
+                                this.downloadPdf(response, "NTT DATA Morocco Centers -" + lastName + "_" + firstName, dataNode.data.pdfpath + '/' + dataemployee[group] + '/')
                             }
                         } else {
                             if (!lastName || !firstName) {
-                                 this.downloadPdf(response, "NTT DATA Morocco Centers -" + fullName, dataNode.data.pdfpath + '/')
+                                this.downloadPdf(response, "NTT DATA Morocco Centers -" + fullName, dataNode.data.pdfpath + '/')
                             } else {
-                                 this.downloadPdf(response, "NTT DATA Morocco Centers -" + lastName + "_" + firstName, dataNode.data.pdfpath + '/')
+                                this.downloadPdf(response, "NTT DATA Morocco Centers -" + lastName + "_" + firstName, dataNode.data.pdfpath + '/')
                             }
                         }
                     }
-                }
                 else {
-                     this.downloadPdf(response, template, dataNode.data.pdfpath + '/')
+                    this.downloadPdf(response, template, dataNode.data.pdfpath + '/')
                 }
             }
             else {
-                this.modalMessage('Error!', 'Something wrong.', 'error')
+                console.log(fullName+ "full Name")
             }
-            this.allow=false;
         },
+        addDataEmployeeAndTemplate(dataEmployee, template) {
+    var data = {
+        dataEmployee: dataEmployee,
+        template: template
+    };
+    this.dataList.push(data);
+},
         compare(operator: any, num1: number, num2: number): boolean {
             switch (operator.toLowerCase()) {
                 case '>':
@@ -548,18 +550,17 @@ export default {
                     Swal.fire('Error', 'Error sending email: ' + error, 'error')
                 });
         },
-         downloadPdf(htmlforpdf: any, namefile: any, path: any) {
+        downloadPdf(htmlforpdf: any, namefile: any, path: any) {
             var name = namefile
             var html = '<html><head><style> footer{position: fixed;bottom: 0;margin-left:90px; margin-right:130px}' + quillCSS + '</style></head><body><div class="ql-editor">' + htmlforpdf + ' <footer style="padding-top: 100px;"><div style="border-top: 2px solid #011627;"><div style="font-size :15px; text-align:center; color:#011627;margin-left:0px;margin-right:5px;"><p> NTT DATA Morocco Centers – SARL au capital de 7.700.000 Dhs – Parc Technologique de Tétouanshore, Route de Cabo Negro, Martil – Maroc – RC: 19687 – IF : 15294847 – CNSS : 4639532 – Taxe Prof. :51840121</p></div></footer> </div></body></html>'
-
             var pdf = require('hm-html-pdf');
             var options = {
                 "height": "1700px",
                 "width": "1375px",
-
+                timeout: 10000
             };
             pdf.create(html, options).toFile(path + name + '.pdf', function (err, res) {
-                if (err) { Swal.fire('Error', err, 'error'); }
+                if (err) { console.log(name+ "name") }
             });
         },
         modalMessage(title: string, type: string, message: SweetAlertIcon) {
