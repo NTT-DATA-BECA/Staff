@@ -247,11 +247,13 @@ export default {
           this.fileName = ''
           ipcRenderer.invoke('deleteQuillFile', { name: this.selectedOption })
             .then(() => {
-              Swal.fire(
-                'Deleted!',
-                'Your file has been deleted.',
-                'success'
-              );
+              Swal.fire({
+                               title: 'Deleted!',
+                               text: 'Your file has been deleted.',
+                               icon: 'success',
+                               showConfirmButton: false,
+                               timer:1500
+                            });
               this.newFile();
             })
             .catch(() => {
@@ -344,10 +346,13 @@ export default {
       pdf.create(html, options).toFile( "C:/pdfsApp/" + name + '.pdf', function (err, res) {
           if (err) return console.log(err);
           else {
-            Swal.fire(
-                'Generated!',
-                'Your PDF has been generated.',
-                'success'
+            Swal.fire({
+               title:'Generated!',
+               text: 'Your PDF has been generated.',
+               icon: 'success',
+               showConfirmButton: false,
+               timer: 1500
+              }
               );
           }
         });

@@ -333,6 +333,7 @@ export default {
         await ipcRenderer.invoke('editManagerByEmail', [first_name, last_name, email, category, oldemail])
           .then(
             this.items = await this.getManagersFromDb()
+            
           )
           .catch((err) => {
             Swal.fire('Something Error', err.message, 'error');

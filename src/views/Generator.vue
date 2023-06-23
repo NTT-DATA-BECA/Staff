@@ -77,7 +77,9 @@ export default {
             groups: [] as any,
             alertMessages: [] as any,
             dialog: false,
-            dataList:[] as any
+            dataList:[] as any,
+            lenghtData:0,
+            nonGeneratedPdf : false,
         };
     },
     mounted() {
@@ -139,8 +141,9 @@ export default {
         },
         async generateFlow() {
             var idNode = parseFloat(this.getStartId());
-            this.searchNodeEnd();
-            if (idNode) {
+            var idEnd= this.searchNodeEnd();
+            var nbre :number=this.searchForNodespdf();
+            if (idNode && nbre<2 && idEnd) {
                 var dataNode = this.editor.value.getNodeFromId(idNode)
                 var dataNodeStart = this.editor.value.getNodeFromId(idNode)
                 var nameNode = dataNode.name;
@@ -169,7 +172,7 @@ export default {
                             templateName = dataNode.data.mytemplate;
                         }
                         if (nameNode == "Generatepdf" || nameNode == "groupPdfBy") {
-
+                            this.lenghtData=dataExcel.length;
                             if (JSON.stringify(this.dynamicConditionJson) != "{}") {
                                 for (var i = 0; i < dataExcel.length; i++) {
                                     var dataemployee = dataExcel[i];
@@ -203,8 +206,9 @@ export default {
                             }
 
                         }
-                        if (nameNode == "zip-folder") {
+                        if (nameNode == "zip-folder") { 
                             if (pdfPathGrpBy) {
+                                await new Promise((resolve) => setTimeout(resolve, 30000)); 
                                 zipPathGrpBy = dataNode.data.myzip;
                                 const fs = require('fs');
                                 if (!fs.existsSync(zipPathGrpBy)) {
@@ -227,7 +231,6 @@ export default {
                                             this.sendEmailWithAttachment(email, groupZipPath);
                                         })
                                         .catch(error => {
-                                            Swal.fire('Error', error, 'error')
                                         });
                                 }
                             }
@@ -255,6 +258,7 @@ export default {
                                     }
                                 }
                                 if (nbreAlert == 0) {
+                                    this.dialog=false;
                                     this.modalMessage('Alert', 'Your flow has been generated successfully, but ' + messagesAlert, 'warning');
                                     this.alertMessages = [];
                                 }
@@ -265,10 +269,14 @@ export default {
 
                         if (nameNode == "end" && !messagesAlert) {
                             this.dialog = false;
+                            if(this.nonGeneratedPdf){
+                             this.modalMessage('Alert', 'There are non-generated PDFs, Try Agian ', 'warning');
+                            }
                         } else if (messagesAlert) {
                             messagesAlert = "";
                         }
                     }
+                    this.dynamicConditionJson={};
                 }
             }
 
@@ -352,19 +360,19 @@ export default {
             }
         },
         async startgenerationpdf(dataNode: any, dataemployee: any, group: any, template: any) {
-            const currentDate = new Date();
-            const currentYear = currentDate.getFullYear();
-            const currentDateStr = currentDate.toISOString().split('T')[0];
-            const lastNameKeys = ["LastName", "Last Name", "Lastname", "Last name", "Surname", "SurName"];
-            var lastName = this.searchAndReplace(lastNameKeys, dataemployee, lastName);
-            const firstNameKeys = ["FirstName", "First Name", "Firstname", "First name", "name", "Name"];
-            var firstName = this.searchAndReplace(firstNameKeys, dataemployee, firstName);
-            const fullNameKeys = ["Full Name", "FullName", "Fullname", "Full name"];
-            var fullName = this.searchAndReplace(fullNameKeys, dataemployee, fullName);
             console.log(template+" template")
             var response = await ipcRenderer.invoke('getQuillContentData', { name: template });
             if (response) {
                     if (dataemployee) {
+                        const currentDate = new Date();
+                        const currentYear = currentDate.getFullYear();
+                        const currentDateStr = currentDate.toISOString().split('T')[0];
+                        const lastNameKeys = ["LastName", "Last Name", "Lastname", "Last name", "Surname", "SurName"];
+                        var lastName = this.searchAndReplace(lastNameKeys, dataemployee, lastName);
+                        const firstNameKeys = ["FirstName", "First Name", "Firstname", "First name", "name", "Name"];
+                        var firstName = this.searchAndReplace(firstNameKeys, dataemployee, firstName);
+                        const fullNameKeys = ["Full Name", "FullName", "Fullname", "Full name"];
+                        var fullName = this.searchAndReplace(fullNameKeys, dataemployee, fullName);
                         response = response.replace(/{ANS}/g, "" + currentYear);
                         response = response.replace(/{ANS-(\d+)}/g, function (match, number) {
                             const previousYear = currentYear - parseInt(number);
@@ -470,6 +478,21 @@ export default {
             if (!idEnd) {
                 this.modalMessage('Error!', 'To generate the flow, include at least one End node.', 'error')
             }
+            return idEnd;
+        },
+        searchForNodespdf() {
+            const editorData = this.editor.value.export().drawflow.Home.data;
+            var nbre = 0;
+            Object.keys(editorData).forEach(function (i) {
+                if (editorData[i].name === "Generatepdf" || editorData[i].name === "groupPdfBy") {
+                    nbre++;
+                }
+            });
+            console.log(nbre);
+            if (nbre >= 2) {
+                this.modalMessage('Error!', 'To generate the flow, include just one Generate Pdfs node.', 'error')
+            }
+            return nbre;
         },
         searchNodeExcel() {
             const editorData = this.editor.value.export().drawflow.Home.data;
@@ -509,26 +532,31 @@ export default {
             }
             return idStart
         },
-        async zipFolder(folderPath, zipFolderPath) {
-            const fs = require('fs');
-            const archiver = require('archiver');
-            try {
-                const output = fs.createWriteStream(zipFolderPath);
-                const archive = archiver('zip', {
-                    zlib: { level: 9 } // Set compression level
-                });
-                output.on('close', () => {
-                });
-                archive.on('error', (err) => {
-                    Swal.fire('Error', 'Error while creating zip folder: ' + err, 'error')
-                });
-                archive.pipe(output);
-                archive.directory(folderPath, false);
-                await archive.finalize();
-            } catch (error) {
-                Swal.fire('Error', 'Error while creating zip folder:' + error, 'error')
-            }
-        },
+        async  zipFolder(folderPath, zipFolderPath) {
+    const fs = require('fs');
+    const archiver = require('archiver');
+    try {
+        const output = fs.createWriteStream(zipFolderPath);
+        const archive = archiver('zip', {
+            zlib: { level: 9 } // Set compression level
+        });
+
+        output.on('close', () => {
+            console.log('Zip folder created successfully.');
+        });
+
+        archive.on('error', (err) => {
+            console.error('Error while creating zip folder:', err);
+        });
+
+        archive.pipe(output);
+        archive.directory(folderPath, false);
+        await archive.finalize();
+    } catch (error) {
+        console.error('Error while creating zip folder:', error);
+    }
+}
+,
         async sendEmailWithAttachment(email: any, zipPath: any) {
             const path = require('path');
             const filename = path.basename(zipPath);
@@ -547,7 +575,7 @@ export default {
                 .then(() => {
                 })
                 .catch((error) => {
-                    Swal.fire('Error', 'Error sending email: ' + error, 'error')
+                   // Swal.fire('Error', 'Error sending email: ' + error, 'error')
                 });
         },
         downloadPdf(htmlforpdf: any, namefile: any, path: any) {
@@ -557,11 +585,22 @@ export default {
             var options = {
                 "height": "1700px",
                 "width": "1375px",
-                timeout: 10000
+                timeout: 210000
             };
-            pdf.create(html, options).toFile(path + name + '.pdf', function (err, res) {
-                if (err) { console.log(name+ "name") }
+            if(this.lenghtData>300){
+                options = {
+                "height": "1700px",
+                "width": "1375px",
+                timeout: 400000
+            };
+            }
+            pdf.create(html, options).toFile(path + name + '.pdf', (err, res) => {
+                if (err) {
+                    console.log(name + "name");
+                    this.nonGeneratedPdf = true;
+                }
             });
+
         },
         modalMessage(title: string, type: string, message: SweetAlertIcon) {
             Swal.fire(
