@@ -398,8 +398,8 @@ export default {
         }
       }
       else {
-        ipcRenderer.invoke('updateContentFile', { name: this.selectedOption, data: this.editor.root.innerHTML });
-        this.showSucess();
+          ipcRenderer.invoke('updateContentFile', { name: this.selectedOption, data: this.editor.root.innerHTML });
+          this.showSucess();
       }
     },
     showSucess() {
@@ -415,7 +415,6 @@ export default {
     },
     onDrop(event) {
       this.editor.setSelection(0);
-
     },
     async loadNameFiles() {
       const response = await ipcRenderer.invoke('getQuillContentName');

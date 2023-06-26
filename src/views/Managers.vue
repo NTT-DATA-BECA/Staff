@@ -275,14 +275,27 @@ export default {
       if (this.itemsSelected.length === 0) {
         Swal.fire('Error', 'Please select a row to delete.', 'error');
       } else {
-        var emails = [] as any;
+        Swal.fire({
+        title: 'Are you sure?',
+        text: "You won't be able to revert this!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Yes, delete it!',
+        cancelButtonText: 'No, cancel!',
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        reverseButtons: true
+      }).then(async (result) => {
+        if (result.isConfirmed) {
+                 var emails = [] as any;
         var success = false;
         for (var i = 0; i < this.itemsSelected.length; i++) {
           emails.push(this.itemsSelected[i].email)
         }
         await ipcRenderer.invoke('deleteManagersbyemail', emails)
           .then(changes => {
-            Swal.fire('Success', "Successful deletion. " + changes + " lines removed.", 'success');
+            Swal.fire({title:'Success', text:"Successful deletion. " + changes + " lines removed.", icon:'success', showConfirmButton: false,
+                               timer:1500});
             success = true;
           })
           .catch(error => {
@@ -291,6 +304,15 @@ export default {
         if (success) {
           this.items = await this.getManagersFromDb();
         }
+        }
+        else if (result.dismiss === Swal.DismissReason.cancel) {
+          Swal.fire(
+            'Cancelled',
+            'You have cancelled the deletion :)',
+            'error'
+          );
+        }
+      })
       }
     },
     async editManager(manager: any) {
