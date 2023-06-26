@@ -2,16 +2,13 @@
 process.env.DIST = join(__dirname, '../..')
 process.env.PUBLIC = app.isPackaged ? process.env.DIST : join(process.env.DIST, '../public')
 
-import { app, BrowserWindow, shell, ipcMain, MenuItem, Menu } from 'electron'
+
+import { app, BrowserWindow, shell, ipcMain, Menu } from 'electron'
 const sqlite3 = require('sqlite3').verbose();
 import { release } from 'os'
 import { join } from 'path'
-import { promisify } from 'util';
-import * as fs from 'fs';
-
-
-
-
+const nodemailer = require('nodemailer');
+require('dotenv').config();
 
 
 // Disable GPU Acceleration for Windows 7
@@ -43,6 +40,35 @@ async function createWindow() {
     }
     console.log('Connected to the database.');
   });
+
+// Create a transporter for sending emails
+  const transporter = nodemailer.createTransport({
+    host: 'smtp-mail.outlook.com',
+    port: 587,
+    secure: false, // use TLS
+    auth: {
+      user: process.env.EMAIL,
+      pass: process.env.PASSWORD
+    }
+  });
+
+  ipcMain.handle('sendEmail', async (event, emailData) => {
+    try {
+      const mailOptions = {
+        from: process.env.EMAIL,
+        to: emailData.to,
+        subject: emailData.subject,
+        text: emailData.text,
+        attachments: emailData.attachments
+      };
+
+      await transporter.sendMail(mailOptions);
+      console.log('Email sent!');
+    } catch (error) {
+      console.error('Error sending email:', error);
+      throw error;
+    }
+  });
   
   win = new BrowserWindow({
     title: 'Main window',
@@ -69,11 +95,113 @@ async function createWindow() {
     win?.webContents.send('main-process-message', new Date().toLocaleString())
   })
 
-  // Make all links open with the browser, not with the application
   win.webContents.setWindowOpenHandler(({ url }) => {
     if (url.startsWith('https:')) shell.openExternal(url)
     return { action: 'deny' }
   })
+  
+  ipcMain.handle('getManagers', async (event, arg) => {
+    return await new Promise((resolve, reject) => {
+      db.all(`SELECT last_name,first_name,email,category FROM managers`, [], (err, rows) => {
+        if (err) reject(err)
+        resolve(rows)
+      })
+    })
+  })
+
+  ipcMain.handle('insertManager', async (event, arg) => {
+    const [first_name, last_name, email, category ] = arg;
+    return await new Promise((resolve, reject) => {
+      db.run(
+        'INSERT INTO managers (first_name, last_name, email, category) VALUES (?, ?, ?, ?)',
+        [first_name, last_name, email, category],
+        function (err) {
+          if (err) reject(err);
+          resolve(this.lastID);
+        }
+      );
+    });
+  });  
+  
+  ipcMain.handle('editManagerByEmail', async (event, arg) => {
+    const [first_name, last_name,email, category,oldemail] = arg;
+    return await new Promise((resolve, reject) => {
+      db.run(
+        'UPDATE managers SET first_name = ?, last_name = ?, category = ?,email=? WHERE email = ?',
+        [first_name, last_name, category, email,oldemail],
+        function (err) {
+          if (err) reject(err);
+          resolve(this.changes);
+        }
+      );
+    });
+  });
+  ipcMain.handle('EmptyManagers', async (event) => {
+    return await new Promise((resolve, reject) => {
+      db.run(
+        'DELETE FROM managers',
+        function (err) {
+          if (err) reject(err);
+          resolve(this.changes);
+        }
+      );
+    });
+  });
+  
+  ipcMain.handle('insertMultiManagers', async (event, arg) => {
+    const managerss = arg; 
+     console.log(JSON.stringify(managerss));
+    return await Promise.all(
+      managerss.map((managers) => {
+        const [first_name, last_name, email, category] = managers;
+  
+        return new Promise((resolve, reject) => {
+          db.run(
+            'INSERT INTO managers (first_name, last_name, email, category) VALUES (?, ?, ?, ?)',
+            [first_name, last_name, email, category],
+            function (err) {
+              if (err) reject(err);
+              resolve(this.lastID);
+            }
+          );
+        });
+      })
+    );
+  });
+  
+
+  ipcMain.handle('deleteManagersbyemail', async (event, emailsToDelete) => {
+    return await new Promise((resolve, reject) => {
+      const placeholders = emailsToDelete.map(() => '?').join(',');
+      const query = `DELETE FROM managers WHERE email IN (${placeholders})`;
+      const values = emailsToDelete;
+      db.run(query, values, function (err) {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(this.changes);
+        }
+      });
+    });
+  });
+  
+  ipcMain.handle('getEmailByManager', async (event, first_name, last_name) => {
+    try {
+      const row :any = await new Promise((resolve, reject) => {
+        db.get(`SELECT email FROM managers WHERE first_name = ? OR last_name = ?`, [first_name, last_name], (err, row) => {
+          if (err) reject(err);
+          resolve(row);
+        });
+      });
+  
+      return row ? row.email : null;
+    } catch (error) {
+      console.error(error);
+      return null;
+    }
+  });
+  
+
   ipcMain.handle('getJsonFiles', async (event, arg) => {
     return await new Promise((resolve, reject) => {
       db.all(`SELECT name FROM flow`, [], (err, rows) => {
@@ -83,7 +211,6 @@ async function createWindow() {
     })
   })
   
-  // Handle the 'update' message from the renderer process
   ipcMain.handle('updateJsonFileName', async (event, arg) => {
     return new Promise<void>((resolve, reject) => {
       db.run(`UPDATE flow SET name = ? WHERE name = ?`, [arg.newName, arg.oldName], (err) => {
@@ -144,11 +271,11 @@ async function createWindow() {
     }
   });
   
-  // Handle the 'insertJsonFile' message from the renderer process
+ 
   ipcMain.handle('insertJsonFile', async (event, arg) => {
     return new Promise<void>((resolve, reject) => {
       const formattedData = JSON.stringify(arg.data).replace(/\\/g, '').slice(1, -1);
-      db.run(`INSERT INTO flow (name, data) VALUES (?, ?)`, [arg.name, formattedData], (err) => {
+      db.run(`INSERT INTO flow (name, data,year) VALUES (?, ?,?)`, [arg.name, formattedData,arg.year], (err) => {
         if (err) {
           console.error(err);
           reject(err);
@@ -157,7 +284,8 @@ async function createWindow() {
         }
       });
     });
-  });  
+  });    
+  
   
   ipcMain.handle('deleteJsonFile', async (event, arg) => {
     try {
@@ -275,24 +403,7 @@ async function createWindow() {
         resolve(rows.map(row => row.name))
       })
     })
-  });
-  // ipcMain.handle('uploadFile', async (event, arg) => {
-  //   try {
-  //     const file = arg.file;
-  //     const filePath = join(process.env.UPLOADS, file.name);
-  //     const fileData = file.data;
-  
-  //     // Write the file to disk
-  //     await promisify(fs.writeFile)(filePath, fileData);
-  
-  //     // Return the file path to the renderer process
-  //     return filePath;
-  //   } catch (error) {
-  //     console.error(error);
-  //     return null;
-  //   }
-  // });
-  
+  });  
   
 }  
   
@@ -305,12 +416,10 @@ app.on('window-all-closed', () => {
 
 app.on('second-instance', () => {
   if (win) {
-    // Focus on the main window if the user tried to open another
     if (win.isMinimized()) win.restore()
     win.focus()
   }
 })
-
 app.on('activate', () => {
   const allWindows = BrowserWindow.getAllWindows()
   if (allWindows.length) {
@@ -320,7 +429,6 @@ app.on('activate', () => {
   }
 })
 
-// new window example arg: new windows url
 ipcMain.handle('open-win', (event, arg) => {
   const childWindow = new BrowserWindow({
     webPreferences: {

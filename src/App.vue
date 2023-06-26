@@ -5,8 +5,8 @@
         <router-link class="link-item" to="/">Editor</router-link>
         <router-link class="link-item" to="/flow">Flow</router-link>
         <router-link class="link-item" to="/generator">Generator</router-link>
+        <router-link class="link-item" to="/managers">Managers</router-link>
       </div>
-      <!-- <a class="py-3 px-4 block bg-red-500 text-slate-50 transition-all" @click="closeApp()">Quit</a> -->
     </nav>
     <router-view />
   </div>

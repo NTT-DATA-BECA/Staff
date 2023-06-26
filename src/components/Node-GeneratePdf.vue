@@ -1,36 +1,30 @@
 <template>
   <div ref="el">
-    <input class="text-black ml-4 w-28 align-middle" v-model="mytemplate" type="text" df-mytemplate />
+    <h2 id="node-title">Path</h2>
+    <input v-model="pdfpath" class="text-black ml-2 w-36 align-middle" type="text" df-pdfpath/>
   </div>
 </template>
 <script lang="ts">
-import { ref, onMounted, getCurrentInstance } from 'vue'
+ import { getCurrentInstance , nextTick } from 'vue'
 export default {
   name: 'GeneratePdf',
-
-  setup() {
-    var mytemplate = ref("");
-    const el = ref(null) as any;
-    const nodeId = ref(0);
-    let df = null as any;
-    const dataNode = ref({}) as any;
-    const internalInstance: any = getCurrentInstance();
-    df = internalInstance.appContext.config.globalProperties.$df.value;
-    onMounted(async () => {
-      nodeId.value = el.value?.parentElement.parentElement.id.slice(5)
-      if (nodeId.value) {
-        dataNode.value = df.getNodeFromId(nodeId.value)
-        mytemplate.value = dataNode.value.data.mytemplate;
-      }
-    }
-
-    );
+  data(){
     return {
-      mytemplate,
-    };
-  }
+      el:null as any,
+      nodeId:0,
+      df:null as any,
+      pdfpath:"",
+      dataNode : {} as any,
+  }},
+   async mounted(){
+     this.el=this.$refs.el;
+     const internalInstance: any = getCurrentInstance();
+     this.df = internalInstance.appContext.config.globalProperties.$df.value;
+     await nextTick()
+     this.nodeId = this.el?.parentElement?.parentElement?.id?.slice(5);
+     this.dataNode = this.df.getNodeFromId(this.nodeId)
+     this.pdfpath = this.dataNode.data.pdfpath
 
+  } 
 };
-
 </script>
-

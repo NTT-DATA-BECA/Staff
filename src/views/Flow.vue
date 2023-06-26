@@ -14,14 +14,21 @@
                     </svg>
                     New Flow
                 </button>
-                <button className="btn mr-2 flex items-center"
-                    @click="addEditFlow(nodeProgramName); nodeProgramName = ''">
+                <button className="btn mr-2 flex items-center" @click="addEditFlow(nodeProgramName); nodeProgramName = ''">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
                         class="mr-2 bi bi-file-earmark-arrow-up-fill" viewBox="0 0 16 16">
                         <path
                             d="M9.293 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V4.707A1 1 0 0 0 13.707 4L10 .293A1 1 0 0 0 9.293 0zM9.5 3.5v-2l3 3h-2a1 1 0 0 1-1-1zM6.354 9.854a.5.5 0 0 1-.708-.708l2-2a.5.5 0 0 1 .708 0l2 2a.5.5 0 0 1-.708.708L8.5 8.707V12.5a.5.5 0 0 1-1 0V8.707L6.354 9.854z" />
                     </svg>
                     Save Flow
+                </button>
+                <button className="btn mr-2  flex items-center" @click="duplicateFlow();">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                        class="mr-2 bi bi-file-earmark-plus-fill" viewBox="0 0 16 16">
+                        <path
+                            d="M9.293 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V4.707A1 1 0 0 0 13.707 4L10 .293A1 1 0 0 0 9.293 0zM9.5 3.5v-2l3 3h-2a1 1 0 0 1-1-1zM8.5 7v1.5H10a.5.5 0 0 1 0 1H8.5V11a.5.5 0 0 1-1 0V9.5H6a.5.5 0 0 1 0-1h1.5V7a.5.5 0 0 1 1 0z" />
+                    </svg>
+                    Duplicate Flow
                 </button>
                 <button className="btn flex items-center" @click=" delprograme();">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
@@ -62,7 +69,7 @@
                     </div>
                 </div>
                 <a className="absolute m-2 right-0 top-0 cursor-pointer text-primary-dark hover:text-primary-light"
-                    @click=" cleanEditor()" title="Press to clear">
+                    @click=" cleanFlow()" title="Press to clear">
                     <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" fill="currentColor"
                         class="bi bi-arrow-clockwise" viewBox="0 0 16 16">
                         <path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z" />
@@ -78,16 +85,24 @@
 <script lang="ts">
 import { h, getCurrentInstance, render } from 'vue'
 import Drawflow from 'drawflow'
-import ImportCsv from '../components/ImportCsv.vue'
+import ImportExcel from '../components/ImportExcel.vue'
 import NodeFileInput from '../components/Node-file-input.vue'
 import NodeStart from '../components/Node-start.vue'
 import NodeEnd from '../components/Node-end.vue'
 import NodeGeneratePdf from '../components/Node-GeneratePdf.vue'
+import NodeZipFolder from '../components/Node-zipFolder.vue'
+import Condition from '../components/Node-Condition.vue'
+import sendEmail from '../components/Node-sendEmail.vue'
+import groupPdfBy from '../components/Node-groupPdfBy.vue'
+import alert from '../components/Node-alert.vue'
 import Swal from 'sweetalert2'
 import { nodesList } from '../utils/nodesList'
 import { ipcRenderer } from 'electron';
 import { toast } from 'vue3-toastify';
 import 'vue3-toastify/dist/index.css';
+
+import { useStore } from 'vuex';
+import { mapActions } from 'vuex';
 
 export default {
     name: "DrawflowDashboard",
@@ -104,13 +119,14 @@ export default {
             editor: [] as any,
             node_select: '',
             node_last_move: null as any,
-            nodesList: nodesList
+            nodesList: nodesList,
         };
     },
-    mounted() {
+    async mounted() {
         const internalInstance: any = getCurrentInstance();
         internalInstance.appContext.app._context.config.globalProperties.$df = this.editor;
-
+        this.setHeaders([]);
+        this.setExcelData([]);
         var elements = document.getElementsByClassName('nodes-list');
         for (var i = 0; i < elements.length; i++) {
             elements[i].addEventListener('touchend', this.drop, false);
@@ -121,79 +137,75 @@ export default {
         this.editor.value = new Drawflow(id, { version: 3, h, render }, internalInstance.appContext.app._context);
         this.editor.value.start();
 
-        this.editor.value.registerNode("ImportCsv", ImportCsv, {}, {});
+        this.editor.value.registerNode("ImportExcel", ImportExcel, {}, {});
         this.editor.value.registerNode("file-input", NodeFileInput, {}, {});
         this.editor.value.registerNode("start", NodeStart, {}, {});
         this.editor.value.registerNode("end", NodeEnd, {}, {});
         this.editor.value.registerNode("Generatepdf", NodeGeneratePdf, {}, {});
-
+        this.editor.value.registerNode("zip-folder", NodeZipFolder, {}, {});
+        this.editor.value.registerNode("condition", Condition, {}, {});
+        this.editor.value.registerNode("send-email", sendEmail, {}, {});
+        this.editor.value.registerNode("groupPdfBy", groupPdfBy, {}, {});
+        this.editor.value.registerNode("alert", alert, {}, {});
         let mytemplate = ""
-        let csv = ""
-        const updateNodeOperation = (output_class: any, outputTemplate: any, outputCsv: any, inputNodeData: any) => {
+        let excelName = ""
+        const store = useStore()
+        let headers = store.getters.getHeaders // Access headers from Vuex getter
+        let excelData = store.getters.getExcelData // Access excelData from Vuex getter
+        let symbole = ""
+        let pdfpath = ""
+        let message = ""
+        let variable2 = ""
+        let variable1 = ""
+        let group = ""
+        let myzip = ""
+        const updateNodeOperation = (output_class: any, outputTemplate: any, outputExcelName: any, outputHeaders: any, outputExcelData: any, outputSymbole: any, outputpdfpath: any, outputmessage: any, outputVariable2: any, outputVariable1: any, outputMyzip: any, outputGroup: any, inputNodeData: any) => {
             if (output_class == "input_1") {
                 mytemplate = outputTemplate;
-                csv = outputCsv;
+                excelName = outputExcelName;
+                headers = outputHeaders;
+                excelData = outputExcelData;
+                symbole = outputSymbole;
+                pdfpath = outputpdfpath;
+                message = outputmessage;
+                variable2 = outputVariable2;
+                variable1 = outputVariable1;
+                myzip = outputMyzip;
+                group = outputGroup;
             }
             const input_id = inputNodeData.id;
-            this.editor.value.updateNodeDataFromId(input_id, { mytemplate: mytemplate, csv: csv });
+            this.editor.value.updateNodeDataFromId(input_id, { mytemplate: mytemplate, excelName: excelName, headers: headers, excelData: excelData, symbole: symbole, pdfpath: pdfpath, message: message, variable1: variable1, variable2: variable2, myzip: myzip, group: group });
         }
-
-        this.editor.value.on("nodeDataChanged", (data: any) => {
-            const nodeData = this.editor.value.getNodeFromId(data);
-
-            const outputNode = nodeData.outputs.output_1.connections;
-            if (outputNode.length > 0) {
-                const outputTemplate = nodeData.data.mytemplate;
-                const outputCsv = nodeData.data.csv;
-                const output_class = nodeData.outputs.output_1.connections[0].output;
-                const inputNodeId = nodeData.outputs.output_1.connections[0].node;
-                const inputNodeData = this.editor.value.getNodeFromId(inputNodeId);
-                const inputNodeName = inputNodeData.name;
-                updateNodeOperation(output_class, outputTemplate, outputCsv, inputNodeData)
-
-
-
-            }
-
-        });
-
-        this.editor.value.on("connectionCreated", (data: any) => {
-            const outputData = this.editor.value.getNodeFromId(data.output_id);
-            const outputTemplate = outputData.data.mytemplate;
-            const outputCsv = outputData.data.csv;
-            const output_class = data.input_class;
-            const inputNodeData = this.editor.value.getNodeFromId(data.input_id);
-            const inputNodeName = inputNodeData.name;
-
-            updateNodeOperation(output_class, outputTemplate, outputCsv, inputNodeData)
-            outputData.data.mytemplate = inputNodeData.data.mytemplate;
-            outputData.data.csv = inputNodeData.data.csv;
-
-
-
-        });
-
         this.editor.value.on("import", () => {
             const editorData = this.editor.value.export().drawflow.Home.data;
-
             Object.keys(editorData).forEach(function (i) {
                 mytemplate = editorData[i].data.mytemplate;
-                csv = editorData[i].data.csv;
+                excelName = editorData[i].data.excelName;
+                headers = editorData[i].data.headers;
+                excelData = editorData[i].data.excelData;
+                symbole = editorData[i].data.symbole;
+                pdfpath = editorData[i].data.pdfpath;
+                message = editorData[i].data.message;
+                variable2 = editorData[i].data.variable2;
+                variable1 = editorData[i].data.variable1;
+                myzip = editorData[i].data.myzip;
+                group = editorData[i].data.group;
             });
 
         });
 
-        this.editor.value.on("nodeRemoved", () => {
-            const editorData = this.editor.value.export().drawflow.Home.data;
-            Object.keys(editorData).forEach((i) => {
-                const input_id = editorData[i].id;
-                this.editor.value.updateNodeDataFromId(input_id, { mytemplate: mytemplate, csv: csv });
+        this.editor.value.on("nodeSelected", () => {
+            const editorContent = this.editor.value.export();
+            document.addEventListener('keydown', (event) => {
+                if (event.ctrlKey && event.key === 'v') {
+                    this.editor.value.import(editorContent);
+                }
             });
         });
-
 
     },
     methods: {
+        ...mapActions(['setHeaders', 'setExcelData']),
         notify(message) {
             toast.success(message, {
                 autoClose: 3000,
@@ -236,7 +248,7 @@ export default {
             pos_y = pos_y * (this.editor.value.precanvas.clientHeight / (this.editor.value.precanvas.clientHeight * this.editor.value.zoom)) - (this.editor.value.precanvas.getBoundingClientRect().y
                 * (this.editor.value.precanvas.clientHeight / (this.editor.value.precanvas.clientHeight * this.editor.value.zoom)));
             const nodeSelected: any = nodesList.find(object => object.item === name);
-            this.editor.value.addNode(name, nodeSelected.input, nodeSelected.output, pos_x, pos_y, name, { mytemplate: "", csv: "" }, name, "vue");
+            this.editor.value.addNode(name, nodeSelected.input, nodeSelected.output, pos_x, pos_y, name, { mytemplate: "", excelName: "", headers: [], excelData: "", symbole: "", pdfpath: "", message: "", varaible1: "", varaible2: "", myzip: "" }, name, "vue");
         },
         addProgramName(event: any) {
             this.programName = event.target.value;
@@ -278,7 +290,9 @@ export default {
                     if (nodeProgramName.length === 0) {
                         Swal.fire('Empty Name', 'The field cannot be left empty, please input a name.', 'error')
                     } else {
-                        await ipcRenderer.invoke('insertJsonFile', { name: nodeProgramName, data: jsonString })
+                        const currentDate = new Date();
+                        const currentYear = currentDate.getFullYear();
+                        await ipcRenderer.invoke('insertJsonFile', { name: nodeProgramName, data: jsonString, year: currentYear })
                             .then((result) => {
                                 this.notify("The insertion has been completed")
                                 this.selectedOption = nodeProgramName;
@@ -325,10 +339,13 @@ export default {
                 if (result.isConfirmed) {
                     ipcRenderer.invoke('deleteJsonFile', { name: this.flowName })
                         .then((result) => {
-                            Swal.fire(
-                                'Deleted!',
-                                'Your file has been deleted.',
-                                'success'
+                            Swal.fire({
+                               title: 'Deleted!',
+                               text: 'Your flow has been deleted.',
+                               icon: 'success',
+                               showConfirmButton: false,
+                               timer:1500
+                            }
                             )
                             this.createNewFlow();
                         })
@@ -351,6 +368,16 @@ export default {
                 }
             })
         },
+        searchNodeExcel() {
+            const editorData = this.editor.value.export().drawflow.Home.data;
+            let data = "";
+            Object.keys(editorData).forEach(function (i) {
+                if (editorData[i].name === "ImportExcel") {
+                    data = editorData[i];
+                }
+            });
+            return data;
+        },
         async onChangeFile() {
             const selectedFile = this.selectedOption;
             this.action = "edit"
@@ -368,11 +395,47 @@ export default {
                     }
                 };
                 this.editor.value.import(ob);
-                
+                const nodeExcelData: any = this.searchNodeExcel();
+                if (nodeExcelData) {
+                    var headNames = [] as string[];
+                    var dataRows = [] as string[];
+                    headNames = nodeExcelData.data.headers;
+                    dataRows = nodeExcelData.data.excelData;
+                    this.setHeaders(headNames);
+                    this.setExcelData(dataRows);
+                }
             }
         },
-        cleanEditor() {
-            this.editor.value.clear();
+        cleanFlow() {
+            Swal.fire({
+                title: 'Are you sure?',
+                text: "You want to clear the editor!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Clean!',
+                cancelButtonText: 'Cancel!',
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                reverseButtons: true
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    this.editor.value.clear();
+                    Swal.fire({
+                        icon: 'success',
+                        html: '<h4 style="color:#6785c1;">The editor has been successfully cleared</h4>',
+                        width: 400,
+                        showClass: {
+                            popup: 'animate__animated animate__fadeInDown'
+                        },
+                        hideClass: {
+                            popup: 'animate__animated animate__fadeOutUp'
+                        },
+                        showConfirmButton: false,
+                        timer: 1500
+                    })
+
+                }
+            })
         },
         async createNewFlow() {
             this.action = 'add';
@@ -380,10 +443,28 @@ export default {
             this.flowName = null;
             this.isEditName = false;
             this.nodeProgramName = "";
-            this.cleanEditor();
+            this.editor.value.clear();
+            this.setHeaders([]);
+            this.setExcelData([]);
         },
         showinput() {
             this.isEditName = true;
+        },
+        duplicateFlow() {
+            const nameprograme = this.selectedOption;
+            const editorState = this.editor.value.export();
+            this.createNewFlow()
+            this.nodeProgramName = nameprograme + "-copy";
+            this.editor.value.import(editorState);
+            const nodeExcelData: any = this.searchNodeExcel();
+            if (nodeExcelData) {
+                var headNames = [] as string[];
+                var dataRows = [] as string[];
+                headNames = nodeExcelData.data.headers;
+                dataRows = nodeExcelData.data.excelData;
+                this.setHeaders(headNames);
+                this.setExcelData(dataRows);
+            }
         }
     }
 }

@@ -22,8 +22,8 @@ export const nodesList = readonly([
 
     },
     {
-        name: "ImportCsv",
-        item: "ImportCsv",
+        name: "ImportExcel",
+        item: "ImportExcel",
         input: 1,
         output: 1,
     },
@@ -33,4 +33,34 @@ export const nodesList = readonly([
         input: 1,
         output: 1,
     },
+    {
+        name: "zipFolder",
+        item: "zip-folder",
+        input: 1,
+        output: 1,
+    },
+    {
+        name: "Condition",
+        item: "condition",
+        input: 1,
+        output: 2,
+    },
+    {
+        name: "alert",
+        item: "alert",
+        input: 1,
+        output: 1,
+    },
+    {
+        name: "sendEmail",
+        item: "send-email",
+        input: 1,
+        output: 1,
+    },
+    {
+        name: "groupPdfBy",
+        item: "groupPdfBy",
+        input: 1,
+        output: 1,
+    }
 ]);

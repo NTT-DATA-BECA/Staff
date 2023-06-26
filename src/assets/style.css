@@ -1,12 +1,12 @@
 .btn{
-    @apply h-9 py-1 px-3 cursor-pointer rounded bg-primary-dark hover:bg-primary-light text-white;
+  @apply h-9 py-1 px-3 cursor-pointer rounded bg-primary-dark hover:bg-primary-light text-white;
 }
 .input{
-    @apply h-9 p-2 text-slate-700 border border-slate-400 hover:bg-gray-100 rounded;
+  @apply h-9 p-2 text-slate-700 border border-slate-400 hover:bg-gray-100 rounded;
 }
 
 /* Drawflow */
-.drawflow .drawflow-node {
+.drawflow .drawflow-node:not(.drawflow-node.condition):not(.drawflow-node.end):not(.drawflow-node.start) {
     --tw-bg-opacity: 1;
     --tw-text-opacity: 1;
     --tw-border-opacity: 1;
@@ -16,43 +16,126 @@
     border: solid 2px rgb(113 152 206 / var(--tw-border-opacity)) !important;
     min-width: 190px !important;
 }
-
+.drawflow .drawflow-node.start{
+    background-color: #6484c4 !important;
+    border: solid 2px rgb(113 152 206 / var(--tw-border-opacity)) !important;
+    width: 90px ;
+    height: 90px;
+    border-radius: 50% !important;
+}
+.drawflow .drawflow-node.end{
+    background-color: #6484c4 !important;
+    border: solid 2px rgb(113 152 206 / var(--tw-border-opacity)) !important;
+    width: 90px ;
+    height: 90px;
+    border-radius: 50% !important;
+}
 .drawflow .drawflow-node .drawflow_content_node #node-title {
-    color: #ffffff !important;
-    text-align: center;
-    margin-bottom: 5px;
-    font-weight: bold;
+  color: #ffffff !important;
+  text-align: center;
+  margin-bottom: 5px;
+  font-weight: bold;
 }
 
 .drawflow .drawflow-node.selected {
-    --tw-bg-opacity: 1;
-    --tw-border-opacity: 1;
-    background-color: rgb(103 133 193 / var(--tw-bg-opacity)) !important;
-    border: 2px solid rgb(103 133 193 / var(--tw-border-opacity)) !important;
+  --tw-bg-opacity: 1;
+  --tw-border-opacity: 1;
+  background-color: rgb(103 133 193 / var(--tw-bg-opacity)) !important;
+  border: 2px solid rgb(103 133 193 / var(--tw-border-opacity)) !important;
 }
 
 .drawflow .drawflow-node .input, .drawflow .drawflow-node .output {
-    background: #6484c4 !important;;
-    border: 2px solid #2d495c !important;
-    width: 20px;
-    height: 20px;
-    margin-top: 14px;
-    margin-bottom: 14px;
+  background: #6484c4 !important;;
+  border: 2px solid #2d495c !important;
+  width: 20px;
+  height: 20px;
+  margin-top: 14px;
+  margin-bottom: 14px;
 }
-.drawflow .drawflow-node .output:hover, .drawflow .drawflow-node .input:hover {
-    background-color: #b3c4e4 !important;
-    border: 2px solid #b3c4e4 !important;
+.drawflow .drawflow-node:not(.drawflow-node.condition) .output:hover, .drawflow .drawflow-node:not(.drawflow-node.condition) .input:hover {
+  background-color: #b3c4e4 !important;
+  border: 2px solid #b3c4e4 !important;
 }
 
 .drawflow .connection .main-path {
-    stroke-width: 2px !important;
-    stroke: #2d495c !important;
-    
+  stroke-width: 2px !important;
+  stroke: #2d495c !important;
+  
 }
 
 .drawflow .connection .main-path:hover {
-    stroke: #557c95 !important;
+  stroke: #557c95 !important;
 }
 .mySelect .v-select .dropdown-toggle {
     border: none;
  }
+/* condition  */
+    .drawflow .drawflow-node.condition  {
+        --tw-bg-opacity: 1;
+        --tw-text-opacity: 1;
+        --tw-border-opacity: 1;
+        border-radius: 0.75rem !important;
+        background-color: rgb(156 180 220 / var(--tw-bg-opacity)) !important;
+        color: rgb(255 255 255 / var(--tw-text-opacity)) !important;
+        border: solid 2px rgb(113 152 206 / var(--tw-border-opacity)) !important;
+        border-left: 50% solid transparent !important;;
+    }
+  .drawflow .parent-node .drawflow-node.condition {
+    width: 185px;
+    height: 80px;
+  }
+
+  .drawflow .parent-node .drawflow-node.condition .input_1 {
+    transform: rotate(-45deg);
+    position: relative;
+    top: -4px;
+    right: 30px;
+  }
+
+  .drawflow .parent-node .drawflow-node.condition .output_1 {
+    transform: rotate(-45deg);
+    position: relative;
+    top: 0px;
+    right: -5px;
+  }
+
+  .drawflow .parent-node .drawflow-node.condition .output_2 {
+    transform: rotate(-45deg);
+    position: relative;
+    top: -5px;
+    right: -5px;
+  }
+
+  .drawflow-node.condition .outputs .output:nth-child(1):before {
+    display: block;
+    color: #2d495c !important;
+    content: "Yes";
+    position: relative;
+    top: -5px;
+    right: -25px;
+  }
+ .drawflow-node.condition .outputs .output:nth-child(2):before {
+    display: block;
+    color: #2d495c !important;
+    content: "No";
+    position: relative;
+    top: 15px;
+    right: -5px;
+ }
+
+.drawflow-node.condition .outputs .output:nth-child(1):before {
+  display: block;
+  color: #2d495c;
+  content: "Yes";
+  position: relative;
+  top: 15px;
+  right: 5px;
+}
+.drawflow-node.condition .outputs .output:nth-child(2):before {
+  display: block;
+  color: #2d495c;
+  content: "No";
+  position: relative;
+  top: 15px;
+  right: 5px;
+}
