@@ -50,7 +50,7 @@
         </button>
       </div>
     </div>
-    <div class="flex flex-row w-full h-full">
+    <div class="flex flex-row w-full h-full mb-5">
       <div className="flex flex-col gap-2 w-[200px] mx-auto mr-3 h-full">
         <label>
           <input class="text-sm cursor-pointer w-36 hidden" type="file" @input="importDocument" accept=".doc, .docx">
@@ -88,15 +88,34 @@
             </label>
           </div>
         </div>
-        <div class="mt-2 flex flex-col h-full" v-if="columns.length > 0">
-          <h3 class="text-center ml-1 text-black-500 font-bold mb-3">Headers :</h3>
-          <div id="sidebar" class="flex flex-col overflow-auto h-[300px]">
-            <div class="relative header cursor-pointer pointer-events-none text-center font-semibold mb-1"
-              dragabble="true" @drop="onDrop" v-for="column in columns">
-              {{ '{' + column + '}' }}
+        <v-expansion-panels v-if="excelName">
+          <v-expansion-panel>
+            <v-expansion-panel-title  disable-icon-rotate>
+              <div class="text-primary-dark text-base font-bold mr-2">
+              {{ excelName || 'Item' }}
             </div>
-          </div>
-        </div>
+              <template v-slot:actions>
+                <v-icon>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="#6785c1" class="bi bi-columns"
+                    viewBox="0 0 16 16">
+                    <path
+                      d="M0 2a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H1a1 1 0 0 1-1-1V2zm8.5 0v8H15V2H8.5zm0 9v3H15v-3H8.5zm-1-9H1v3h6.5V2zM1 14h6.5V6H1v8z" />
+                  </svg>
+                </v-icon>
+              </template>
+            </v-expansion-panel-title>
+            <v-expansion-panel-text class="pt-0">
+              <div class=" flex flex-col h-full" v-if="columns.length > 0">
+                <div id="sidebar" class="flex flex-col overflow-auto max-h-24">
+                  <div class="relative header cursor-pointer pointer-events-none text-center font-semibold mb-1"
+                    dragabble="true" v-for="column in columns">
+                    {{  column }}
+                  </div>
+                </div>
+              </div>
+            </v-expansion-panel-text>
+          </v-expansion-panel>
+        </v-expansion-panels>
       </div>
       <div class="flex flex-col w-full h-full">
         <div id="editor" ref="editor">
@@ -116,30 +135,28 @@ import beautify from 'js-beautify'
 import mammoth from 'mammoth-style/mammoth.browser.js'
 import Swal from 'sweetalert2'
 import { ipcRenderer } from 'electron';
-import {reactive} from 'vue';
+import { reactive } from 'vue';
 import QuillImageDropAndPaste from 'quill-image-drop-and-paste'
-
 // Quil configuration
 Quill.register('modules/imageDropAndPaste', QuillImageDropAndPaste)
-const Embed = Quill.
-import('blots/embed');
-Quill.register(class extends Embed {
-  static create(key) {
-    let node = super.create()
-    node.setAttribute('data-key', key)
-    node.innerHTML = `${key}`
-    return node
-  }
+// const Embed = Quill.
+//   import('blots/embed');
+// Quill.register(class extends Embed {
+//   static create(key) {
+//     let node = super.create()
+//     node.setAttribute('data-key',key)
+//     node.innerHTML = `${key}`
+//     return node
+//   }
 
-  static value(node) {
-    return node.dataset.key
-  }
+//   static value(node) {
+//     return node.dataset.key
+//   }
+  // static blotName = 'customEmbed'
+  // static className = 'customEmbed'
+  // static tagName = 'span'
 
-  static blotName = 'customEmbed'
-  static className = 'customEmbed'
-  static tagName = 'span'
-
-});
+// });
 Quill.register("modules/resize", ResizeModule);
 
 export default {
@@ -158,16 +175,18 @@ export default {
       workbook: null,
       worksheet: null,
       isEditName: false,
-      action: 'add'
+      action: 'add',
+      excelName:'',
+      columnWithBraces:"test"
     }
   },
   mounted() {
-   
+
     const image = reactive({
-      type: '', 
+      type: '',
       dataUrl: null,
-      blob: null, 
-      file: null, 
+      blob: null,
+      file: null,
     })
     const imageHandler = (dataUrl, type, imageData) => {
       imageData.minify({
@@ -176,32 +195,32 @@ export default {
         quality: .7
       }).then((miniImageData) => {
         image.type = type
-        image.dataUrl = dataUrl  
-        this.editor.root.innerHTML = this.editor.root.innerHTML + "<img src='"+dataUrl+"' style='width:100px;height:100px'>" ;
+        image.dataUrl = dataUrl
+        this.editor.root.innerHTML = this.editor.root.innerHTML + "<img src='" + dataUrl + "' style='width:100px;height:100px'>";
       })
     }
     var toolbarOptions = [
-      ['bold', 'italic', 'underline', 'strike'],  
+      ['bold', 'italic', 'underline', 'strike'],
       ['image', 'blockquote', 'code-block'],
-      [{ 'header': 1 }, { 'header': 2 }],               
+      [{ 'header': 1 }, { 'header': 2 }],
       [{ 'list': 'ordered' }, { 'list': 'bullet' }],
-      [{ 'script': 'sub' }, { 'script': 'super' }],     
-      [{ 'indent': '-1' }, { 'indent': '+1' }],         
+      [{ 'script': 'sub' }, { 'script': 'super' }],
+      [{ 'indent': '-1' }, { 'indent': '+1' }],
       [{ 'direction': 'rtl' }],
-      [{ 'size': ['small', false, 'large', 'huge'] }],                        
+      [{ 'size': ['small', false, 'large', 'huge'] }],
       [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
-      [{ 'color': [] }, { 'background': [] }],          
+      [{ 'color': [] }, { 'background': [] }],
       [{ 'font': [] }],
       [{ 'align': [] }],
-      ['clean'],  
+      ['clean'],
     ];
     this.editor = new Quill(this.$refs.editor, {
       theme: 'snow',
       modules: {
         toolbar: toolbarOptions,
         imageDropAndPaste: {
-            handler: imageHandler
-          },
+          handler: imageHandler
+        },
         resize: {
           locale: {
             altTip: "altTip",
@@ -215,20 +234,20 @@ export default {
 
     })
     this.editor.root.innerHTML = ''
-    document.getElementById('sidebar')?.querySelectorAll('.header')
-      .forEach((e: any) => {
-        e.setAttribute('draggable', 'true')
-        e.ondragstart = (ev: any) => {
-          ev.dropEffect = 'copy'
-          ev.effectAllowed = 'copy'
-          ev.dataTransfer.setData('text/html', `${ev.target.innerHTML.slice(1)}`)
-        }
-        e.ondragend = ev => {
-          var data = ev.dataTransfer.getData("text/html");
-          var index = this.editor.getSelection(true).index;
-          this.editor.insertEmbed(index, 'customEmbed', data);
-        }
-      });
+    // document.getElementById('sidebar')?.querySelectorAll('.header')
+    //   .forEach((e: any) => {
+    //     e.setAttribute('draggable', 'true')
+    //     e.ondragstart = (ev: any) => {
+    //       ev.dropEffect = 'copy'
+    //       ev.effectAllowed = 'copy'
+    //       ev.dataTransfer.setData('text/html', `${ev.target.innerHTML.slice(1)}`)
+    //     }
+    //     e.ondragend = ev => {
+    //       var data = ev.dataTransfer.getData("text/html");
+    //       var index = this.editor.getSelection(true).index;
+    //       this.editor.insertEmbed(index, 'customEmbed', data);
+    //     }
+    //   });
   },
   methods: {
     deleteFile() {
@@ -248,12 +267,12 @@ export default {
           ipcRenderer.invoke('deleteQuillFile', { name: this.selectedOption })
             .then(() => {
               Swal.fire({
-                               title: 'Deleted!',
-                               text: 'Your file has been deleted.',
-                               icon: 'success',
-                               showConfirmButton: false,
-                               timer:1500
-                            });
+                title: 'Deleted!',
+                text: 'Your file has been deleted.',
+                icon: 'success',
+                showConfirmButton: false,
+                timer: 1500
+              });
               this.newFile();
             })
             .catch(() => {
@@ -287,6 +306,7 @@ export default {
     },
     loadExcelFile(event) {
       const file = event.target.files[0];
+      this.excelName = event.target.files[0].name;
       const reader = new FileReader();
       reader.onload = (e) => {
         const data = e.target?.result;
@@ -336,26 +356,26 @@ export default {
       var contenu = this.editor.root.innerHTML;
       var name = this.selectedOption
       var html = '<html><head><style> footer{position: fixed;bottom: 0;margin-left:90px; margin-right:130px}' + quillCSS + '</style></head><body><div class="ql-editor">' + contenu + ' <footer style="padding-top: 100px;"><div style="border-top: 2px solid #011627;"><div style="font-size :15px; text-align:center; color:#011627;margin-left:0px;margin-right:5px;"><p> NTT DATA Morocco Centers – SARL au capital de 7.700.000 Dhs – Parc Technologique de Tétouanshore, Route de Cabo Negro, Martil – Maroc – RC: 19687 – IF : 15294847 – CNSS : 4639532 – Taxe Prof. :51840121</p></div></footer> </div></body></html>'
-      
+
       var pdf = require('hm-html-pdf');
       var options = {
-        "height": "1700px",     
-        "width": "1375px", 
-         
+        "height": "1700px",
+        "width": "1375px",
+
       };
-      pdf.create(html, options).toFile( "C:/pdfsApp/" + name + '.pdf', function (err, res) {
-          if (err) return console.log(err);
-          else {
-            Swal.fire({
-               title:'Generated!',
-               text: 'Your PDF has been generated.',
-               icon: 'success',
-               showConfirmButton: false,
-               timer: 1500
-              }
-              );
+      pdf.create(html, options).toFile("C:/pdfsApp/" + name + '.pdf', function (err, res) {
+        if (err) return console.log(err);
+        else {
+          Swal.fire({
+            title: 'Generated!',
+            text: 'Your PDF has been generated.',
+            icon: 'success',
+            showConfirmButton: false,
+            timer: 1500
           }
-        });
+          );
+        }
+      });
     },
     async saveToDatabase() {
       if (this.fileName) {
@@ -398,8 +418,8 @@ export default {
         }
       }
       else {
-          ipcRenderer.invoke('updateContentFile', { name: this.selectedOption, data: this.editor.root.innerHTML });
-          this.showSucess();
+        ipcRenderer.invoke('updateContentFile', { name: this.selectedOption, data: this.editor.root.innerHTML });
+        this.showSucess();
       }
     },
     showSucess() {
@@ -413,8 +433,8 @@ export default {
         timerProgressBar: true,
       })
     },
-    onDrop(event) {
-      this.editor.setSelection(0);
+    onDrop(column) {
+       column = `{${column}}`;
     },
     async loadNameFiles() {
       const response = await ipcRenderer.invoke('getQuillContentName');
@@ -439,8 +459,9 @@ export default {
 }
 </script>
 
-<style scoped>
-.customEmbed {
-  @apply p-2 mb-2 block text-white bg-primary-light hover:bg-primary-dark rounded-lg w-full text-center;
+<style lang="scss" scoped>
+::v-deep .v-expansion-panel-title__overlay {
+  @apply bg-transparent;
 }
 </style>
+
