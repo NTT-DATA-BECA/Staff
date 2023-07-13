@@ -20,7 +20,7 @@ const routes = [
     path: '/managers',
     name: 'Managers',
     component: () => import('../views/Managers.vue'),
-  },
+  }
 ];
 
 const router = createRouter({

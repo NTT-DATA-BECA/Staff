@@ -23,7 +23,8 @@
     </div>
     <div class="text-center">
         <v-dialog v-model="dialog" width="auto">
-            <template v-slot:activator="{ props }"></template>
+            <template v-slot:activator="{ props }">
+            </template>
             <v-card class="w-80 text-center">
                 <v-card-text>
                     <h1 class="text-primary-dark font-mono">Please wait, the flow is being generated</h1>
@@ -55,7 +56,6 @@ import { nodesList } from '../utils/nodesList'
 import { ipcRenderer } from 'electron';
 import quillCSS from 'quill/dist/quill.snow.css'
 import 'vue3-toastify/dist/index.css';
-
 import { mapActions } from 'vuex';
 
 export default {
@@ -77,7 +77,7 @@ export default {
             groups: [] as any,
             alertMessages: [] as any,
             dialog: false,
-            loading: false,
+            dataList:[] as any
         };
     },
     mounted() {
@@ -126,93 +126,98 @@ export default {
                     }
                 };
                 this.editor.value.import(ob);
-                const nodeExcelData: any = this.searchNodeExcel();
+                const nodeExcelData :any=this.searchNodeExcel();
                 if (nodeExcelData) {
                     var headNames = [] as string[];
+                    var dataRows = [] as string[];
                     headNames = nodeExcelData.data.headers;
+                    dataRows = nodeExcelData.data.excelData;
                     this.setHeaders(headNames);
+                    this.setExcelData(dataRows);
                 }
             }
         },
         async generateFlow() {
-            try {
-              this.loading = true;
-                var idNode = parseFloat(this.getStartId());
-                this.searchNodeEnd();
-                if (idNode) {
-                    var dataNode = this.editor.value.getNodeFromId(idNode);
-                    var dataNodeStart = this.editor.value.getNodeFromId(idNode);
-                    var nameNode = dataNode.name;
-                    var startoutputs = 0;
-                    var dataExcel = [];
-                    var templateName = "";
-                    var genebasic = "yes";
-                    var pdfPathGrpBy = "";
-                    var nbreAlert = this.countNodeAlert();
-                    var messagesAlert = "";
-                    var zipPathGrpBy = "";
-                    var headersExcel = [];
-                    this.dialog = true;
-                    var promises = [];
-
-                    while (dataNodeStart.outputs?.output_1?.connections[startoutputs]) {
-                    dataNode = this.MoveToNextNodeByOutput1(dataNode);
+            var idNode = parseFloat(this.getStartId());
+            this.searchNodeEnd();
+            if (idNode) {
+                var dataNode = this.editor.value.getNodeFromId(idNode)
+                var dataNodeStart = this.editor.value.getNodeFromId(idNode)
+                var nameNode = dataNode.name;
+                var startoutputs = 0;
+                var dataExcel = [];
+                var templateName = "";
+                var genebasic = "yes";
+                var pdfPathGrpBy = "";
+                var nbreAlert = this.countNodeAlert();
+                var messagesAlert = "";
+                var zipPathGrpBy = "";
+                var headersExcel = []
+                this.dialog = true;
+                while (dataNodeStart.outputs?.output_1?.connections[startoutputs]) {
+                    dataNode = this.MoveToNextNodeByOutput1(dataNode)
                     nameNode = dataNode.name;
                     startoutputs = startoutputs + 1;
-
                     while (nameNode != "end") {
                         if (nameNode == "ImportExcel") {
-                        genebasic = "no";
-                        dataExcel = dataNode.data.excelData;
-                        headersExcel = dataNode.data.headers;
-                        await this.generateNodeExcel(dataNode);
+                            var genebasic = "no";
+                            dataExcel = dataNode.data.excelData;
+                            headersExcel = dataNode.data.headers;
+                            await this.generateNodeExcel(dataNode);
                         }
                         if (nameNode == "file-input") {
-                        templateName = dataNode.data.mytemplate;
+                            templateName = dataNode.data.mytemplate;
                         }
                         if (nameNode == "Generatepdf" || nameNode == "groupPdfBy") {
-                        if (JSON.stringify(this.dynamicConditionJson) != "{}") {
-                            await Promise.all(dataExcel.map(async (dataemployee) => {
-                            if (nameNode == "groupPdfBy") {
-                                pdfPathGrpBy = dataNode.data.pdfpath;
-                                this.groups.push(dataemployee[dataNode.data.variable1]);
-                                await this.generateNodePdf(dataNode, this.dynamicConditionJson, dataemployee, dataNode.data.variable1);
-                            } else {
-                                await this.generateNodePdf(dataNode, this.dynamicConditionJson, dataemployee, null);
-                            }
-                            }));
 
-                            if (nameNode == "groupPdfBy") {
-                            this.groups = [...new Set(this.groups)];
-                            }
-                        } else if (dataExcel) {
-                            await Promise.all(dataExcel.map(async (dataemployee) => {
-                            if (nameNode == "groupPdfBy") {
-                                await this.startgenerationpdf(dataNode, dataemployee, dataNode.data.variable1, templateName);
-                            } else {
-                                await this.startgenerationpdf(dataNode, dataemployee, null, templateName);
-                            }
-                            }));
-                        }
+                            if (JSON.stringify(this.dynamicConditionJson) != "{}") {
+                                for (var i = 0; i < dataExcel.length; i++) {
+                                    var dataemployee = dataExcel[i];
+                                    if (nameNode == "groupPdfBy") {
+                                        pdfPathGrpBy = dataNode.data.pdfpath;
+                                        this.groups.push(dataemployee[dataNode.data.group]);
+                                        await this.generateNodePdf(dataNode, this.dynamicConditionJson, dataemployee, dataNode.data.group);
+                                    } else {
+                                        await this.generateNodePdf(dataNode, this.dynamicConditionJson, dataemployee, null);
+                                    }
 
-                        if (genebasic == "yes") {
-                            await this.startgenerationpdf(dataNode, null, null, templateName);
-                        }
+                                }
+                                if (nameNode == "groupPdfBy") {
+                                    this.groups = [...new Set(this.groups)];
+                                }
+                            }
+                            else if (dataExcel) {
+                                for (var i = 0; i < dataExcel.length; i++) {
+                                    var dataemployee = dataExcel[i];
+                                    if (nameNode == "groupPdfBy") {
+                                        await this.startgenerationpdf(dataNode, dataemployee, dataNode.data.group, templateName);
+                                    }
+                                    else {
+                                        await this.startgenerationpdf(dataNode, dataemployee, null, templateName);
+                                    }
+                                }
+
+                            }
+                            if (genebasic == "yes") {
+                                await this.startgenerationpdf(dataNode, null, null, templateName);
+                            }
+
                         }
                         if (nameNode == "zip-folder") {
-                        if (pdfPathGrpBy) {
-                            zipPathGrpBy = dataNode.data.myzip;
-                            const fs = require('fs');
-                            if (!fs.existsSync(zipPathGrpBy)) {
-                            fs.mkdirSync(zipPathGrpBy, { recursive: true });
+                            if (pdfPathGrpBy) {
+                                zipPathGrpBy = dataNode.data.myzip;
+                                const fs = require('fs');
+                                if (!fs.existsSync(zipPathGrpBy)) {
+                                    fs.mkdirSync(zipPathGrpBy, { recursive: true });
+                                }
+                                for (let i = 0; i < this.groups.length; i++) {
+                                    const folderPath = pdfPathGrpBy + "/" + this.groups[i];
+                                    const zipFolderPath = zipPathGrpBy + "/" + this.groups[i] + '.zip';
+                                    await this.zipFolder(folderPath, zipFolderPath);
+                                }
                             }
-                            await Promise.all(this.groups.map(async (group) => {
-                            const folderPath = pdfPathGrpBy + "/" + group;
-                            const zipFolderPath = zipPathGrpBy + "/" + group + '.zip';
-                            await this.zipFolder(folderPath, zipFolderPath);
-                            }));
                         }
-                        }
+
                         if (nameNode == "send-email") {
                             if (zipPathGrpBy) {
                                 for (let i = 0; i < this.groups.length; i++) {
@@ -222,51 +227,50 @@ export default {
                                             this.sendEmailWithAttachment(email, groupZipPath);
                                         })
                                         .catch(error => {
-                                            Swal.fire('Error', error, 'error')
                                         });
                                 }
                             }
 
                         }
                         if (nameNode == "alert") {
-                        nbreAlert--;
-                        if (dataExcel) {
-                            var valeur1 = dataNode.data.variable1;
-                            var valeur2 = dataNode.data.variable2;
-                            var symbole = dataNode.data.symbole;
-                            for (var i = 0; i < dataExcel.length; i++) {
-                            var dataemployee = dataExcel[i];
-                            if (this.compare(symbole, parseFloat(dataemployee[valeur1]), parseFloat(valeur2))) {
-                                this.alertMessages.push(dataNode.data.message);
-                                break;
+                            nbreAlert--;
+                            if (dataExcel) {
+                                var valeur1 = dataNode.data.variable1;
+                                var valeur2 = dataNode.data.variable2;
+                                var symbole = dataNode.data.symbole;
+                                for (var i = 0; i < dataExcel.length; i++) {
+                                    var dataemployee = dataExcel[i];
+                                    if (this.compare(symbole, parseFloat(dataemployee[valeur1]), parseFloat(valeur2))) {
+                                        this.alertMessages.push(dataNode.data.message);
+                                        break;
+                                    }
+                                }
+                                for (var i = 0; i < this.alertMessages.length; i++) {
+                                    if (messagesAlert) {
+                                        messagesAlert = messagesAlert + " and " + this.alertMessages[i];
+                                    }
+                                    else {
+                                        messagesAlert = this.alertMessages[i];
+                                    }
+                                }
+                                if (nbreAlert == 0) {
+                                    this.modalMessage('Alert', 'Your flow has been generated successfully, but ' + messagesAlert, 'warning');
+                                    this.alertMessages = [];
+                                }
                             }
-                            }
-                            for (var i = 0; i < this.alertMessages.length; i++) {
-                            if (messagesAlert) {
-                                messagesAlert = messagesAlert + " and " + this.alertMessages[i];
-                            } else {
-                                messagesAlert = this.alertMessages[i];
-                            }
-                            }
-                            if (nbreAlert == 0) {
-                            this.modalMessage('Alert', 'Your flow has been generated successfully, but ' + messagesAlert, 'warning');
-                            this.alertMessages = [];
-                            }
-                        }
                         }
                         dataNode = this.MoveToNextNodeByOutput1(dataNode);
                         nameNode = dataNode.name;
+
+                        if (nameNode == "end" && !messagesAlert) {
+                            this.dialog = false;
+                        } else if (messagesAlert) {
+                            messagesAlert = "";
+                        }
                     }
-                    }
-                    await Promise.all(promises);
                 }
-                this.loading = false;
-            } catch (error) {
-                console.error(error);
-            }finally {
-        this.dialog = false;
-        this.loading = false;
-    }
+            }
+
         },
         async generateNodeExcel(dataNode: any) {
             while (dataNode.name != "condition" && dataNode.name != "end") {
@@ -276,7 +280,6 @@ export default {
                     nameNode = await this.generateNodeCondition(dataNode);
                 }
             }
-            // return nameNode;
         },
         async generateNodeCondition(dataNode: any) {
             var pointer = require('json-pointer');
@@ -331,7 +334,7 @@ export default {
             if (this.compare(symbole, value, number)) {
                 if (typeof conditions.accept === 'object' && conditions.accept) {
                     conditions = conditions.accept;
-                    await this.generateNodePdf(dataNode, conditions, dataemployee, group);
+                   return await this.generateNodePdf(dataNode, conditions, dataemployee, group);
                 }
                 else if (conditions.accept) {
                     await this.startgenerationpdf(dataNode, dataemployee, group, conditions.accept);
@@ -343,7 +346,7 @@ export default {
                     await this.generateNodePdf(dataNode, conditions, dataemployee, group);
                 }
                 else if (conditions.refuse) {
-                    this.startgenerationpdf(dataNode, dataemployee, group, conditions.refuse);
+                    await this.startgenerationpdf(dataNode, dataemployee, group, conditions.refuse);
                 }
             }
         },
@@ -357,22 +360,21 @@ export default {
             var firstName = this.searchAndReplace(firstNameKeys, dataemployee, firstName);
             const fullNameKeys = ["Full Name", "FullName", "Fullname", "Full name"];
             var fullName = this.searchAndReplace(fullNameKeys, dataemployee, fullName);
+            console.log(template+" template")
             var response = await ipcRenderer.invoke('getQuillContentData', { name: template });
-            response = response.replace(/{([^{}]+)}/g, (match, var1) => {
-                var1 = this.replaceHeader(var1);
-                return `{${var1}}`;
-            });
             if (response) {
-                if (dataemployee) {
-                    var replacedResponse = this.replaceVariables(response, dataemployee);
                     if (dataemployee) {
-                        response = replacedResponse;
                         response = response.replace(/{ANS}/g, "" + currentYear);
                         response = response.replace(/{ANS-(\d+)}/g, function (match, number) {
                             const previousYear = currentYear - parseInt(number);
                             return "" + previousYear;
                         });
                         response = response.replace(/{DATE}/g, currentDateStr);
+                        response = response.replace(/{([^{}]+)}/g, (match, var1) => {
+                            var1 = this.replaceHeader(var1);
+                            return `{${var1}}`;
+                        });
+                        response = this.replaceVariables(response, dataemployee);
                         if (group) {
                             if (!lastName || !firstName) {
                                 this.downloadPdf(response, "NTT DATA Morocco Centers -" + fullName, dataNode.data.pdfpath + '/' + dataemployee[group] + '/')
@@ -387,15 +389,21 @@ export default {
                             }
                         }
                     }
-                }
                 else {
                     this.downloadPdf(response, template, dataNode.data.pdfpath + '/')
                 }
             }
             else {
-                this.modalMessage('Error!', 'Something wrong.', 'error')
+                console.log(fullName+ "full Name")
             }
         },
+        addDataEmployeeAndTemplate(dataEmployee, template) {
+    var data = {
+        dataEmployee: dataEmployee,
+        template: template
+    };
+    this.dataList.push(data);
+},
         compare(operator: any, num1: number, num2: number): boolean {
             switch (operator.toLowerCase()) {
                 case '>':
@@ -511,13 +519,13 @@ export default {
                 output.on('close', () => {
                 });
                 archive.on('error', (err) => {
-                    console.error('Error while creating zip folder:', err);
+                    Swal.fire('Error', 'Error while creating zip folder: ' + err, 'error')
                 });
                 archive.pipe(output);
                 archive.directory(folderPath, false);
                 await archive.finalize();
             } catch (error) {
-                console.error('Error while creating zip folder:', error);
+                Swal.fire('Error', 'Error while creating zip folder:' + error, 'error')
             }
         },
         async sendEmailWithAttachment(email: any, zipPath: any) {
@@ -536,23 +544,22 @@ export default {
             };
             await ipcRenderer.invoke('sendEmail', emailData)
                 .then(() => {
-                    console.log('Email sent successfully');
                 })
                 .catch((error) => {
-                    console.error('Error sending email:', error);
+                   
                 });
         },
-        async downloadPdf(htmlforpdf: any, namefile: any, path: any) {
-
+        downloadPdf(htmlforpdf: any, namefile: any, path: any) {
             var name = namefile
-            var html = '<html><head><style> footer{position: fixed;bottom: 0;}' + quillCSS + '</style></head><body><div class="ql-editor">' + htmlforpdf + ' <footer style="padding-top: 100px;"><div style="border-top: 2px solid gray;"><div style="font-size :15px; text-align:center; color:gray;margin-left:0px;margin-right:5px;"><p> NTT DATA Morocco Centers – SARL au capital de 7.700.000 Dhs – Parc Technologique de Tétouanshore, Route de Cabo Negro, Martil – Maroc – RC: 19687 – IF : 15294847 – CNSS : 4639532 – </br>Taxe Prof. :51840121</p></div></footer> </div></body></html>'
+            var html = '<html><head><style> footer{position: fixed;bottom: 0;margin-left:90px; margin-right:130px}' + quillCSS + '</style></head><body><div class="ql-editor">' + htmlforpdf + ' <footer style="padding-top: 100px;"><div style="border-top: 2px solid #011627;"><div style="font-size :15px; text-align:center; color:#011627;margin-left:0px;margin-right:5px;"><p> NTT DATA Morocco Centers – SARL au capital de 7.700.000 Dhs – Parc Technologique de Tétouanshore, Route de Cabo Negro, Martil – Maroc – RC: 19687 – IF : 15294847 – CNSS : 4639532 – Taxe Prof. :51840121</p></div></footer> </div></body></html>'
             var pdf = require('hm-html-pdf');
             var options = {
-                format: 'A4',
-                orientation: "portrait",
+                "height": "1700px",
+                "width": "1375px",
+                timeout: 200000
             };
             pdf.create(html, options).toFile(path + name + '.pdf', function (err, res) {
-                if (err) return console.log(err);
+                if (err) { console.log(name+ "name") }
             });
         },
         modalMessage(title: string, type: string, message: SweetAlertIcon) {

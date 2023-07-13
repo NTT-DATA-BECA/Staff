@@ -169,7 +169,6 @@ async function createWindow() {
     );
   });
   
-
   ipcMain.handle('deleteManagersbyemail', async (event, emailsToDelete) => {
     return await new Promise((resolve, reject) => {
       const placeholders = emailsToDelete.map(() => '?').join(',');
@@ -200,7 +199,6 @@ async function createWindow() {
       return null;
     }
   });
-  
 
   ipcMain.handle('getJsonFiles', async (event, arg) => {
     return await new Promise((resolve, reject) => {
@@ -210,6 +208,15 @@ async function createWindow() {
       })
     })
   })
+  ipcMain.handle('getFlowsByYear', async (event, arg) => {
+   
+      return await new Promise((resolve, reject) => {
+        db.all(`SELECT name FROM flow WHERE year = ?`, [arg.year], (err, rows) => {
+          if (err) reject(err);
+          resolve(rows.map(row => row.name));
+        });
+      });
+  });
   
   ipcMain.handle('updateJsonFileName', async (event, arg) => {
     return new Promise<void>((resolve, reject) => {
@@ -270,12 +277,19 @@ async function createWindow() {
       return null;
     }
   });
-  
-  // Handle the 'insertJsonFile' message from the renderer process
+  ipcMain.handle('getYears', async (event, arg) => {
+    return await new Promise((resolve, reject) => {
+      db.all(`SELECT DISTINCT year FROM flow`, [], (err, rows) => {
+        if (err) reject(err)
+        resolve(rows.map(row => row.year))
+      })
+    })
+  })
+ 
   ipcMain.handle('insertJsonFile', async (event, arg) => {
     return new Promise<void>((resolve, reject) => {
       const formattedData = JSON.stringify(arg.data).replace(/\\/g, '').slice(1, -1);
-      db.run(`INSERT INTO flow (name, data) VALUES (?, ?)`, [arg.name, formattedData], (err) => {
+      db.run(`INSERT INTO flow (name, data,year) VALUES (?, ?,?)`, [arg.name, formattedData,arg.year], (err) => {
         if (err) {
           console.error(err);
           reject(err);
@@ -284,7 +298,8 @@ async function createWindow() {
         }
       });
     });
-  });  
+  });    
+  
   
   ipcMain.handle('deleteJsonFile', async (event, arg) => {
     try {
