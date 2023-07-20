@@ -1,6 +1,6 @@
 <template>
   <div ref="el" class="nodeselect">
-     <p id="node-title" >Template</p>
+     <p id="node-title" >{{ t("nodes.template") }}</p>
      <v-select for="mytemplate" style="color:#2d495c; 
      width: 155px;" v-model="mytemplate" :options="options" @option:selected="onChangeFile()" df-mytemplate />
   </div>
@@ -8,9 +8,13 @@
  <script lang="ts">
  import { getCurrentInstance  } from 'vue'
  import { ipcRenderer } from 'electron';
- 
+ import { useI18n } from 'vue-i18n'
  export default {
    name: 'SelectSearch',
+   setup() {
+    const { t } = useI18n()
+    return { t }
+  },
    data() {
      return {
        el:null as any,

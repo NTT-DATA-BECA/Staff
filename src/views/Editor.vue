@@ -6,7 +6,7 @@
       </v-select>
       <div class="flex justify-end text-gray-100">
         <input className="input mr-2"
-          v-bind:placeholder="(action == 'edit' || isEditName) ? 'Edit filename' : 'Add filename'" v-model="fileName"
+          v-bind:placeholder="getPlaceholderText()"  v-model="fileName"
           v-if="action == 'add' || isEditName" />
         <button v-if="action == 'edit'" class="btn flex items-center mr-2 mb-3" @click="editName">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="mr-2 bi bi-pen-fill"
@@ -14,7 +14,7 @@
             <path
               d="m13.498.795.149-.149a1.207 1.207 0 1 1 1.707 1.708l-.149.148a1.5 1.5 0 0 1-.059 2.059L4.854 14.854a.5.5 0 0 1-.233.131l-4 1a.5.5 0 0 1-.606-.606l1-4a.5.5 0 0 1 .131-.232l9.642-9.642a.5.5 0 0 0-.642.056L6.854 4.854a.5.5 0 1 1-.708-.708L9.44.854A1.5 1.5 0 0 1 11.5.796a1.5 1.5 0 0 1 1.998-.001z" />
           </svg>
-          Edit name
+          {{ t("editor.edit") }}
         </button>
         <button class="btn rounded-lg px-5 py-2.5 text-center mr-2 mb-3 flex items-center" @click="saveToDatabase">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
@@ -22,7 +22,7 @@
             <path
               d="M9.293 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V4.707A1 1 0 0 0 13.707 4L10 .293A1 1 0 0 0 9.293 0zM9.5 3.5v-2l3 3h-2a1 1 0 0 1-1-1zM6.354 9.854a.5.5 0 0 1-.708-.708l2-2a.5.5 0 0 1 .708 0l2 2a.5.5 0 0 1-.708.708L8.5 8.707V12.5a.5.5 0 0 1-1 0V8.707L6.354 9.854z" />
           </svg>
-          Save File
+          {{ t("editor.save") }}
         </button>
         <button class="mr-2 btn flex items-center" @click="newFile">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="mr-2 bi bi-plus-lg"
@@ -30,7 +30,7 @@
             <path fill-rule="evenodd"
               d="M8 2a.5.5 0 0 1 .5.5v5h5a.5.5 0 0 1 0 1h-5v5a.5.5 0 0 1-1 0v-5h-5a.5.5 0 0 1 0-1h5v-5A.5.5 0 0 1 8 2Z" />
           </svg>
-          New file
+          {{ t("editor.new") }}
         </button>
         <button v-if="action == 'edit'" class="btn flex items-center" @click="duplicateFile">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
@@ -38,7 +38,7 @@
             <path
               d="M9.293 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V4.707A1 1 0 0 0 13.707 4L10 .293A1 1 0 0 0 9.293 0zM9.5 3.5v-2l3 3h-2a1 1 0 0 1-1-1zM8.5 7v1.5H10a.5.5 0 0 1 0 1H8.5V11a.5.5 0 0 1-1 0V9.5H6a.5.5 0 0 1 0-1h1.5V7a.5.5 0 0 1 1 0z" />
           </svg>
-          Duplicate file
+          {{ t("editor.duplicate") }}
         </button>
         <button v-if="action == 'edit'" class="btn ml-2 flex items-center" @click="deleteFile">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="mr-2 bi bi-trash-fill"
@@ -46,30 +46,30 @@
             <path
               d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1H2.5zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5zM8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5zm3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0z" />
           </svg>
-          delete
+          {{ t("editor.delete") }}
         </button>
       </div>
     </div>
     <div class="flex flex-row w-full h-full mb-5">
       <div className="flex flex-col gap-2 w-[200px] mx-auto mr-3 h-full">
         <label>
-          <input class="text-sm cursor-pointer w-36 hidden" type="file" @input="importDocument" accept=".doc, .docx">
-          <div class="btn w-full mr-2 mb-2 cursor-pointer flex items-center justify-center">
+          <input class="text-sm  w-36 hidden" type="file" @input="importDocument" accept=".doc, .docx">
+          <div class="text-sm btn w-full mr-2 mb-2 flex items-center justify-center">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
               class="mr-2 bi bi-cloud-arrow-up-fill" viewBox="0 0 16 16">
               <path
                 d="M8 2a5.53 5.53 0 0 0-3.594 1.342c-.766.66-1.321 1.52-1.464 2.383C1.266 6.095 0 7.555 0 9.318 0 11.366 1.708 13 3.781 13h8.906C14.502 13 16 11.57 16 9.773c0-1.636-1.242-2.969-2.834-3.194C12.923 3.999 10.69 2 8 2zm2.354 5.146a.5.5 0 0 1-.708.708L8.5 6.707V10.5a.5.5 0 0 1-1 0V6.707L6.354 7.854a.5.5 0 1 1-.708-.708l2-2a.5.5 0 0 1 .708 0l2 2z" />
             </svg>
-            Open docx file
+            {{ t("editor.open") }}
           </div>
         </label>
-        <button class="btn mr-3 w-full flex items-center justify-center" @click="downloadPdf">
+        <button class="text-sm btn mr-3 w-full flex items-center justify-center" @click="downloadPdf">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
             class="mr-2 bi bi-cloud-arrow-down-fill" viewBox="0 0 16 16">
             <path
               d="M8 2a5.53 5.53 0 0 0-3.594 1.342c-.766.66-1.321 1.52-1.464 2.383C1.266 6.095 0 7.555 0 9.318 0 11.366 1.708 13 3.781 13h8.906C14.502 13 16 11.57 16 9.773c0-1.636-1.242-2.969-2.834-3.194C12.923 3.999 10.69 2 8 2zm2.354 6.854-2 2a.5.5 0 0 1-.708 0l-2-2a.5.5 0 1 1 .708-.708L7.5 9.293V5.5a.5.5 0 0 1 1 0v3.793l1.146-1.147a.5.5 0 0 1 .708.708z" />
           </svg>
-          Generate pdf
+          {{ t("editor.generate") }}
         </button>
         <h2 className="border-b-4 p-2 border-primary-dark text-center font-bold text-black-700  ">Node Excel</h2>
 
@@ -83,42 +83,17 @@
           <div class="input_field flex flex-col w-max mx-auto text-center">
             <label>
               <input class="text-sm cursor-pointer w-36 hidden" type="file" @change="loadExcelFile" />
-              <div class="btn text-sm rounded-lg text-center m-auto" style="height: unset;">
-                Select Excel file</div>
+              <div class="text-sm btn rounded-lg text-center m-auto" style="height: unset;">
+                {{ t("editor.select") }}</div>
             </label>
           </div>
         </div>
-        <v-expansion-panels v-if="excelName">
-          <v-expansion-panel>
-            <v-expansion-panel-title  disable-icon-rotate>
-              <div class="text-primary-dark text-base font-bold mr-2">
-              {{ excelName || 'Item' }}
-            </div>
-              <template v-slot:actions>
-                <v-icon>
-                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="#6785c1" class="bi bi-columns"
-                    viewBox="0 0 16 16">
-                    <path
-                      d="M0 2a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H1a1 1 0 0 1-1-1V2zm8.5 0v8H15V2H8.5zm0 9v3H15v-3H8.5zm-1-9H1v3h6.5V2zM1 14h6.5V6H1v8z" />
-                  </svg>
-                </v-icon>
-              </template>
-            </v-expansion-panel-title>
-            <v-expansion-panel-text class="pt-0">
-              <div class=" flex flex-col h-full" v-if="columns.length > 0">
-                <div id="sidebar" class="flex flex-col overflow-auto max-h-24">
-                  <div class="relative header cursor-pointer pointer-events-none text-center font-semibold mb-1"
-                    dragabble="true" v-for="column in columns">
-                    {{  column }}
-                  </div>
-                </div>
-              </div>
-            </v-expansion-panel-text>
-          </v-expansion-panel>
-        </v-expansion-panels>
+        <div v-if="allow" class="scroll-container">
+        <tree  class="cursor-grab" :nodes="nodes" :config="config"></tree>
+      </div>
       </div>
       <div class="flex flex-col w-full h-full">
-        <div id="editor" ref="editor">
+        <div id="editor" ref="editor" >
         </div>
       </div>
     </div>
@@ -137,31 +112,24 @@ import Swal from 'sweetalert2'
 import { ipcRenderer } from 'electron';
 import { reactive } from 'vue';
 import QuillImageDropAndPaste from 'quill-image-drop-and-paste'
+import { useI18n } from 'vue-i18n'
+import treeview from "vue3-treeview";
+import "vue3-treeview/dist/style.css";
 // Quil configuration
 Quill.register('modules/imageDropAndPaste', QuillImageDropAndPaste)
-// const Embed = Quill.
-//   import('blots/embed');
-// Quill.register(class extends Embed {
-//   static create(key) {
-//     let node = super.create()
-//     node.setAttribute('data-key',key)
-//     node.innerHTML = `${key}`
-//     return node
-//   }
-
-//   static value(node) {
-//     return node.dataset.key
-//   }
-  // static blotName = 'customEmbed'
-  // static className = 'customEmbed'
-  // static tagName = 'span'
-
-// });
 Quill.register("modules/resize", ResizeModule);
+
 
 export default {
   inject: ['ipcRenderer'],
   name: 'Editor',
+  setup() {
+      const { t } = useI18n()
+      return { t }
+    },
+  components: {
+    tree: treeview,
+  },
   data() {
     return {
       editor: null as Quill,
@@ -177,11 +145,21 @@ export default {
       isEditName: false,
       action: 'add',
       excelName:'',
-      columnWithBraces:"test"
+      config: {
+        roots: ["columns"],
+      },
+      nodes: {
+        columns: {
+          text: "",
+          children: [],
+        }
+      },
+      allow:false
     }
   },
   mounted() {
-
+    const { t } = useI18n()
+    
     const image = reactive({
       type: '',
       dataUrl: null,
@@ -229,35 +207,41 @@ export default {
             center: "center",
             restore: "restore"
           }
-        }
+        },    
+        
       },
 
     })
-    this.editor.root.innerHTML = ''
-    // document.getElementById('sidebar')?.querySelectorAll('.header')
-    //   .forEach((e: any) => {
-    //     e.setAttribute('draggable', 'true')
-    //     e.ondragstart = (ev: any) => {
-    //       ev.dropEffect = 'copy'
-    //       ev.effectAllowed = 'copy'
-    //       ev.dataTransfer.setData('text/html', `${ev.target.innerHTML.slice(1)}`)
-    //     }
-    //     e.ondragend = ev => {
-    //       var data = ev.dataTransfer.getData("text/html");
-    //       var index = this.editor.getSelection(true).index;
-    //       this.editor.insertEmbed(index, 'customEmbed', data);
-    //     }
-    //   });
+    this.editor.root.innerHTML = ''   
+    this.editor.root.addEventListener('drop', (event) => {
+      event.preventDefault();
+      event.stopPropagation();  
+      const column = event.dataTransfer.getData('text/plain');
+      if (column) {
+        this.editor.enable()
+        this.editor.focus();
+        const range = this.editor.getSelection(true);
+        this.editor.insertText(range?.index, `{${column}}`);
+      }
+    });
+
   },
   methods: {
+    getPlaceholderText() {
+    if (this.action === 'edit' || this.isEditName) {
+      return  this.t('editor.editname');
+    } else {
+      return this.t('editor.addname');
+    }
+  },
     deleteFile() {
       Swal.fire({
-        title: 'Are you sure?',
-        text: "You won't be able to revert this!",
+        title: this.t('messages.sure'),
+        text: this.t('messages.textsure'),
         icon: 'warning',
         showCancelButton: true,
-        confirmButtonText: 'Yes, delete it!',
-        cancelButtonText: 'No, cancel!',
+        confirmButtonText: this.t('messages.yes'),
+        cancelButtonText: this.t('messages.no'),
         confirmButtonColor: '#3085d6',
         cancelButtonColor: '#d33',
         reverseButtons: true
@@ -267,8 +251,8 @@ export default {
           ipcRenderer.invoke('deleteQuillFile', { name: this.selectedOption })
             .then(() => {
               Swal.fire({
-                title: 'Deleted!',
-                text: 'Your file has been deleted.',
+                title: this.t('messages.delete'),
+                text: this.t('messages.filedelete'),
                 icon: 'success',
                 showConfirmButton: false,
                 timer: 1500
@@ -276,19 +260,23 @@ export default {
               this.newFile();
             })
             .catch(() => {
-              Swal.fire(
-                'Error!',
-                'Something wrong.',
-                'error'
+              Swal.fire( {
+                title:this.t('messages.error'),
+                text:this.t('messages.wrong'),
+                icon:'error',
+                showConfirmButton: false,
+              }
               );
               this.newFile();
             });
         }
         else if (result.dismiss === Swal.DismissReason.cancel) {
-          Swal.fire(
-            'Cancelled',
-            'Your file is safe :)',
-            'error'
+          Swal.fire({
+           title: this.t('messages.cancel'),
+           text: this.t('messages.fileSafe'),
+           icon:'error',
+           showConfirmButton: false,
+          }
           );
         }
       })
@@ -307,7 +295,9 @@ export default {
     loadExcelFile(event) {
       const file = event.target.files[0];
       this.excelName = event.target.files[0].name;
+      this.nodes.columns.text=this.excelName;
       const reader = new FileReader();
+      var pointer = require('json-pointer');
       reader.onload = (e) => {
         const data = e.target?.result;
         const workbook = XLSX.read(data, { type: 'binary' });
@@ -320,6 +310,7 @@ export default {
           for (let C = range.s.c; C <= range.e.c; ++C) {
             const cell = sheet[XLSX.utils.encode_cell({ r: range.s.r, c: C })];
             const columnName: string = XLSX.utils.format_cell(cell);
+            pointer.set(this.nodes, '/'+columnName+'/text',columnName);
             columns.push(columnName);
           }
           for (let R = range.s.r + 1; R <= range.e.r; ++R) {
@@ -334,6 +325,8 @@ export default {
           }
         }
         this.columns = columns;
+        this.allow=true;
+        pointer.set(this.nodes, '/columns/children',this.columns);
         this.dataRows = dataRows;
       };
       reader.readAsBinaryString(file);
@@ -363,12 +356,12 @@ export default {
         "width": "1375px",
 
       };
-      pdf.create(html, options).toFile("C:/pdfsApp/" + name + '.pdf', function (err, res) {
+      pdf.create(html, options).toFile("C:/pdfsApp/" + name + '.pdf',  (err, res) => {
         if (err) return console.log(err);
         else {
           Swal.fire({
-            title: 'Generated!',
-            text: 'Your PDF has been generated.',
+            title: this.t('messages.titlegenerate'),
+            text: this.t('messages.textgenerate'),
             icon: 'success',
             showConfirmButton: false,
             timer: 1500
@@ -381,12 +374,12 @@ export default {
       if (this.fileName) {
         if (this.isEditName) {
           if (this.fileName.length === 0) {
-            Swal.fire('Empty Name', 'The field cannot be left empty, please input a name.', 'error')
+            Swal.fire(this.t('messages.empty'),this.t('messages.textempty'), 'error')
           }
           else {
             var exist = await ipcRenderer.invoke('checkFileNameExists', { name: this.fileName })
             if (exist) {
-              Swal.fire('Duplicate Name', 'The name already exists in the database, please choose a different name.', 'error');
+              Swal.fire(this.t('messages.duplicate'), this.t('messages.textduplicate'), 'error');
             }
             else {
               ipcRenderer.invoke('updateQuillFileName', { oldName: this.selectedOption, newName: this.fileName });
@@ -398,12 +391,12 @@ export default {
         }
         else {
           if (this.fileName.length === 0) {
-            Swal.fire('Empty Name', 'The field cannot be left empty, please input a name.', 'error')
+            Swal.fire(this.t('messages.empty'),this.t('messages.textempty'), 'error');
           }
           else {
             var exist = await ipcRenderer.invoke('checkFileNameExists', { name: this.fileName })
             if (exist) {
-              Swal.fire('Duplicate Name', 'The name already exists in the database, please choose a different name.', 'error');
+              Swal.fire(this.t('messages.duplicate'), this.t('messages.textduplicate'), 'error');
             }
             else {
               ipcRenderer.invoke('insertQuillcontent', { name: this.fileName, data: this.editor.root.innerHTML })
@@ -426,15 +419,12 @@ export default {
       Swal.fire({
         toast: true,
         icon: 'success',
-        title: 'The operation has been completed!',
+        title: this.t('messages.showSucess'),
         position: 'bottom-left',
         timer: 2000,
         showConfirmButton: false,
         timerProgressBar: true,
       })
-    },
-    onDrop(column) {
-       column = `{${column}}`;
     },
     async loadNameFiles() {
       const response = await ipcRenderer.invoke('getQuillContentName');
@@ -459,9 +449,25 @@ export default {
 }
 </script>
 
-<style lang="scss" scoped>
-::v-deep .v-expansion-panel-title__overlay {
-  @apply bg-transparent;
-}
+<style scoped>
+.scroll-container {
+        overflow-y: scroll;
+        max-height: 350px; 
+        margin-right: -6.5%;
+    }
+    .scroll-container::-webkit-scrollbar {
+        width: 15px;
+    }
+    .scroll-container::-webkit-scrollbar-track {
+        background:#f1eeee;
+    }
+    .scroll-container::-webkit-scrollbar-thumb {
+        @apply bg-primary-light;        
+        border-radius: 5px;
+    }
+    .scroll-container::-webkit-scrollbar-thumb:hover {
+        @apply bg-primary-light        
+    }
+
 </style>
 

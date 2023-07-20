@@ -4,7 +4,7 @@
             <v-select v-model="selectedOption" label="name" class="h-9 text-primary-dark rounded w-60 mr-3"
                 @click="() => loadJsonFiles()" :options="programs" @option:selected="onChangeFile()"></v-select>
             <div className="flex justify-end mb-3 text-gray-100">
-                <input v-if="action == 'add' || isEditName" className="input mr-2" placeholder="Add program name"
+                <input v-if="action == 'add' || isEditName" className="input mr-2" v-bind:placeholder="getPlaceholderText()"
                     @input="addProgramName($event)" v-model="nodeProgramName" />
                 <button className="btn mr-2 flex items-center" @click="createNewFlow()">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
@@ -12,7 +12,7 @@
                         <path fill-rule="evenodd"
                             d="M8 2a.5.5 0 0 1 .5.5v5h5a.5.5 0 0 1 0 1h-5v5a.5.5 0 0 1-1 0v-5h-5a.5.5 0 0 1 0-1h5v-5A.5.5 0 0 1 8 2Z" />
                     </svg>
-                    New Flow
+                    {{ t("flow.new") }}
                 </button>
                 <button className="btn mr-2 flex items-center" @click="addEditFlow(nodeProgramName); nodeProgramName = ''">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
@@ -20,7 +20,7 @@
                         <path
                             d="M9.293 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V4.707A1 1 0 0 0 13.707 4L10 .293A1 1 0 0 0 9.293 0zM9.5 3.5v-2l3 3h-2a1 1 0 0 1-1-1zM6.354 9.854a.5.5 0 0 1-.708-.708l2-2a.5.5 0 0 1 .708 0l2 2a.5.5 0 0 1-.708.708L8.5 8.707V12.5a.5.5 0 0 1-1 0V8.707L6.354 9.854z" />
                     </svg>
-                    Save Flow
+                    {{ t("flow.save") }}
                 </button>
                 <button className="btn mr-2  flex items-center" @click="duplicateFlow();">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
@@ -28,7 +28,7 @@
                         <path
                             d="M9.293 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V4.707A1 1 0 0 0 13.707 4L10 .293A1 1 0 0 0 9.293 0zM9.5 3.5v-2l3 3h-2a1 1 0 0 1-1-1zM8.5 7v1.5H10a.5.5 0 0 1 0 1H8.5V11a.5.5 0 0 1-1 0V9.5H6a.5.5 0 0 1 0-1h1.5V7a.5.5 0 0 1 1 0z" />
                     </svg>
-                    Duplicate Flow
+                    {{ t("flow.duplicate") }}
                 </button>
                 <button className="btn flex items-center" @click=" delprograme();">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
@@ -36,17 +36,16 @@
                         <path
                             d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1H2.5zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5zM8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5zm3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0z" />
                     </svg>
-                    Delete
+                    {{ t("flow.delete") }}
                 </button>
             </div>
         </div>
         <div class="flex flex-row w-full h-full">
             <div className="flex flex-col gap-2 w-[200px] mx-auto mr-3">
-                <h4 className="border-b-4 p-2 text-center font-bold text-slate-500">Node Types</h4>
+                <h4 className="border-b-4 p-2 text-center font-bold text-slate-500">{{ t("flow.types") }}</h4>
                 <div class="nodes-list" draggable="true" v-for="i in nodesList " :key="i.name" :node-item="i.item"
                     @dragstart=" drag($event)">
-                    <span class="node"><img className="m-1" src="../assets/product-request-line-item-svgrepo-com.svg"
-                            style="width: 20px; height: 20px;" alt="" srcset=""> {{ i.name }}</span>
+                    <span class="node"> <span v-html="i.icon" class="m-1 "></span> {{ t("nodes." + i.name) }}</span>
                 </div>
             </div>
             <div class="drawflow-container border border-slate-400 rounded w-full h-full relative">
@@ -69,7 +68,7 @@
                     </div>
                 </div>
                 <a className="absolute m-2 right-0 top-0 cursor-pointer text-primary-dark hover:text-primary-light"
-                    @click=" cleanFlow()" title="Press to clear">
+                    @click=" cleanFlow()">
                     <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" fill="currentColor"
                         class="bi bi-arrow-clockwise" viewBox="0 0 16 16">
                         <path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z" />
@@ -99,6 +98,7 @@ import Swal from 'sweetalert2'
 import { nodesList } from '../utils/nodesList'
 import { ipcRenderer } from 'electron';
 import { toast } from 'vue3-toastify';
+import { useI18n } from 'vue-i18n'
 import 'vue3-toastify/dist/index.css';
 
 import { useStore } from 'vuex';
@@ -107,6 +107,10 @@ import { mapActions } from 'vuex';
 export default {
     name: "DrawflowDashboard",
     inject: ['ipcRenderer'],
+    setup() {
+        const { t } = useI18n()
+        return { t }
+    },
     data() {
         return {
             selectedOption: null as any,
@@ -120,9 +124,11 @@ export default {
             node_select: '',
             node_last_move: null as any,
             nodesList: nodesList,
+            cleanFlowTitle:""
         };
     },
     async mounted() {
+        this.cleanFlowTitle=this.t("flow.clear")
         const internalInstance: any = getCurrentInstance();
         internalInstance.appContext.app._context.config.globalProperties.$df = this.editor;
         this.setHeaders([]);
@@ -206,6 +212,13 @@ export default {
     },
     methods: {
         ...mapActions(['setHeaders', 'setExcelData']),
+        getPlaceholderText() {
+            if (this.action === 'edit' || this.isEditName) {
+                return this.t('flow.editname');
+            } else {
+                return this.t('flow.addname');
+            }
+        },
         notify(message) {
             toast.success(message, {
                 autoClose: 3000,
@@ -263,24 +276,25 @@ export default {
             const jsonString = JSON.stringify(editorState);
             if (this.isEditName) {
                 if (nodeProgramName.length === 0) {
-                    Swal.fire('Empty Name', 'The field cannot be left empty, please input a name.', 'error')
+                    Swal.fire(this.t('messages.empty'), this.t('messages.textempty'), 'error')
                 }
                 else if (exist) {
-                    Swal.fire('Duplicate Name', 'The name already exists in the database, please choose a different name.', 'error');
+                    Swal.fire(this.t('messages.duplicate'), this.t('messages.textduplicate'), 'error');
                 } else {
                     await ipcRenderer.invoke('updateJsonFileName', { oldName: this.flowName, newName: nodeProgramName })
                         .then((result) => {
                             this.isEditName = false;
                             this.flowName = nodeProgramName;
                             this.selectedOption = nodeProgramName;
-                            this.notify("The modification has been completed")
+                            this.notify(this.t('messages.update'))
                         })
                         .catch(() => {
-                            Swal.fire(
-                                'Error!',
-                                'Something wrong.',
-                                'error'
-                            );
+                            Swal.fire({
+                                title: this.t('messages.error'),
+                                text: this.t('messages.wrong'),
+                                icon: 'error',
+                                showConfirmButton: false,
+                            })
                         });
 
                 }
@@ -288,22 +302,24 @@ export default {
             else {
                 if (this.action == 'add') {
                     if (nodeProgramName.length === 0) {
-                        Swal.fire('Empty Name', 'The field cannot be left empty, please input a name.', 'error')
+                        Swal.fire(this.t('messages.empty'), this.t('messages.textempty'), 'error')
                     } else {
                         const currentDate = new Date();
                         const currentYear = currentDate.getFullYear();
                         await ipcRenderer.invoke('insertJsonFile', { name: nodeProgramName, data: jsonString, year: currentYear })
                             .then((result) => {
-                                this.notify("The insertion has been completed")
+                                this.notify(this.t('messages.insertion'))
                                 this.selectedOption = nodeProgramName;
                                 this.action = 'edit';
                                 this.flowName = nodeProgramName;
                             })
                             .catch(() => {
-                                Swal.fire(
-                                    'Error!',
-                                    'Something wrong.',
-                                    'error'
+                                Swal.fire({
+                                    title: this.t('messages.error'),
+                                    text: this.t('messages.wrong'),
+                                    icon: 'error',
+                                    showConfirmButton: false,
+                                }
                                 );
                             });
                     }
@@ -311,13 +327,15 @@ export default {
                 else {
                     await ipcRenderer.invoke('updateJsonFile', { name: this.flowName, data: jsonString })
                         .then((result) => {
-                            this.notify("The modification has been completed")
+                            this.notify(this.t('messages.update'))
                         })
                         .catch(() => {
-                            Swal.fire(
-                                'Error!',
-                                'Something wrong.',
-                                'error'
+                            Swal.fire({
+                                title: this.t('messages.error'),
+                                text: this.t('messages.wrong'),
+                                icon: 'error',
+                                showConfirmButton: false,
+                            }
                             );
                         });
                 }
@@ -326,12 +344,12 @@ export default {
         },
         async delprograme() {
             Swal.fire({
-                title: 'Are you sure?',
-                text: "You won't be able to revert this!",
+                title: this.t('messages.sure'),
+                text: this.t('messages.textsure'),
                 icon: 'warning',
                 showCancelButton: true,
-                confirmButtonText: 'Yes, delete it!',
-                cancelButtonText: 'No, cancel!',
+                confirmButtonText: this.t('messages.yes'),
+                cancelButtonText: this.t('messages.no'),
                 confirmButtonColor: '#3085d6',
                 cancelButtonColor: '#d33',
                 reverseButtons: true
@@ -340,20 +358,23 @@ export default {
                     ipcRenderer.invoke('deleteJsonFile', { name: this.flowName })
                         .then((result) => {
                             Swal.fire({
-                               title: 'Deleted!',
-                               text: 'Your flow has been deleted.',
-                               icon: 'success',
-                               showConfirmButton: false,
-                               timer:1500
+                                title: this.t('messages.delete'),
+                                text: this.t('messages.flowdelete'),
+                                icon: 'success',
+                                showConfirmButton: false,
+                                timer: 1500,
+
                             }
                             )
                             this.createNewFlow();
                         })
                         .catch(() => {
-                            Swal.fire(
-                                'Error!',
-                                'Something wrong.',
-                                'error'
+                            Swal.fire({
+                                title: this.t('messages.error'),
+                                text: this.t('messages.wrong'),
+                                icon: 'error',
+                                showConfirmButton: false,
+                            }
                             );
                         });
 
@@ -361,8 +382,8 @@ export default {
                     result.dismiss === Swal.DismissReason.cancel
                 ) {
                     Swal.fire(
-                        'Cancelled',
-                        'Your imaginary file is safe :)',
+                        this.t('messages.cancel'),
+                        this.t('messages.flowsafe'),
                         'error'
                     )
                 }
@@ -408,12 +429,12 @@ export default {
         },
         cleanFlow() {
             Swal.fire({
-                title: 'Are you sure?',
-                text: "You want to clear the editor!",
+                title: this.t('messages.sure'),
+                text: this.t('messages.clear'),
                 icon: 'warning',
                 showCancelButton: true,
-                confirmButtonText: 'Clean!',
-                cancelButtonText: 'Cancel!',
+                confirmButtonText: this.t('flow.clean'),
+                cancelButtonText: this.t('messages.no'),
                 confirmButtonColor: '#3085d6',
                 cancelButtonColor: '#d33',
                 reverseButtons: true
@@ -422,7 +443,7 @@ export default {
                     this.editor.value.clear();
                     Swal.fire({
                         icon: 'success',
-                        html: '<h4 style="color:#6785c1;">The editor has been successfully cleared</h4>',
+                        html: '<h4 style="color:#6785c1;">' + this.t('messages.clearsuccess') + '</h4>',
                         width: 400,
                         showClass: {
                             popup: 'animate__animated animate__fadeInDown'

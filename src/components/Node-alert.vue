@@ -1,5 +1,5 @@
 <template>
-    <h2 id="node-title">Alert</h2>
+    <h2 id="node-title">{{ t("nodes.alert") }}</h2>
     <div ref="el" class="-end-px w-64 text-black">
         <select v-model="variable1" df-variable1 class="ml-1 w-14 text-primary-dark mr-2 h-6">
             <option v-for="header in headers" :key="header" :value="header">{{ header }}</option>
@@ -19,9 +19,13 @@
 <script lang="ts">
 import { getCurrentInstance, nextTick } from 'vue'
 import { mapState } from 'vuex';
-
+import { useI18n } from 'vue-i18n'
 export default {
     name: 'alert',
+    setup() {
+    const { t } = useI18n()
+    return { t }
+  },
     data() {
         return {
             el: null as any,

@@ -3,9 +3,7 @@
         <div class="flex items-center flex-end mb-2">
             <v-select v-model="selectedOption" label="name" class="h-9 text-primary-dark rounded w-60 mr-3"
                 @click="() => loadJsonFiles()" :options="programs" @option:selected="onChangeFile()"></v-select>
-            <button class="btn" @click="() => generateFlow()">Generate</button>
-            <input id="program-name" className="hidden input mr-2" placeholder="Add program name"
-                @input="addProgramName($event)" v-model="nodeProgramName" />
+            <button class="btn" @click="() => generateFlow()">{{ t("generator.btn") }}</button>
         </div>
         <div class="w-full h-full">
             <div class="drawflow-container border border-slate-400 rounded w-full h-full relative">
@@ -27,7 +25,7 @@
             </template>
             <v-card class="w-80 text-center">
                 <v-card-text>
-                    <h1 class="text-primary-dark font-mono">Please wait, the flow is being generated</h1>
+                    <h1 class="text-primary-dark font-mono">{{ t("generator.progress") }}</h1>
                     <v-card-actions>
                         <v-progress-linear indeterminate></v-progress-linear>
                     </v-card-actions>
@@ -54,6 +52,7 @@ import groupPdfBy from '../components/Node-groupPdfBy.vue'
 import alert from '../components/Node-alert.vue'
 import { nodesList } from '../utils/nodesList'
 import { ipcRenderer } from 'electron';
+import { useI18n } from 'vue-i18n'
 import quillCSS from 'quill/dist/quill.snow.css'
 import 'vue3-toastify/dist/index.css';
 import { mapActions } from 'vuex';
@@ -61,6 +60,10 @@ import { mapActions } from 'vuex';
 export default {
     name: "DrawflowDashboard",
     inject: ['ipcRenderer'],
+    setup() {
+      const { t } = useI18n()
+      return { t }
+    },
     data() {
         return {
             selectedOption: null as any,
@@ -179,9 +182,9 @@ export default {
                                     if (nameNode == "groupPdfBy") {
                                         pdfPathGrpBy = dataNode.data.pdfpath;
                                         this.groups.push(dataemployee[dataNode.data.group]);
-                                        await this.generateNodePdf(dataNode, this.dynamicConditionJson, dataemployee, dataNode.data.group);
+                                         this.generateNodePdf(dataNode, this.dynamicConditionJson, dataemployee, dataNode.data.group);
                                     } else {
-                                        await this.generateNodePdf(dataNode, this.dynamicConditionJson, dataemployee, null);
+                                         this.generateNodePdf(dataNode, this.dynamicConditionJson, dataemployee, null);
                                     }
 
                                 }
@@ -259,7 +262,7 @@ export default {
                                 }
                                 if (nbreAlert == 0) {
                                     this.dialog=false;
-                                    this.modalMessage('Alert', 'Your flow has been generated successfully, but ' + messagesAlert, 'warning');
+                                    this.modalMessage( this.t('messages.alert'), this.t('messages.generatealert') + messagesAlert, 'warning');
                                     this.alertMessages = [];
                                 }
                             }
@@ -270,7 +273,7 @@ export default {
                         if (nameNode == "end" && !messagesAlert) {
                             this.dialog = false;
                             if(this.nonGeneratedPdf){
-                             this.modalMessage('Alert', 'There are non-generated PDFs, Try Agian ', 'warning');
+                             this.modalMessage(this.t('messages.alert'), this.t('messages.nongeneratealert'), 'warning');
                             }
                         } else if (messagesAlert) {
                             messagesAlert = "";
@@ -476,7 +479,7 @@ export default {
                 }
             });
             if (!idEnd) {
-                this.modalMessage('Error!', 'To generate the flow, include at least one End node.', 'error')
+                this.modalMessage(this.t('messages.error'), this.t('messages.oneEnd'), 'error')
             }
             return idEnd;
         },
@@ -490,7 +493,7 @@ export default {
             });
             console.log(nbre);
             if (nbre >= 2) {
-                this.modalMessage('Error!', 'To generate the flow, include just one Generate Pdfs node.', 'error')
+                this.modalMessage(this.t('messages.error'),this.t('messages.onenodegenerate'), 'error')
             }
             return nbre;
         },
@@ -525,10 +528,10 @@ export default {
                 }
             });
             if (!idStart) {
-                this.modalMessage('Error!', 'To generate the flow, include Start node.', 'error')
+                this.modalMessage(this.t('messages.error'),this.t('messages.includeonestart'), 'error')
             }
             if (numStart > 1) {
-                this.modalMessage('Error!', 'Include just one Start node.', 'error')
+                this.modalMessage(this.t('messages.error'), this.t('messages.onestart'), 'error')
             }
             return idStart
         },
@@ -542,7 +545,7 @@ export default {
         });
 
         output.on('close', () => {
-            console.log('Zip folder created successfully.');
+            // console.log('Zip folder created successfully.');
         });
 
         archive.on('error', (err) => {
@@ -602,6 +605,7 @@ export default {
             });
 
         },
+        
         modalMessage(title: string, type: string, message: SweetAlertIcon) {
             Swal.fire(
                 title,
