@@ -2,54 +2,53 @@
   <div class="h-full w-full flex flex-col p-4">
     <div class="flex items-center justify-between mb-5">
       <div class="flex items-center">
-        <input class=" h-9 p-2 text-slate-700 border border-slate-400 hover:bg-gray-100 rounded"
-          placeholder="search value" v-model="searchValue" />
+        <input class=" h-9 p-2 text-slate-700 border border-slate-400 hover:bg-gray-100 rounded" v-model="searchValue" />
       </div>
       <div class="flex items-center">
         <v-row justify="center mr-2">
           <v-dialog v-model="dialog" scrollable width="auto">
             <template v-slot:activator="{ props }">
               <button class="w-36 text-sm btn" v-bind="props">
-                Import Data
+                {{ t("managers.import") }}
               </button>
             </template>
             <v-card>
-              <v-card-title>Data</v-card-title>
+              <v-card-title>{{ t("managers.data") }}</v-card-title>
               <v-divider></v-divider>
               <v-card-text style="min-height: 100px; " class=" min-w-full">
                 <label for="file-upload" class="input w-full">
-                  {{ selectedFileName || 'Choose File' }}
+                  {{ selectedFileName || t("managers.choose") }}
                 </label>
                 <input id="file-upload" type="file"
                   accept=".xls,.xlsx,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
                   class="hidden" @change="loadExcelFile" />
                 <EasyDataTable body-text-direction="center" header-text-direction="center" class="mt-4"
-                  :headers="headersExcel" :items="itemsExcel" :search-value="searchValue" :rowsPerPageMessage="message"
+                  :headers="headersExcel" :items="itemsExcel" :search-value="searchValue" 
                   buttons-pagination :rowsPerPage="5" :loading="loading">
                 </EasyDataTable>
               </v-card-text>
               <v-divider></v-divider>
               <v-card-actions class="flex justify-center">
                 <v-btn class="bg-primary-dark" variant="text" @click="dialog = false">
-                  Close
+                  {{ t("managers.close") }}
                 </v-btn>
                 <v-btn class="bg-primary-dark" variant="text" @click="dialog = false; pushNewData();">
-                  Next
+                  {{ t("managers.next") }}
                 </v-btn>
               </v-card-actions>
             </v-card>
           </v-dialog>
         </v-row>
-        <button class="w-36 text-sm btn mr-2" @click="() => downloadExcel()">Download Data</button>
-        <button class="w-36 text-sm btn mr-2" @click="() => addManager()">Add Manager</button>
-        <button class="w-36 text-sm btn" @click="() => deleteManagers()">Delete Manager</button>
+        <button class="w-40 text-sm btn mr-2" @click="() => downloadExcel()">{{ t("managers.download") }}</button>
+        <button class="w-40 text-sm btn mr-2" @click="() => addManager()">{{ t("managers.add") }}</button>
+        <button class="w-40 text-sm btn" @click="() => deleteManagers()">{{ t("managers.delete") }}</button>
       </div>
     </div>
     <div class="w-full h-full">
       <EasyDataTable table-class-name="customize-table" body-text-direction="center" header-text-direction="center"
         v-model:items-selected="itemsSelected" :headers="headers" :items="items" :rowsPerPage="17"
         :search-field="['first_name', 'last_name', 'email', 'category']" :search-value="searchValue"
-        :rowsPerPageMessage="message" :loading="loading" border-cell buttons-pagination alternating>
+         :loading="loading" border-cell buttons-pagination alternating>
         <template #header-category="header">
           <div class="flex flex-row customize-header">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="mr-2 bi bi-person"
@@ -119,11 +118,15 @@ import { ipcRenderer } from 'electron';
 import type { Header, Item } from "vue3-easy-data-table";
 import Swal from 'sweetalert2'
 import * as XLSX from 'xlsx';
-
+import { useI18n } from 'vue-i18n'
 
 export default {
   name: "Managers",
   inject: ['ipcRenderer'],
+  setup() {
+    const { t } = useI18n()
+    return { t }
+  },
   data() {
     return {
       managers: [] as any,
@@ -134,14 +137,16 @@ export default {
       searchField: "first_name",
       searchValue: "",
       itemsSelected: [] as Item[],
-      message: "managers per page",
+      message: this.t("managers.table"),
       loading: true,
       dialog: false,
       selectedFileName: "",
-      dataRows: []
+      dataRows: [],
+
     };
   },
   async mounted() {
+   
     this.headers = [
       { text: "First Name", value: "first_name" },
       { text: "Last Name ", value: "last_name" },
@@ -176,7 +181,7 @@ export default {
     },
     async pushNewData() {
       await Swal.fire({
-        html: '<h4>Would you like to append data to the existing data or reset the array and add the new data?</h4>',
+        html: '<h4>' + this.t("messages.pushdata") + '</h4>',
         showDenyButton: true,
         showCancelButton: true,
         confirmButtonText: 'Merge',
@@ -184,11 +189,11 @@ export default {
       }).then((result) => {
         if (result.isConfirmed) {
           ipcRenderer.invoke('insertMultiManagers', JSON.parse(JSON.stringify(this.dataRows)));
-          Swal.fire('Saved!', '', 'success')
+          Swal.fire({title:this.t("messages.save"),text: '',icon: 'success',showConfirmButton: false,timer: 1500})
         } else if (result.isDenied) {
           ipcRenderer.invoke('EmptyManagers');
           ipcRenderer.invoke('insertMultiManagers', JSON.parse(JSON.stringify(this.dataRows)));
-          Swal.fire('Saved!', '', 'success')
+          Swal.fire({title:this.t("messages.save"),text: '',icon: 'success',showConfirmButton: false,timer: 1500})
         }
       })
       this.items = await this.getManagersFromDb();
@@ -253,12 +258,12 @@ export default {
         const [first_name, last_name, email, category] = formValues;
 
         if (this.isEmptyValue(first_name) || this.isEmptyValue(last_name) || this.isEmptyValue(email) || this.isEmptyValue(category)) {
-          Swal.fire('Missing Fields', 'Please fill in all the required fields.', 'error');
+          Swal.fire(this.t("messages.missing"), this.t("messages.textmissing"), 'error');
           return;
         }
 
         if (!this.isValidEmail(email)) {
-          Swal.fire('Invalid Email', 'Please enter a valid email address.', 'error');
+          Swal.fire(this.t("messages.invalidemail"), this.t("messages.textemail"), 'error');
           return;
         }
 
@@ -267,52 +272,60 @@ export default {
             this.items = await this.getManagersFromDb()
           )
           .catch((err) => {
-            Swal.fire('Something Error', err.message, 'error');
+            Swal.fire({
+              title: this.t('messages.error'),
+              text: this.t('messages.wrong'),
+              icon: 'error',
+              showConfirmButton: false,
+            }
+            );
           });
       }
     },
     async deleteManagers() {
       if (this.itemsSelected.length === 0) {
-        Swal.fire('Error', 'Please select a row to delete.', 'error');
+        Swal.fire(this.t('messages.error'), this.t('messages.selectrow'), 'error');
       } else {
         Swal.fire({
-        title: 'Are you sure?',
-        text: "You won't be able to revert this!",
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonText: 'Yes, delete it!',
-        cancelButtonText: 'No, cancel!',
-        confirmButtonColor: '#3085d6',
-        cancelButtonColor: '#d33',
-        reverseButtons: true
-      }).then(async (result) => {
-        if (result.isConfirmed) {
-                 var emails = [] as any;
-        var success = false;
-        for (var i = 0; i < this.itemsSelected.length; i++) {
-          emails.push(this.itemsSelected[i].email)
-        }
-        await ipcRenderer.invoke('deleteManagersbyemail', emails)
-          .then(changes => {
-            Swal.fire({title:'Success', text:"Successful deletion. " + changes + " lines removed.", icon:'success', showConfirmButton: false,
-                               timer:1500});
-            success = true;
-          })
-          .catch(error => {
-            Swal.fire('Error', error.message, 'error');
-          });
-        if (success) {
-          this.items = await this.getManagersFromDb();
-        }
-        }
-        else if (result.dismiss === Swal.DismissReason.cancel) {
-          Swal.fire(
-            'Cancelled',
-            'You have cancelled the deletion :)',
-            'error'
-          );
-        }
-      })
+          title: this.t('messages.sure'),
+          text: this.t('messages.textsure'),
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonText: this.t('messages.yes'),
+          cancelButtonText: this.t('messages.no'),
+          confirmButtonColor: '#3085d6',
+          cancelButtonColor: '#d33',
+          reverseButtons: true
+        }).then(async (result) => {
+          if (result.isConfirmed) {
+            var emails = [] as any;
+            var success = false;
+            for (var i = 0; i < this.itemsSelected.length; i++) {
+              emails.push(this.itemsSelected[i].email)
+            }
+            await ipcRenderer.invoke('deleteManagersbyemail', emails)
+              .then(changes => {
+                Swal.fire({
+                  title: this.t('messages.success'), text: this.t('messages.succedelet') + changes + this.t('messages.linesremoved'), icon: 'success', showConfirmButton: false,
+                  timer: 1500
+                });
+                success = true;
+              })
+              .catch(error => {
+                Swal.fire('Error', error.message, 'error');
+              });
+            if (success) {
+              this.items = await this.getManagersFromDb();
+            }
+          }
+          else if (result.dismiss === Swal.DismissReason.cancel) {
+            Swal.fire(
+              this.t('messages.cancel'),
+              this.t('messages.textcanceled'),
+              'error'
+            );
+          }
+        })
       }
     },
     async editManager(manager: any) {
@@ -344,21 +357,27 @@ export default {
         const [first_name, last_name, email, category] = formValues;
 
         if (this.isEmptyValue(first_name) || this.isEmptyValue(last_name) || this.isEmptyValue(email) || this.isEmptyValue(category)) {
-          Swal.fire('Missing Fields', 'Please fill in all the required fields.', 'error');
+          Swal.fire(this.t("messages.missing"), this.t("messages.textmissing"), 'error');
           return;
         }
 
         if (!this.isValidEmail(email)) {
-          Swal.fire('Invalid Email', 'Please enter a valid email address.', 'error');
+          Swal.fire(this.t("messages.invalidemail"), this.t("messages.textemail"), 'error');
           return;
         }
         await ipcRenderer.invoke('editManagerByEmail', [first_name, last_name, email, category, oldemail])
           .then(
             this.items = await this.getManagersFromDb()
-            
+
           )
           .catch((err) => {
-            Swal.fire('Something Error', err.message, 'error');
+            Swal.fire({
+              title: this.t('messages.error'),
+              text: this.t('messages.wrong'),
+              icon: 'error',
+              showConfirmButton: false,
+            }
+            );
           });
       }
     },

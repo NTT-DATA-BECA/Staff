@@ -1,9 +1,9 @@
 <template>
   <div ref="el">
-    <h2 id="node-title">Path</h2>
+    <h2 id="node-title">{{ t("nodes.path") }}</h2>
     <input v-model="pdfpath" class="text-black mb-1 ml-2 w-36 align-middle" type="text" df-pdfpath/>
     <select v-model="group" df-group class="w-36 text-primary-dark ml-2 h-6">
-            <option disabled>choose a group</option>
+            <option disabled>{{ t("nodes.group") }}</option>
             <option v-for="header in headers" :key="header" :value="header">{{ header }}</option>
     </select>
   </div>
@@ -12,9 +12,13 @@
 <script lang="ts">
 import { getCurrentInstance, nextTick } from 'vue'
 import { mapState } from 'vuex';
-
+import { useI18n } from 'vue-i18n'
 export default {
     name: 'groupPdfBy',
+    setup() {
+    const { t } = useI18n()
+    return { t }
+  },
     data() {
         return {
             el: null as any,

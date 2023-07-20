@@ -4,12 +4,18 @@ import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import electron, { onstart } from 'vite-plugin-electron'
 import pkg from './package.json'
-
+import { fileURLToPath, URL } from 'node:url'
+import { resolve, dirname } from 'node:path'
+import VueI18nPlugin from '@intlify/unplugin-vue-i18n/vite'
 rmSync('dist', { recursive: true, force: true }) // v14.14.0
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
     vue(),
+    VueI18nPlugin({
+      runtimeOnly: false,
+      include: resolve(dirname(fileURLToPath(import.meta.url)), './src/assets/i18n/**'), // provide a path to the folder where you'll store translation data (see below)
+    }),
     electron({
       main: {
         entry: 'electron/main/index.ts',
@@ -41,6 +47,11 @@ export default defineConfig({
       renderer: {},
     }),
   ],
+  resolve: {
+    alias: {
+      '@': fileURLToPath(new URL('./src', import.meta.url))
+    }
+  },
   server: process.env.VSCODE_DEBUG ? {
     host: pkg.debug.env.VITE_DEV_SERVER_HOSTNAME,
     port: pkg.debug.env.VITE_DEV_SERVER_PORT,
