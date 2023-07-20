@@ -200,16 +200,16 @@ async function createWindow() {
     }
   });
 
-  const year = new Date().getFullYear();
 
-ipcMain.handle('getJsonFiles', async (event, arg) => {
-  return await new Promise((resolve, reject) => {
-    db.all(`SELECT name FROM flow WHERE year = ?`, [year], (err, rows) => {
-      if (err) reject(err);
-      resolve(rows.map(row => row.name));
+  ipcMain.handle('getJsonFiles', async (event, arg) => {
+    const year = new Date().getFullYear();
+    return await new Promise((resolve, reject) => {
+      db.all(`SELECT name FROM flow WHERE year = ?`, [year], (err, rows) => {
+        if (err) reject(err);
+        resolve(rows.map(row => row.name));
+      });
     });
   });
-});
 
   ipcMain.handle('getFlowsByYear', async (event, arg) => {
    
