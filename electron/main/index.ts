@@ -200,14 +200,17 @@ async function createWindow() {
     }
   });
 
-  ipcMain.handle('getJsonFiles', async (event, arg) => {
-    return await new Promise((resolve, reject) => {
-      db.all(`SELECT name FROM flow`, [], (err, rows) => {
-        if (err) reject(err)
-        resolve(rows.map(row => row.name))
-      })
-    })
-  })
+  const year = new Date().getFullYear();
+
+ipcMain.handle('getJsonFiles', async (event, arg) => {
+  return await new Promise((resolve, reject) => {
+    db.all(`SELECT name FROM flow WHERE year = ?`, [year], (err, rows) => {
+      if (err) reject(err);
+      resolve(rows.map(row => row.name));
+    });
+  });
+});
+
   ipcMain.handle('getFlowsByYear', async (event, arg) => {
    
       return await new Promise((resolve, reject) => {
@@ -298,7 +301,7 @@ async function createWindow() {
 
   ipcMain.handle('getYearsFile', async (event, arg) => {
     return await new Promise((resolve, reject) => {
-      db.all(`SELECT DISTINCT year FROM files`, [], (err, rows) => {
+      db.all(`SELECT DISTINCT years FROM files`, [], (err, rows) => {
         if (err) reject(err)
         resolve(rows.map(row => row.year))
       })
@@ -362,7 +365,7 @@ async function createWindow() {
 
   ipcMain.handle('insertQuillcontent', async (event, data) => {
     return new Promise((resolve, reject) => {
-      db.run('INSERT INTO files (name, data, year) VALUES (?, ?, ?)', [data.name, data.data, data.year], (err) => {
+      db.run('INSERT INTO files (name, data, years) VALUES (?, ?, ?)', [data.name, data.data, data.years], (err) => {
         if (err) {
           console.error(`Error inserting data into file table: ${err}`);
           reject(err);
