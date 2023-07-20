@@ -22,9 +22,11 @@
                     </svg>
                     Save Flow
                 </button>
-                <button className="btn mr-2  flex items-center" @click="duplicateFlow(items);">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="mr-2 bi bi-file-earmark-plus-fill" viewBox="0 0 16 16">
-                    <path d="M9.293 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V4.707A1 1 0 0 0 13.707 4L10 .293A1 1 0 0 0 9.293 0zM9.5 3.5v-2l3 3h-2a1 1 0 0 1-1-1zM8.5 7v1.5H10a.5.5 0 0 1 0 1H8.5V11a.5.5 0 0 1-1 0V9.5H6a.5.5 0 0 1 0-1h1.5V7a.5.5 0 0 1 1 0z"/>
+                <button className="btn mr-2  flex items-center" @click="duplicateFlow();">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                        class="mr-2 bi bi-file-earmark-plus-fill" viewBox="0 0 16 16">
+                        <path
+                            d="M9.293 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V4.707A1 1 0 0 0 13.707 4L10 .293A1 1 0 0 0 9.293 0zM9.5 3.5v-2l3 3h-2a1 1 0 0 1-1-1zM8.5 7v1.5H10a.5.5 0 0 1 0 1H8.5V11a.5.5 0 0 1-1 0V9.5H6a.5.5 0 0 1 0-1h1.5V7a.5.5 0 0 1 1 0z" />
                     </svg>
                     Duplicate Flow
                 </button>
@@ -39,46 +41,43 @@
             </div>
         </div>
         <div class="sidebar-wrapper">
-            <aside :class="`${showSidebar ? 'is-expanded' : showSidebar}`">     
-                <link href="https://fonts.googleapis.com/css2?family=Material+Icons" rel="stylesheet">        
+            <aside :class="`${showSidebar ? 'is-expanded' : showSidebar}`">
+                <link href="https://fonts.googleapis.com/css2?family=Material+Icons" rel="stylesheet">
                 <button class=" menu-toggle-wrap menu-toggle" @click="showSidebar = !showSidebar">
-                   <span class="material-icons">keyboard_double_arrow_left</span>
+                    <span class="material-icons">keyboard_double_arrow_left</span>
                 </button>
                 <div id="app">
-                    <div>
+                    <div class="scroll-container">
                         <div style="display: flex">
                             <vue3-tree-vue :items="items"
-                            :hideGuideLines="false"
-                            :expandAll="true"
-                            class="tree-container"
+                                :hideGuideLines="false"
+                                v-model:selectedItem="selectedItem"
+                                @onSelect="handleFlowClick(selectedItem)"
+                                :expandAll="true"
+                                style="width: 500px; display: block; border-right: 1px solid gray"
                             >
-                            
-                            <template v-slot:item-expander="item">
-                                <div class="d-flex" style="display: flex; justify-content: center; vertical-align: center; justify-items: center; align-items: center; margin-right: 10px;" 
-                                :style="{background: item.type == 'folder' ? 'blue' : 'white', height: '14px', width: '14px', 'margin-right': '0.2em', 'border-radius': '4px'}"
-                                @click="onChangeFlow(item)"
-                                >
-                                <span style="color:black;">-</span>
-                                </div>
-
-                            </template>
+                                        <template v-slot:item-expander="item">
+                                            <div class="d-flex" style="display: flex; justify-content: center; vertical-align: center; justify-items: center; align-items: center; margin-right: 10px;" :style="{background: item.type == 'folder' ? 'blue' : 'white', height: '14px', width: '14px', 'margin-right': '0.2em', 'border-radius': '4px'}">
+                                            <span style="color: black;">-</span>
+                                            </div>
+                                        </template>
                             </vue3-tree-vue>
-
-                        
                         </div>
                     </div>
                 </div>
             </aside>
-            <div className="flex flex-col gap-2 w-[170px] mx-auto mr-3" >
-                <div className="relative w-[170px] mx-auto mr-3">
+            <div className="flex flex-col gap-2 w-[170px] mx-auto mr-20">
+                <div className="relative w-[200px] mx-auto mr-40">
                     <button class="menu-toggle absolute left-0 top-0" @click="showSidebar = !showSidebar">
                         <span class="material-icons">keyboard_double_arrow_right</span>
                     </button>
                     <h4 className="border-b-4 p-2 text-center font-bold text-slate-500 ">Type Nodes</h4>
-            </div>
-            <div class="nodes-list" draggable="true" v-for="i in nodesList" :key="i.name" :node-item="i.item" @dragstart="drag($event)">
-            <span class="node"><img className="m-1" src="../assets/product-request-line-item-svgrepo-com.svg" style="width: 20px; height: 20px;" alt="" srcset=""> {{ i.name }}</span>
-            </div>
+                </div>
+                <div class="nodes-list" draggable="true" v-for="i in nodesList" :key="i.name" :node-item="i.item"
+                    @dragstart="drag($event)">
+                    <span class="node"><img className="m-1" src="../assets/product-request-line-item-svgrepo-com.svg"
+                            style="width: 20px; height: 20px;" alt="" srcset=""> {{ i.name }}</span>
+                </div>
             </div>
             <div class="drawflow-container border border-slate-400 rounded w-full h-full relative">
                 <div id="drawflow" @drop=" drop($event)" @dragover=" allowDrop($event)">
@@ -108,7 +107,8 @@
                             d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z" />
                     </svg>
                 </a>
-            </div>
+        </div>
+
         </div>
     </div>
 </template>
@@ -132,11 +132,10 @@ import { ipcRenderer } from 'electron';
 import { toast } from 'vue3-toastify';
 import 'vue3-toastify/dist/index.css';
 import { useStore } from 'vuex';
-import {mapActions } from 'vuex';
+import { mapActions } from 'vuex';
 import Vue3TreeVue from '../components/tree-component.vue';
-import { ref } from '@vue/reactivity';
-import { defineComponent } from '@vue/runtime-core';
-import { onMounted} from 'vue';
+import { TreeViewItem } from 'src/Tree/types';
+
 
 export default {
     name: "DrawflowDashboard",
@@ -157,13 +156,16 @@ export default {
             node_select: '',
             node_last_move: null as any,
             nodesList: nodesList,
-            items: [] as { name: string; id: number; type: string; children: any[] }[],
+            items: [] as TreeViewItem[],
+            selectedItem: null as any,
+            selectedItems: null as any,
+            onItemSelected: [] as any,
             isExpanded: localStorage.getItem('is_expanded') === 'true',
-            showSidebar: true
+            showSidebar: false
 
         };
     },
-   async mounted() {
+    async mounted() {
         const internalInstance: any = getCurrentInstance();
         internalInstance.appContext.app._context.config.globalProperties.$df = this.editor;
         this.setHeaders([]);
@@ -194,13 +196,13 @@ export default {
         let headers = store.getters.getHeaders // Access headers from Vuex getter
         let excelData = store.getters.getExcelData // Access excelData from Vuex getter
         let symbole = ""
-        let pdfpath = ""      
+        let pdfpath = ""
         let message = ""
         let variable2 = ""
         let variable1 = ""
         let group = ""
-        let myzip=""
-        const updateNodeOperation = (output_class: any, outputTemplate: any, outputExcelName: any, outputHeaders: any, outputExcelData: any, outputSymbole: any, outputpdfpath: any, outputmessage: any, outputVariable2: any, outputVariable1: any,outputMyzip:any ,outputGroup:any,inputNodeData: any) => {
+        let myzip = ""
+        const updateNodeOperation = (output_class: any, outputTemplate: any, outputExcelName: any, outputHeaders: any, outputExcelData: any, outputSymbole: any, outputpdfpath: any, outputmessage: any, outputVariable2: any, outputVariable1: any, outputMyzip: any, outputGroup: any, inputNodeData: any) => {
             if (output_class == "input_1") {
                 mytemplate = outputTemplate;
                 excelName = outputExcelName;
@@ -211,11 +213,11 @@ export default {
                 message = outputmessage;
                 variable2 = outputVariable2;
                 variable1 = outputVariable1;
-                myzip= outputMyzip;
-                group=outputGroup;
+                myzip = outputMyzip;
+                group = outputGroup;
             }
             const input_id = inputNodeData.id;
-            this.editor.value.updateNodeDataFromId(input_id, { mytemplate: mytemplate, excelName: excelName, headers: headers, excelData: excelData, symbole: symbole, pdfpath: pdfpath, message: message, variable1: variable1, variable2: variable2,myzip: myzip,group:group});
+            this.editor.value.updateNodeDataFromId(input_id, { mytemplate: mytemplate, excelName: excelName, headers: headers, excelData: excelData, symbole: symbole, pdfpath: pdfpath, message: message, variable1: variable1, variable2: variable2, myzip: myzip, group: group });
         }
         this.editor.value.on("import", () => {
             const editorData = this.editor.value.export().drawflow.Home.data;
@@ -236,21 +238,21 @@ export default {
         });
 
         this.editor.value.on("nodeSelected", () => {
-        const editorContent = this.editor.value.export();
-        document.addEventListener('keydown', (event) => {
-        if (event.ctrlKey && event.key === 'v') {        
-            this.editor.value.import(editorContent);
-        }
-    });
+            const editorContent = this.editor.value.export();
+            document.addEventListener('keydown', (event) => {
+                if (event.ctrlKey && event.key === 'v') {
+                    this.editor.value.import(editorContent);
+                }
+            });
         });
         this.loadItems();
     },
-    methods: {     
+    methods: {
         ...mapActions(['setHeaders', 'setExcelData']),
         toggleMenu() {
-      this.isExpanded = !this.isExpanded;
-      localStorage.setItem('is_expanded', this.isExpanded.toString());
-    },
+            this.isExpanded = !this.isExpanded;
+            localStorage.setItem('is_expanded', this.isExpanded.toString());
+        },
         notify(message) {
             toast.success(message, {
                 autoClose: 3000,
@@ -293,7 +295,7 @@ export default {
             pos_y = pos_y * (this.editor.value.precanvas.clientHeight / (this.editor.value.precanvas.clientHeight * this.editor.value.zoom)) - (this.editor.value.precanvas.getBoundingClientRect().y
                 * (this.editor.value.precanvas.clientHeight / (this.editor.value.precanvas.clientHeight * this.editor.value.zoom)));
             const nodeSelected: any = nodesList.find(object => object.item === name);
-            this.editor.value.addNode(name, nodeSelected.input, nodeSelected.output, pos_x, pos_y, name, { mytemplate: "", excelName: "", headers: [], excelData: "",symbole: "", pdfpath: "", message: "", varaible1: "", varaible2: "",myzip:"" }, name, "vue");
+            this.editor.value.addNode(name, nodeSelected.input, nodeSelected.output, pos_x, pos_y, name, { mytemplate: "", excelName: "", headers: [], excelData: "", symbole: "", pdfpath: "", message: "", varaible1: "", varaible2: "", myzip: "" }, name, "vue");
         },
         addProgramName(event: any) {
             this.programName = event.target.value;
@@ -337,7 +339,7 @@ export default {
                     } else {
                         const currentDate = new Date();
                         const currentYear = currentDate.getFullYear();
-                        await ipcRenderer.invoke('insertJsonFile', { name: nodeProgramName, data: jsonString,year:currentYear })
+                        await ipcRenderer.invoke('insertJsonFile', { name: nodeProgramName, data: jsonString, year: currentYear })
                             .then((result) => {
                                 this.notify("The insertion has been completed")
                                 this.selectedOption = nodeProgramName;
@@ -367,7 +369,7 @@ export default {
                         });
                 }
             }
-            
+
         },
         async delprograme() {
             Swal.fire({
@@ -409,7 +411,7 @@ export default {
                     )
                 }
             })
-          
+
         },
         searchNodeExcel() {
             const editorData = this.editor.value.export().drawflow.Home.data;
@@ -437,8 +439,8 @@ export default {
                         }
                     }
                 };
-                this.editor.value.import(ob);      
-                const nodeExcelData :any=this.searchNodeExcel();
+                this.editor.value.import(ob);
+                const nodeExcelData: any = this.searchNodeExcel();
                 if (nodeExcelData) {
                     var headNames = [] as string[];
                     var dataRows = [] as string[];
@@ -460,69 +462,60 @@ export default {
             this.nodeProgramName = "";
             this.cleanEditor();
             this.setHeaders([]);
-           this.setExcelData([]);
+            this.setExcelData([]);
         },
         showinput() {
             this.isEditName = true;
         },
-        duplicateFlow(item){
-            const nameprograme=this.selectedOption;
+        duplicateFlow() {
+            const nameprograme = this.selectedOption;
             const editorState = this.editor.value.export();
             this.createNewFlow()
-            this.nodeProgramName=nameprograme+"-copy";
+            this.nodeProgramName = nameprograme + "-copy";
             this.editor.value.import(editorState);
-            const nodeExcelData :any=this.searchNodeExcel();
-                if (nodeExcelData) {
-                    var headNames = [] as string[];
-                    var dataRows = [] as string[];
-                    headNames = nodeExcelData.data.headers;
-                    dataRows = nodeExcelData.data.excelData;
-                    this.setHeaders(headNames);
-                    this.setExcelData(dataRows);
-                }
+            const nodeExcelData: any = this.searchNodeExcel();
+            if (nodeExcelData) {
+                var headNames = [] as string[];
+                var dataRows = [] as string[];
+                headNames = nodeExcelData.data.headers;
+                dataRows = nodeExcelData.data.excelData;
+                this.setHeaders(headNames);
+                this.setExcelData(dataRows);
+            }
         },
         async loadItems() {
             try {
-                const years = await ipcRenderer.invoke('getYears');
+                const years = await ipcRenderer.invoke('getYearsFlow');
                 this.items = [
-                {
-                    name: 'Years',
-                    id: 1,
-                    type: 'string',
-                    children: await Promise.all(
-                    years.map(async (year: number) => {
-                        const flows = await ipcRenderer.invoke('getFlowsByYear', { year });
-                        return {
-                        name: year.toString(),
-                        id: year,
-                        type: 'number',
-                        children: flows.map((flow: string) => ({
-                            name: flow,
-                            type: 'string',
-                            id: flow,
-                            children: [{
-                                name: 's',
-                                id: 2,
-                                type: 'string',
-                            }]
-                            
-                            
+                    {
+                        name: 'Years',
+                        id: years,
+                        type: 'string',
+                        children: await Promise.all(
+                            years.map(async (year: number) => {
+                                const flows = await ipcRenderer.invoke('getFlowsByYear', { year });
+                                return {
+                                    name: year.toString(),
+                                    id: year,
+                                    type: 'number',
+                                    children: flows.map((flow: string) => ({
+                                        name: flow,
+                                        type: 'string',
+                                        id: flow,
 
-
-                        })),
-                        };
-                    })
-                    ),
-                },
+                                    })),
+                                };
+                            })
+                        ),
+                    },
                 ];
             } catch (error) {
                 console.error(error);
             }
         },
-        async onChangeFlow(item){
-          
-            const selectedFlow = item.name;
-            this.action = "edit";
+        async handleFlowClick(selectedItem) {
+
+            const selectedFlow = selectedItem?.name;
             this.flowName = selectedFlow;
             this.isEditName = false;
             const response = await ipcRenderer.invoke('getJsonFile', { name: selectedFlow });
@@ -536,8 +529,8 @@ export default {
                         }
                     }
                 };
-                this.editor.value.import(ob);      
-                const nodeExcelData :any=this.searchNodeExcel();
+                this.editor.value.import(ob);
+                const nodeExcelData: any = this.searchNodeExcel();
                 if (nodeExcelData) {
                     var headNames = [] as string[];
                     var dataRows = [] as string[];
@@ -547,7 +540,7 @@ export default {
                     this.setExcelData(dataRows);
                 }
             }
-        },        
+        },
 
 
     }
@@ -555,96 +548,122 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-  .node {
-    @apply bg-primary-light border border-collapse text-white p-3 rounded w-full cursor-pointer sm:text-sm flex hover:bg-primary-dark hover:border hover:border-gray-800;
-  }
+.node {
+    @apply bg-primary-light border border-collapse text-white p-3 rounded w-60  cursor-pointer sm:text-sm flex hover:bg-primary-dark hover:border hover:border-gray-800;
+}
 
-  #drawflow {
+#drawflow {
     text-align: initial;
     width: 100%;
     height: 100%;
     background: #f1eeee;
     background-size: 20px 20px;
     background-image: radial-gradient(#c5c3c3 1px, transparent 1px);
-  }
-  .tree-container {
-    margin-left: auto;
-  height: 600px; 
-  overflow-y: scroll; 
 }
-  .sidebar-wrapper {
+
+.scroll-container {
+        overflow-y: scroll;
+        max-height: 599px; /* Adjust the maximum height as needed */
+        margin-right: -6.5%;
+    }
+
+    /* Width */
+    .scroll-container::-webkit-scrollbar {
+        width: 10px;
+    }
+    
+    /* Track */
+    .scroll-container::-webkit-scrollbar-track {
+        background:#f1eeee;
+    }
+    
+    /* Handle */
+    .scroll-container::-webkit-scrollbar-thumb {
+        @apply bg-primary-light;        
+        border-radius: 5px;
+    }
+    
+    /* Handle on hover */
+    .scroll-container::-webkit-scrollbar-thumb:hover {
+        @apply bg-primary-light        
+    }
+
+.sidebar-wrapper {
     position: relative;
     display: flex;
     overflow: hidden;
-    
-  }
-  aside {
-    
+
+}
+
+aside {
+
     display: none;
-    
+
 
     .flex {
-      flex: 1 1 0%;
+        flex: 1 1 0%;
     }
-    
+
 
     .menu-toggle-wrap {
-      display: flex;
-      justify-content: flex-end;
-      margin-bottom: 1rem;
-      position: relative;
-      top: 0;
-      transition: 0.2s ease-in-out;
-      
-      .menu-toggle {
+        display: flex;
+        justify-content: flex-end;
+        margin-bottom: 1rem;
+        position: relative;
+        top: 0;
         transition: 0.2s ease-in-out;
-        .material-icons {
-          font-size: 2rem;
-          color: white;
-          transition: 0.2s ease-out;
-         
 
+        .menu-toggle {
+            transition: 0.2s ease-in-out;
+
+            .material-icons {
+                font-size: 2rem;
+                color: white;
+                transition: 0.2s ease-out;
+
+
+            }
+
+            &:hover {
+                .material-icons {
+                    color: white;
+                    transform: translateX(1rem);
+                }
+            }
         }
-        &:hover {
-          .material-icons {
-            color: white;
-            transform: translateX(1rem);
-          }
-        }
-      }
     }
+
     &.is-expanded {
         display: flex;
         flex-direction: column;
-        @apply  bg-primary-dark text-white font-bold;
+        @apply bg-primary-dark text-white font-bold;
         overflow: hidden;
         padding: 1rem;
         transition: width 0.2s ease-in-out;
-        width:170px;
+        width: 239px;
         position: absolute;
         top: 0;
         left: 0;
         bottom: 0;
         z-index: 99;
-      .menu-toggle-wrap {
-        top: -1rem;
 
-        .menu-toggle {
-          transform: rotate(-180deg);
+        .menu-toggle-wrap {
+            top: -1rem;
+
+            .menu-toggle {
+                transform: rotate(-180deg);
+            }
         }
-      }
     }
 
     @media (max-width: 1024px) {
-      position: absolute;
-      z-index: 99;
+        position: absolute;
+        z-index: 99;
     }
-  }
-  
-  
+}
 
-  * {
+
+* {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
     font-size: 14px;
-}
-</style>
+}</style>

@@ -31,7 +31,7 @@ const preload = join(__dirname, '../preload/index.js')
 const url = process.env.VITE_DEV_SERVER_URL as string
 const indexHtml = join(process.env.DIST, 'index.html')
 
-async function createWindow() {
+async function createWindow() { 
   Menu.setApplicationMenu(Menu.buildFromTemplate([]));
   // Create a new instance of the database
   let db = new sqlite3.Database('./db/flows.db', sqlite3.OPEN_READWRITE, (err) => {
@@ -217,6 +217,16 @@ async function createWindow() {
         });
       });
   });
+
+  ipcMain.handle('getFilesByYear', async (event, arg) => {
+   
+    return await new Promise((resolve, reject) => {
+      db.all(`SELECT name FROM files WHERE year = ?`, [arg.year], (err, rows) => {
+        if (err) reject(err);
+        resolve(rows.map(row => row.name));
+      });
+    });
+});
   
   ipcMain.handle('updateJsonFileName', async (event, arg) => {
     return new Promise<void>((resolve, reject) => {
@@ -277,7 +287,7 @@ async function createWindow() {
       return null;
     }
   });
-  ipcMain.handle('getYears', async (event, arg) => {
+  ipcMain.handle('getYearsFlow', async (event, arg) => {
     return await new Promise((resolve, reject) => {
       db.all(`SELECT DISTINCT year FROM flow`, [], (err, rows) => {
         if (err) reject(err)
@@ -285,7 +295,16 @@ async function createWindow() {
       })
     })
   })
- 
+
+  ipcMain.handle('getYearsFile', async (event, arg) => {
+    return await new Promise((resolve, reject) => {
+      db.all(`SELECT DISTINCT year FROM files`, [], (err, rows) => {
+        if (err) reject(err)
+        resolve(rows.map(row => row.year))
+      })
+    })
+  })
+
   ipcMain.handle('insertJsonFile', async (event, arg) => {
     return new Promise<void>((resolve, reject) => {
       const formattedData = JSON.stringify(arg.data).replace(/\\/g, '').slice(1, -1);
@@ -343,7 +362,7 @@ async function createWindow() {
 
   ipcMain.handle('insertQuillcontent', async (event, data) => {
     return new Promise((resolve, reject) => {
-      db.run('INSERT INTO files (name, data) VALUES (?, ?)', [data.name, data.data], (err) => {
+      db.run('INSERT INTO files (name, data, year) VALUES (?, ?, ?)', [data.name, data.data, data.year], (err) => {
         if (err) {
           console.error(`Error inserting data into file table: ${err}`);
           reject(err);
