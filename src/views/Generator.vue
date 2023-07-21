@@ -61,8 +61,8 @@ export default {
     name: "DrawflowDashboard",
     inject: ['ipcRenderer'],
     setup() {
-      const { t } = useI18n()
-      return { t }
+        const { t } = useI18n()
+        return { t }
     },
     data() {
         return {
@@ -80,9 +80,10 @@ export default {
             groups: [] as any,
             alertMessages: [] as any,
             dialog: false,
-            dataList:[] as any,
-            lenghtData:0,
-            nonGeneratedPdf : false,
+            dataList: [] as any,
+            lenghtData: 0,
+            nonGeneratedPdf: false,
+            allow: true
         };
     },
     mounted() {
@@ -131,7 +132,7 @@ export default {
                     }
                 };
                 this.editor.value.import(ob);
-                const nodeExcelData :any=this.searchNodeExcel();
+                const nodeExcelData: any = this.searchNodeExcel();
                 if (nodeExcelData) {
                     var headNames = [] as string[];
                     var dataRows = [] as string[];
@@ -144,9 +145,9 @@ export default {
         },
         async generateFlow() {
             var idNode = parseFloat(this.getStartId());
-            var idEnd= this.searchNodeEnd();
-            var nbre :number=this.searchForNodespdf();
-            if (idNode && nbre<2 && idEnd) {
+            var idEnd = this.searchNodeEnd();
+            var nbre: number = this.searchForNodespdf();
+            if (idNode && nbre < 2 && idEnd) {
                 var dataNode = this.editor.value.getNodeFromId(idNode)
                 var dataNodeStart = this.editor.value.getNodeFromId(idNode)
                 var nameNode = dataNode.name;
@@ -175,16 +176,16 @@ export default {
                             templateName = dataNode.data.mytemplate;
                         }
                         if (nameNode == "Generatepdf" || nameNode == "groupPdfBy") {
-                            this.lenghtData=dataExcel.length;
+                            this.lenghtData = dataExcel.length;
                             if (JSON.stringify(this.dynamicConditionJson) != "{}") {
                                 for (var i = 0; i < dataExcel.length; i++) {
                                     var dataemployee = dataExcel[i];
                                     if (nameNode == "groupPdfBy") {
                                         pdfPathGrpBy = dataNode.data.pdfpath;
                                         this.groups.push(dataemployee[dataNode.data.group]);
-                                         this.generateNodePdf(dataNode, this.dynamicConditionJson, dataemployee, dataNode.data.group);
+                                        this.generateNodePdf(dataNode, this.dynamicConditionJson, dataemployee, dataNode.data.group);
                                     } else {
-                                         this.generateNodePdf(dataNode, this.dynamicConditionJson, dataemployee, null);
+                                        this.generateNodePdf(dataNode, this.dynamicConditionJson, dataemployee, null);
                                     }
 
                                 }
@@ -209,9 +210,12 @@ export default {
                             }
 
                         }
-                        if (nameNode == "zip-folder") { 
+                        if (nameNode == "zip-folder") {
+                            while (this.allow) {
+                                await new Promise((resolve) => setTimeout(resolve, 300));
+                            }
                             if (pdfPathGrpBy) {
-                                await new Promise((resolve) => setTimeout(resolve, 30000)); 
+                                await new Promise((resolve) => setTimeout(resolve, 30000));
                                 zipPathGrpBy = dataNode.data.myzip;
                                 const fs = require('fs');
                                 if (!fs.existsSync(zipPathGrpBy)) {
@@ -261,8 +265,8 @@ export default {
                                     }
                                 }
                                 if (nbreAlert == 0) {
-                                    this.dialog=false;
-                                    this.modalMessage( this.t('messages.alert'), this.t('messages.generatealert') + messagesAlert, 'warning');
+                                    this.dialog = false;
+                                    this.modalMessage(this.t('messages.alert'), this.t('messages.generatealert') + messagesAlert, 'warning');
                                     this.alertMessages = [];
                                 }
                             }
@@ -272,14 +276,14 @@ export default {
 
                         if (nameNode == "end" && !messagesAlert) {
                             this.dialog = false;
-                            if(this.nonGeneratedPdf){
-                             this.modalMessage(this.t('messages.alert'), this.t('messages.nongeneratealert'), 'warning');
+                            if (this.nonGeneratedPdf) {
+                                this.modalMessage(this.t('messages.alert'), this.t('messages.nongeneratealert'), 'warning');
                             }
                         } else if (messagesAlert) {
                             messagesAlert = "";
                         }
                     }
-                    this.dynamicConditionJson={};
+                    this.dynamicConditionJson = {};
                 }
             }
 
@@ -346,7 +350,7 @@ export default {
             if (this.compare(symbole, value, number)) {
                 if (typeof conditions.accept === 'object' && conditions.accept) {
                     conditions = conditions.accept;
-                   return await this.generateNodePdf(dataNode, conditions, dataemployee, group);
+                    return await this.generateNodePdf(dataNode, conditions, dataemployee, group);
                 }
                 else if (conditions.accept) {
                     await this.startgenerationpdf(dataNode, dataemployee, group, conditions.accept);
@@ -363,59 +367,59 @@ export default {
             }
         },
         async startgenerationpdf(dataNode: any, dataemployee: any, group: any, template: any) {
-            console.log(template+" template")
+            console.log(template + " template")
             var response = await ipcRenderer.invoke('getQuillContentData', { name: template });
             if (response) {
-                    if (dataemployee) {
-                        const currentDate = new Date();
-                        const currentYear = currentDate.getFullYear();
-                        const currentDateStr = currentDate.toISOString().split('T')[0];
-                        const lastNameKeys = ["LastName", "Last Name", "Lastname", "Last name", "Surname", "SurName"];
-                        var lastName = this.searchAndReplace(lastNameKeys, dataemployee, lastName);
-                        const firstNameKeys = ["FirstName", "First Name", "Firstname", "First name", "name", "Name"];
-                        var firstName = this.searchAndReplace(firstNameKeys, dataemployee, firstName);
-                        const fullNameKeys = ["Full Name", "FullName", "Fullname", "Full name"];
-                        var fullName = this.searchAndReplace(fullNameKeys, dataemployee, fullName);
-                        response = response.replace(/{ANS}/g, "" + currentYear);
-                        response = response.replace(/{ANS-(\d+)}/g, function (match, number) {
-                            const previousYear = currentYear - parseInt(number);
-                            return "" + previousYear;
-                        });
-                        response = response.replace(/{DATE}/g, currentDateStr);
-                        response = response.replace(/{([^{}]+)}/g, (match, var1) => {
-                            var1 = this.replaceHeader(var1);
-                            return `{${var1}}`;
-                        });
-                        response = this.replaceVariables(response, dataemployee);
-                        if (group) {
-                            if (!lastName || !firstName) {
-                                this.downloadPdf(response, "NTT DATA Morocco Centers -" + fullName, dataNode.data.pdfpath + '/' + dataemployee[group] + '/')
-                            } else {
-                                this.downloadPdf(response, "NTT DATA Morocco Centers -" + lastName + "_" + firstName, dataNode.data.pdfpath + '/' + dataemployee[group] + '/')
-                            }
+                if (dataemployee) {
+                    const currentDate = new Date();
+                    const currentYear = currentDate.getFullYear();
+                    const currentDateStr = currentDate.toISOString().split('T')[0];
+                    const lastNameKeys = ["LastName", "Last Name", "Lastname", "Last name", "Surname", "SurName"];
+                    var lastName = this.searchAndReplace(lastNameKeys, dataemployee, lastName);
+                    const firstNameKeys = ["FirstName", "First Name", "Firstname", "First name", "name", "Name"];
+                    var firstName = this.searchAndReplace(firstNameKeys, dataemployee, firstName);
+                    const fullNameKeys = ["Full Name", "FullName", "Fullname", "Full name"];
+                    var fullName = this.searchAndReplace(fullNameKeys, dataemployee, fullName);
+                    response = response.replace(/{ANS}/g, "" + currentYear);
+                    response = response.replace(/{ANS-(\d+)}/g, function (match, number) {
+                        const previousYear = currentYear - parseInt(number);
+                        return "" + previousYear;
+                    });
+                    response = response.replace(/{DATE}/g, currentDateStr);
+                    response = response.replace(/{([^{}]+)}/g, (match, var1) => {
+                        var1 = this.replaceHeader(var1);
+                        return `{${var1}}`;
+                    });
+                    response = this.replaceVariables(response, dataemployee);
+                    if (group) {
+                        if (!lastName || !firstName) {
+                            this.downloadPdf(response, "NTT DATA Morocco Centers -" + fullName, dataNode.data.pdfpath + '/' + dataemployee[group] + '/')
                         } else {
-                            if (!lastName || !firstName) {
-                                this.downloadPdf(response, "NTT DATA Morocco Centers -" + fullName, dataNode.data.pdfpath + '/')
-                            } else {
-                                this.downloadPdf(response, "NTT DATA Morocco Centers -" + lastName + "_" + firstName, dataNode.data.pdfpath + '/')
-                            }
+                            this.downloadPdf(response, "NTT DATA Morocco Centers -" + lastName + "_" + firstName, dataNode.data.pdfpath + '/' + dataemployee[group] + '/')
+                        }
+                    } else {
+                        if (!lastName || !firstName) {
+                            this.downloadPdf(response, "NTT DATA Morocco Centers -" + fullName, dataNode.data.pdfpath + '/')
+                        } else {
+                            this.downloadPdf(response, "NTT DATA Morocco Centers -" + lastName + "_" + firstName, dataNode.data.pdfpath + '/')
                         }
                     }
+                }
                 else {
                     this.downloadPdf(response, template, dataNode.data.pdfpath + '/')
                 }
             }
             else {
-                console.log(fullName+ "full Name")
+                console.log(fullName + "full Name")
             }
         },
         addDataEmployeeAndTemplate(dataEmployee, template) {
-    var data = {
-        dataEmployee: dataEmployee,
-        template: template
-    };
-    this.dataList.push(data);
-},
+            var data = {
+                dataEmployee: dataEmployee,
+                template: template
+            };
+            this.dataList.push(data);
+        },
         compare(operator: any, num1: number, num2: number): boolean {
             switch (operator.toLowerCase()) {
                 case '>':
@@ -493,7 +497,7 @@ export default {
             });
             console.log(nbre);
             if (nbre >= 2) {
-                this.modalMessage(this.t('messages.error'),this.t('messages.onenodegenerate'), 'error')
+                this.modalMessage(this.t('messages.error'), this.t('messages.onenodegenerate'), 'error')
             }
             return nbre;
         },
@@ -528,38 +532,38 @@ export default {
                 }
             });
             if (!idStart) {
-                this.modalMessage(this.t('messages.error'),this.t('messages.includeonestart'), 'error')
+                this.modalMessage(this.t('messages.error'), this.t('messages.includeonestart'), 'error')
             }
             if (numStart > 1) {
                 this.modalMessage(this.t('messages.error'), this.t('messages.onestart'), 'error')
             }
             return idStart
         },
-        async  zipFolder(folderPath, zipFolderPath) {
-    const fs = require('fs');
-    const archiver = require('archiver');
-    try {
-        const output = fs.createWriteStream(zipFolderPath);
-        const archive = archiver('zip', {
-            zlib: { level: 9 } // Set compression level
-        });
+        async zipFolder(folderPath, zipFolderPath) {
+            const fs = require('fs');
+            const archiver = require('archiver');
+            try {
+                const output = fs.createWriteStream(zipFolderPath);
+                const archive = archiver('zip', {
+                    zlib: { level: 9 } // Set compression level
+                });
 
-        output.on('close', () => {
-            // console.log('Zip folder created successfully.');
-        });
+                output.on('close', () => {
+                    // console.log('Zip folder created successfully.');
+                });
 
-        archive.on('error', (err) => {
-            console.error('Error while creating zip folder:', err);
-        });
+                archive.on('error', (err) => {
+                    console.error('Error while creating zip folder:', err);
+                });
 
-        archive.pipe(output);
-        archive.directory(folderPath, false);
-        await archive.finalize();
-    } catch (error) {
-        console.error('Error while creating zip folder:', error);
-    }
-}
-,
+                archive.pipe(output);
+                archive.directory(folderPath, false);
+                await archive.finalize();
+            } catch (error) {
+                console.error('Error while creating zip folder:', error);
+            }
+        }
+        ,
         async sendEmailWithAttachment(email: any, zipPath: any) {
             const path = require('path');
             const filename = path.basename(zipPath);
@@ -578,7 +582,7 @@ export default {
                 .then(() => {
                 })
                 .catch((error) => {
-                   // Swal.fire('Error', 'Error sending email: ' + error, 'error')
+                    // Swal.fire('Error', 'Error sending email: ' + error, 'error')
                 });
         },
         downloadPdf(htmlforpdf: any, namefile: any, path: any) {
@@ -590,22 +594,26 @@ export default {
                 "width": "1375px",
                 timeout: 210000
             };
-            if(this.lenghtData>300){
+            if (this.lenghtData > 300) {
                 options = {
-                "height": "1700px",
-                "width": "1375px",
-                timeout: 400000
-            };
+                    "height": "1700px",
+                    "width": "1375px",
+                    timeout: 400000
+                };
             }
             pdf.create(html, options).toFile(path + name + '.pdf', (err, res) => {
                 if (err) {
                     console.log(name + "name");
                     this.nonGeneratedPdf = true;
                 }
+                if (res) {
+                    this.allow = false;
+                }
+                console.log("next1")
             });
-
+            console.log("next2")
         },
-        
+
         modalMessage(title: string, type: string, message: SweetAlertIcon) {
             Swal.fire(
                 title,
