@@ -1,53 +1,53 @@
 <template>
   <div className="h-full w-full flex flex-col p-4">
-    <div className="flex justify-between mb-3 text-gray-100">
+    <div class="flex justify-between mb-3 text-gray-100">
       <v-select v-model="selectedOption" :options="files" label="name" class="h-9 text-primary-dark rounded w-60 mr-3"
         @click="() => loadNameFiles()" @option:selected="onChangeFile()">
       </v-select>
-      <div class="flex justify-end text-gray-100">
-        <input className="input mr-2"
-          v-bind:placeholder="(action == 'edit' || isEditName) ? 'Edit filename' : 'Add filename'" v-model="fileName"
-          v-if="action == 'add' || isEditName" />
-        <button v-if="action == 'edit'" class="btn flex items-center mr-2 mb-3" @click="editName">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="mr-2 bi bi-pen-fill"
-            viewBox="0 0 16 16">
-            <path
-              d="m13.498.795.149-.149a1.207 1.207 0 1 1 1.707 1.708l-.149.148a1.5 1.5 0 0 1-.059 2.059L4.854 14.854a.5.5 0 0 1-.233.131l-4 1a.5.5 0 0 1-.606-.606l1-4a.5.5 0 0 1 .131-.232l9.642-9.642a.5.5 0 0 0-.642.056L6.854 4.854a.5.5 0 1 1-.708-.708L9.44.854A1.5 1.5 0 0 1 11.5.796a1.5 1.5 0 0 1 1.998-.001z" />
-          </svg>
-          Edit name
-        </button>
-        <button class="btn rounded-lg px-5 py-2.5 text-center mr-2 mb-3 flex items-center" @click="saveToDatabase">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
-            class="mr-2 bi bi-file-earmark-arrow-up-fill" viewBox="0 0 16 16">
-            <path
-              d="M9.293 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V4.707A1 1 0 0 0 13.707 4L10 .293A1 1 0 0 0 9.293 0zM9.5 3.5v-2l3 3h-2a1 1 0 0 1-1-1zM6.354 9.854a.5.5 0 0 1-.708-.708l2-2a.5.5 0 0 1 .708 0l2 2a.5.5 0 0 1-.708.708L8.5 8.707V12.5a.5.5 0 0 1-1 0V8.707L6.354 9.854z" />
-          </svg>
-          Save File
-        </button>
-        <button class="mr-2 btn flex items-center" @click="newFile">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="mr-2 bi bi-plus-lg"
-            viewBox="0 0 16 16">
-            <path fill-rule="evenodd"
-              d="M8 2a.5.5 0 0 1 .5.5v5h5a.5.5 0 0 1 0 1h-5v5a.5.5 0 0 1-1 0v-5h-5a.5.5 0 0 1 0-1h5v-5A.5.5 0 0 1 8 2Z" />
-          </svg>
-          New file
-        </button>
-        <button v-if="action == 'edit'" class="btn flex items-center" @click="duplicateFile">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
-            class="mr-2 bi bi-file-earmark-plus-fill" viewBox="0 0 16 16">
-            <path
-              d="M9.293 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V4.707A1 1 0 0 0 13.707 4L10 .293A1 1 0 0 0 9.293 0zM9.5 3.5v-2l3 3h-2a1 1 0 0 1-1-1zM8.5 7v1.5H10a.5.5 0 0 1 0 1H8.5V11a.5.5 0 0 1-1 0V9.5H6a.5.5 0 0 1 0-1h1.5V7a.5.5 0 0 1 1 0z" />
-          </svg>
-          Duplicate file
-        </button>
-        <button v-if="action == 'edit'" class="btn ml-2 flex items-center" @click="deleteFile">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="mr-2 bi bi-trash-fill"
-            viewBox="0 0 16 16">
-            <path
-              d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1H2.5zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5zM8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5zm3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0z" />
-          </svg>
-          delete
-        </button>
+      <div className="flex justify-end text-gray-100">
+          <input className="input mr-2"
+            v-bind:placeholder="(action == 'edit' || isEditName) ? 'Edit filename' : 'Add filename'" v-model="fileName"
+            v-if="action == 'add' || isEditName" />
+          <button v-if="action == 'edit'" class="btn flex items-center mr-2 mb-3" @click="editName">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="mr-2 bi bi-pen-fill"
+              viewBox="0 0 16 16">
+              <path
+                d="m13.498.795.149-.149a1.207 1.207 0 1 1 1.707 1.708l-.149.148a1.5 1.5 0 0 1-.059 2.059L4.854 14.854a.5.5 0 0 1-.233.131l-4 1a.5.5 0 0 1-.606-.606l1-4a.5.5 0 0 1 .131-.232l9.642-9.642a.5.5 0 0 0-.642.056L6.854 4.854a.5.5 0 1 1-.708-.708L9.44.854A1.5 1.5 0 0 1 11.5.796a1.5 1.5 0 0 1 1.998-.001z" />
+            </svg>
+            Edit name
+          </button>
+          <button class="btn rounded-lg px-5 py-2.5 text-center mr-2 mb-3 flex items-center" @click="saveToDatabase">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+              class="mr-2 bi bi-file-earmark-arrow-up-fill" viewBox="0 0 16 16">
+              <path
+                d="M9.293 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V4.707A1 1 0 0 0 13.707 4L10 .293A1 1 0 0 0 9.293 0zM9.5 3.5v-2l3 3h-2a1 1 0 0 1-1-1zM6.354 9.854a.5.5 0 0 1-.708-.708l2-2a.5.5 0 0 1 .708 0l2 2a.5.5 0 0 1-.708.708L8.5 8.707V12.5a.5.5 0 0 1-1 0V8.707L6.354 9.854z" />
+            </svg>
+            Save File
+          </button>
+          <button class="mr-2 btn flex items-center" @click="newFile">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="mr-2 bi bi-plus-lg"
+              viewBox="0 0 16 16">
+              <path fill-rule="evenodd"
+                d="M8 2a.5.5 0 0 1 .5.5v5h5a.5.5 0 0 1 0 1h-5v5a.5.5 0 0 1-1 0v-5h-5a.5.5 0 0 1 0-1h5v-5A.5.5 0 0 1 8 2Z" />
+            </svg>
+            New file
+          </button>
+          <button v-if="action == 'edit'" class="btn flex items-center" @click="duplicateFile">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+              class="mr-2 bi bi-file-earmark-plus-fill" viewBox="0 0 16 16">
+              <path
+                d="M9.293 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V4.707A1 1 0 0 0 13.707 4L10 .293A1 1 0 0 0 9.293 0zM9.5 3.5v-2l3 3h-2a1 1 0 0 1-1-1zM8.5 7v1.5H10a.5.5 0 0 1 0 1H8.5V11a.5.5 0 0 1-1 0V9.5H6a.5.5 0 0 1 0-1h1.5V7a.5.5 0 0 1 1 0z" />
+            </svg>
+            Duplicate file
+          </button>
+          <button v-if="action == 'edit'" class="btn ml-2 flex items-center" @click="deleteFile">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="mr-2 bi bi-trash-fill"
+              viewBox="0 0 16 16">
+              <path
+                d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1H2.5zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5zM8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5zm3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0z" />
+            </svg>
+            delete
+          </button>
       </div>
     </div>
       <div class="flex flex-row w-full h-full">
@@ -68,6 +68,11 @@
                                     >
                                                 <template v-slot:item-expander="item">
                                                     <div class="d-flex" style="display: flex; justify-content: center; vertical-align: center; justify-items: center; align-items: center; margin-right: 10px;" :style="{background: item.type == 'folder' ? 'blue' : 'white', height: '14px', width: '14px', 'margin-right': '0.2em', 'border-radius': '4px'}">
+                                                    <span style="color: black;">-</span>
+                                                    </div>
+                                                </template>
+                                                <template>
+                                                    <div class="d-flex" style="display: flex; justify-content: center; vertical-align: center; justify-items: center; align-items: center; margin-right: 10px;">
                                                     <span style="color: black;">-</span>
                                                     </div>
                                                 </template>
@@ -127,7 +132,7 @@
                   </div>
                 </div>
               </div>
-              <div class="flex flex-col w-full h-full">
+              <div className="flex flex-col w-full h-full">
                 <div id="editor" ref="editor">
                 </div>
               </div>
@@ -190,7 +195,7 @@ export default {
       selectedColumn: '',
       selectedColumnValues: [] as any[],
       dataRows: [] as any[],
-      workbook: null,
+      workbook: null, 
       worksheet: null,
       isEditName: false,
       action: 'add',
@@ -202,7 +207,7 @@ export default {
       showSidebar: false
     }
   },
-  mounted() {
+  async mounted() {
    
     const image = reactive({
       type: '', 
@@ -270,7 +275,7 @@ export default {
           this.editor.insertEmbed(index, 'customEmbed', data);
         }
       });
-      this.loadItems();
+    this.loadItems();
 
   },
   methods: {
@@ -426,7 +431,7 @@ export default {
             else {
               const currentDate = new Date();
               const currentYear = currentDate.getFullYear();
-              await ipcRenderer.invoke('insertQuillcontent', { name: this.fileName, data: this.editor.root.innerHTML, year: currentYear })
+              await ipcRenderer.invoke('insertQuillcontent', { name: this.fileName, data: this.editor.root.innerHTML, years: currentYear })
                 .catch((error) => {
                   console.error(`Error insert: ${error}`);
                 });
@@ -438,7 +443,9 @@ export default {
         }
       }
       else {
-        ipcRenderer.invoke('updateContentFile', { name: this.selectedOption, data: this.editor.root.innerHTML });
+        const currentDate = new Date();
+        const currentYear = currentDate.getFullYear();
+        await ipcRenderer.invoke('updateContentFile', { name: this.selectedOption, data: this.editor.root.innerHTML, years: currentYear  });
         this.showSucess();
       }
     },
@@ -486,14 +493,14 @@ export default {
                 this.items = [
                     {
                         name: 'Years',
-                        id: years,
+                        id: 'years',
                         type: 'string',
                         children: await Promise.all(
-                            years.map(async (year: number) => {
-                                const files = await ipcRenderer.invoke('getFilesByYear', { year });
+                            years.map(async (years: number) => {
+                                const files = await ipcRenderer.invoke('getFilesByYear', { years });
                                 return {
-                                    name: year.toString(),
-                                    id: year,
+                                    name: years.toString(),
+                                    id: years,
                                     type: 'number',
                                     children: files.map((file: string) => ({
                                         name: file,
@@ -506,6 +513,7 @@ export default {
                         ),
                     },
                 ];
+                console.log("items:", this.items);
             } catch (error) {
                 console.error(error);
             }
@@ -526,6 +534,7 @@ export default {
 .customEmbed {
   @apply p-2 mb-2 block text-white bg-primary-light hover:bg-primary-dark rounded-lg w-full text-center;
 }
+
 aside {
 
 display: none;
@@ -598,12 +607,6 @@ display: none;
     z-index: 99;
 }
 }
-.sidebar-wrapper {
-    position: relative;
-    display: flex;
-    overflow: hidden;
-
-}
 .scroll-container {
         overflow-y: scroll;
         max-height: 599px; /* Adjust the maximum height as needed */
@@ -630,4 +633,9 @@ display: none;
     .scroll-container::-webkit-scrollbar-thumb:hover {
         @apply bg-primary-light        
     }
+
+  * {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    font-size: 14px;
+}
 </style>

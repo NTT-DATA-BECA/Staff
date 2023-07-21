@@ -2,7 +2,8 @@
     <div className="h-full w-full flex flex-col p-4">
         <div class="flex justify-between">
             <v-select v-model="selectedOption" label="name" class="h-9 text-primary-dark rounded w-60 mr-3"
-                @click="() => loadJsonFiles()" :options="programs" @option:selected="onChangeFile()"></v-select>
+                @click="() => loadJsonFiles()" :options="programs" @option:selected="onChangeFile()">
+            </v-select>
             <div className="flex justify-end mb-3 text-gray-100">
                 <input v-if="action == 'add' || isEditName" className="input mr-2" placeholder="Add program name"
                     @input="addProgramName($event)" v-model="nodeProgramName" />

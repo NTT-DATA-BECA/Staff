@@ -224,7 +224,7 @@ async function createWindow() {
   ipcMain.handle('getFilesByYear', async (event, arg) => {
    
     return await new Promise((resolve, reject) => {
-      db.all(`SELECT name FROM files WHERE year = ?`, [arg.year], (err, rows) => {
+      db.all(`SELECT name FROM files WHERE years = ?`, [arg.years], (err, rows) => {
         if (err) reject(err);
         resolve(rows.map(row => row.name));
       });
@@ -303,7 +303,7 @@ async function createWindow() {
     return await new Promise((resolve, reject) => {
       db.all(`SELECT DISTINCT years FROM files`, [], (err, rows) => {
         if (err) reject(err)
-        resolve(rows.map(row => row.year))
+        resolve(rows.map(row => row.years))
       })
     })
   })
@@ -371,7 +371,7 @@ async function createWindow() {
           reject(err);
         } else {
           const result = 'Data inserted successfully';
-          resolve(result); // pass the resolved value here
+          resolve(result);
         }
       });
     });
@@ -433,12 +433,13 @@ async function createWindow() {
 
 
   ipcMain.handle('getQuillContentName', async (event, arg) => {
-    return await new Promise((resolve, reject) => {
-      db.all(`SELECT name FROM files`, [], (err, rows) => {
-        if (err) reject(err)
-        resolve(rows.map(row => row.name))
+      const year = new Date().getFullYear();
+      return await new Promise((resolve, reject) => {
+        db.all(`SELECT name FROM files WHERE years = ?`, [year], (err, rows) => {
+          if (err) reject(err)
+          resolve(rows.map(row => row.name))
+        })
       })
-    })
   });  
   
 }  
