@@ -291,17 +291,20 @@ async function createWindow() {
     }
   });
   ipcMain.handle('getYearsFlow', async (event, arg) => {
+    const currentYear = new Date().getFullYear();
     return await new Promise((resolve, reject) => {
-      db.all(`SELECT DISTINCT year FROM flow`, [], (err, rows) => {
-        if (err) reject(err)
-        resolve(rows.map(row => row.year))
-      })
-    })
-  })
+      db.all(`SELECT DISTINCT year FROM flow WHERE year < ?`, [currentYear], (err, rows) => {
+        if (err) reject(err);
+        resolve(rows.map(row => row.year));
+      });
+    });
+  });
+  
 
   ipcMain.handle('getYearsFile', async (event, arg) => {
+    const currentYear = new Date().getFullYear();
     return await new Promise((resolve, reject) => {
-      db.all(`SELECT DISTINCT years FROM files`, [], (err, rows) => {
+      db.all(`SELECT DISTINCT years FROM files  WHERE years < ?`, [currentYear], (err, rows) => {
         if (err) reject(err)
         resolve(rows.map(row => row.years))
       })

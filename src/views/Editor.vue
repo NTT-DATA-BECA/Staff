@@ -32,7 +32,7 @@
             </svg>
             New file
           </button>
-          <button v-if="action == 'edit'" class="btn flex items-center" @click="duplicateFile">
+          <button class="btn flex items-center" @click="duplicateFile">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
               class="mr-2 bi bi-file-earmark-plus-fill" viewBox="0 0 16 16">
               <path
@@ -40,7 +40,7 @@
             </svg>
             Duplicate file
           </button>
-          <button v-if="action == 'edit'" class="btn ml-2 flex items-center" @click="deleteFile">
+          <button class="btn ml-2 flex items-center" @click="deleteFile">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="mr-2 bi bi-trash-fill"
               viewBox="0 0 16 16">
               <path
@@ -50,14 +50,14 @@
           </button>
       </div>
     </div>
-      <div class="flex flex-row w-full h-full">
+      <div className="flex flex-row w-full h-full">
               <aside :class="`${showSidebar ? 'is-expanded' : showSidebar}`">
                         <link href="https://fonts.googleapis.com/css2?family=Material+Icons" rel="stylesheet">
                         <button class=" menu-toggle-wrap menu-toggle" @click="showSidebar = !showSidebar">
                             <span class="material-icons">keyboard_double_arrow_left</span>
                         </button>
-                        <div id="app">
-                            <div class="scroll-container">
+                        <div id="app" class="scroll-container">
+                            <div>
                                 <div style="display: flex">
                                     <vue3-tree-vue :items="items"
                                         :hideGuideLines="false"
@@ -535,6 +535,37 @@ export default {
   @apply p-2 mb-2 block text-white bg-primary-light hover:bg-primary-dark rounded-lg w-full text-center;
 }
 
+.scroll-container {
+        max-height: 599px;
+        margin-right: -6.5%;
+        flex: 1;
+        overflow-y: auto;
+    }
+
+    /* Width */
+    .scroll-container::-webkit-scrollbar {
+        width: 10px;
+        height: 10px;
+
+    }
+    
+    /* Track */
+    .scroll-container::-webkit-scrollbar-track {
+        background:#f1eeee;
+    }
+    
+    /* Handle */
+    .scroll-container::-webkit-scrollbar-thumb {
+        @apply bg-primary-light;        
+        border-radius: 5px;
+    }
+    
+    /* Handle on hover */
+    .scroll-container::-webkit-scrollbar-thumb:hover {
+        @apply bg-primary-light        
+    }
+
+
 aside {
 
 display: none;
@@ -607,32 +638,6 @@ display: none;
     z-index: 99;
 }
 }
-.scroll-container {
-        overflow-y: scroll;
-        max-height: 599px; /* Adjust the maximum height as needed */
-        margin-right: -6.5%;
-    }
-
-    /* Width */
-    .scroll-container::-webkit-scrollbar {
-        width: 10px;
-    }
-    
-    /* Track */
-    .scroll-container::-webkit-scrollbar-track {
-        background:#f1eeee;
-    }
-    
-    /* Handle */
-    .scroll-container::-webkit-scrollbar-thumb {
-        @apply bg-primary-light;        
-        border-radius: 5px;
-    }
-    
-    /* Handle on hover */
-    .scroll-container::-webkit-scrollbar-thumb:hover {
-        @apply bg-primary-light        
-    }
 
   * {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;

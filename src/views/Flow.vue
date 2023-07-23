@@ -1,6 +1,6 @@
 <template>
     <div className="h-full w-full flex flex-col p-4">
-        <div class="flex justify-between">
+        <div className="flex justify-between">
             <v-select v-model="selectedOption" label="name" class="h-9 text-primary-dark rounded w-60 mr-3"
                 @click="() => loadJsonFiles()" :options="programs" @option:selected="onChangeFile()">
             </v-select>
@@ -47,8 +47,8 @@
                 <button class=" menu-toggle-wrap menu-toggle" @click="showSidebar = !showSidebar">
                     <span class="material-icons">keyboard_double_arrow_left</span>
                 </button>
-                <div id="app">
-                    <div class="scroll-container">
+                <div id="app" class="scroll-container">
+                    <div>
                         <div style="display: flex">
                             <vue3-tree-vue :items="items"
                                 :hideGuideLines="false"
@@ -553,6 +553,7 @@ export default {
     @apply bg-primary-light border border-collapse text-white p-3 rounded w-60  cursor-pointer sm:text-sm flex hover:bg-primary-dark hover:border hover:border-gray-800;
 }
 
+
 #drawflow {
     text-align: initial;
     width: 100%;
@@ -563,9 +564,10 @@ export default {
 }
 
 .scroll-container {
-        overflow-y: scroll;
-        max-height: 599px; /* Adjust the maximum height as needed */
+        max-height: 599px;
         margin-right: -6.5%;
+        flex: 1;
+        overflow-y: auto;
     }
 
     /* Width */
