@@ -1,13 +1,18 @@
 <template>
   <div ref="el">
-    <h2 id="node-title">Path</h2>
+    <h2 id="node-title">{{ t("nodes.path") }}</h2>
     <input v-model="pdfpath" class="text-black ml-2 w-36 align-middle" type="text" df-pdfpath/>
   </div>
 </template>
 <script lang="ts">
  import { getCurrentInstance , nextTick } from 'vue'
+ import { useI18n } from 'vue-i18n'
 export default {
   name: 'GeneratePdf',
+  setup() {
+    const { t } = useI18n()
+    return { t }
+  },
   data(){
     return {
       el:null as any,

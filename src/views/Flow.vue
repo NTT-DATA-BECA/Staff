@@ -5,7 +5,7 @@
                 @click="() => loadJsonFiles()" :options="programs" @option:selected="onChangeFile()">
             </v-select>
             <div className="flex justify-end mb-3 text-gray-100">
-                <input v-if="action == 'add' || isEditName" className="input mr-2" placeholder="Add program name"
+                <input v-if="action == 'add' || isEditName" className="input mr-2" v-bind:placeholder="getPlaceholderText()"
                     @input="addProgramName($event)" v-model="nodeProgramName" />
                 <button className="btn mr-2 flex items-center" @click="createNewFlow()">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
@@ -13,7 +13,7 @@
                         <path fill-rule="evenodd"
                             d="M8 2a.5.5 0 0 1 .5.5v5h5a.5.5 0 0 1 0 1h-5v5a.5.5 0 0 1-1 0v-5h-5a.5.5 0 0 1 0-1h5v-5A.5.5 0 0 1 8 2Z" />
                     </svg>
-                    New Flow
+                    {{ t("flow.new") }}
                 </button>
                 <button className="btn mr-2 flex items-center" @click="addEditFlow(nodeProgramName); nodeProgramName = ''">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
@@ -21,7 +21,7 @@
                         <path
                             d="M9.293 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V4.707A1 1 0 0 0 13.707 4L10 .293A1 1 0 0 0 9.293 0zM9.5 3.5v-2l3 3h-2a1 1 0 0 1-1-1zM6.354 9.854a.5.5 0 0 1-.708-.708l2-2a.5.5 0 0 1 .708 0l2 2a.5.5 0 0 1-.708.708L8.5 8.707V12.5a.5.5 0 0 1-1 0V8.707L6.354 9.854z" />
                     </svg>
-                    Save Flow
+                    {{ t("flow.save") }}
                 </button>
                 <button className="btn mr-2  flex items-center" @click="duplicateFlow();">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
@@ -29,7 +29,7 @@
                         <path
                             d="M9.293 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V4.707A1 1 0 0 0 13.707 4L10 .293A1 1 0 0 0 9.293 0zM9.5 3.5v-2l3 3h-2a1 1 0 0 1-1-1zM8.5 7v1.5H10a.5.5 0 0 1 0 1H8.5V11a.5.5 0 0 1-1 0V9.5H6a.5.5 0 0 1 0-1h1.5V7a.5.5 0 0 1 1 0z" />
                     </svg>
-                    Duplicate Flow
+                    {{ t("flow.duplicate") }}
                 </button>
                 <button className="btn flex items-center" @click=" delprograme();">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
@@ -37,7 +37,7 @@
                         <path
                             d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1H2.5zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5zM8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5zm3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0z" />
                     </svg>
-                    Delete
+                    {{ t("flow.delete") }}
                 </button>
             </div>
         </div>
@@ -100,7 +100,7 @@
                     </div>
                 </div>
                 <a className="absolute m-2 right-0 top-0 cursor-pointer text-primary-dark hover:text-primary-light"
-                    @click=" cleanEditor()" title="Press to clear">
+                    @click=" cleanFlow()">
                     <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" fill="currentColor"
                         class="bi bi-arrow-clockwise" viewBox="0 0 16 16">
                         <path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z" />
@@ -127,11 +127,14 @@ import Condition from '../components/Node-Condition.vue'
 import sendEmail from '../components/Node-sendEmail.vue'
 import groupPdfBy from '../components/Node-groupPdfBy.vue'
 import alert from '../components/Node-alert.vue'
+import alert from '../components/Node-alert.vue'
 import Swal from 'sweetalert2'
 import { nodesList } from '../utils/nodesList'
 import { ipcRenderer } from 'electron';
 import { toast } from 'vue3-toastify';
+import { useI18n } from 'vue-i18n'
 import 'vue3-toastify/dist/index.css';
+
 import { useStore } from 'vuex';
 import { mapActions } from 'vuex';
 import Vue3TreeVue from '../components/tree-component.vue';
@@ -143,6 +146,10 @@ export default {
     inject: ['ipcRenderer'],
     components: {
         Vue3TreeVue
+    },
+    setup() {
+        const { t } = useI18n()
+        return { t }
     },
     data() {
         return {
@@ -163,10 +170,12 @@ export default {
             onItemSelected: [] as any,
             isExpanded: localStorage.getItem('is_expanded') === 'true',
             showSidebar: false
-
+,
+            cleanFlowTitle:""
         };
     },
-    async mounted() {
+    async async mounted() {
+        this.cleanFlowTitle=this.t("flow.clear")
         const internalInstance: any = getCurrentInstance();
         internalInstance.appContext.app._context.config.globalProperties.$df = this.editor;
         this.setHeaders([]);
@@ -204,6 +213,9 @@ export default {
         let group = ""
         let myzip = ""
         const updateNodeOperation = (output_class: any, outputTemplate: any, outputExcelName: any, outputHeaders: any, outputExcelData: any, outputSymbole: any, outputpdfpath: any, outputmessage: any, outputVariable2: any, outputVariable1: any, outputMyzip: any, outputGroup: any, inputNodeData: any) => {
+        let group = ""
+        let myzip = ""
+        const updateNodeOperation = (output_class: any, outputTemplate: any, outputExcelName: any, outputHeaders: any, outputExcelData: any, outputSymbole: any, outputpdfpath: any, outputmessage: any, outputVariable2: any, outputVariable1: any, outputMyzip: any, outputGroup: any, inputNodeData: any) => {
             if (output_class == "input_1") {
                 mytemplate = outputTemplate;
                 excelName = outputExcelName;
@@ -212,8 +224,11 @@ export default {
                 symbole = outputSymbole;
                 pdfpath = outputpdfpath;
                 message = outputmessage;
+                message = outputmessage;
                 variable2 = outputVariable2;
                 variable1 = outputVariable1;
+                myzip = outputMyzip;
+                group = outputGroup;
                 myzip = outputMyzip;
                 group = outputGroup;
             }
@@ -230,8 +245,11 @@ export default {
                 symbole = editorData[i].data.symbole;
                 pdfpath = editorData[i].data.pdfpath;
                 message = editorData[i].data.message;
+                message = editorData[i].data.message;
                 variable2 = editorData[i].data.variable2;
                 variable1 = editorData[i].data.variable1;
+                myzip = editorData[i].data.myzip;
+                group = editorData[i].data.group;
                 myzip = editorData[i].data.myzip;
                 group = editorData[i].data.group;
             });
@@ -239,6 +257,12 @@ export default {
         });
 
         this.editor.value.on("nodeSelected", () => {
+            const editorContent = this.editor.value.export();
+            document.addEventListener('keydown', (event) => {
+                if (event.ctrlKey && event.key === 'v') {
+                    this.editor.value.import(editorContent);
+                }
+            });
             const editorContent = this.editor.value.export();
             document.addEventListener('keydown', (event) => {
                 if (event.ctrlKey && event.key === 'v') {
@@ -253,6 +277,14 @@ export default {
         toggleMenu() {
             this.isExpanded = !this.isExpanded;
             localStorage.setItem('is_expanded', this.isExpanded.toString());
+        },
+        ...mapActions(['setHeaders', 'setExcelData']),
+        getPlaceholderText() {
+            if (this.action === 'edit' || this.isEditName) {
+                return this.t('flow.editname');
+            } else {
+                return this.t('flow.addname');
+            }
         },
         notify(message) {
             toast.success(message, {
@@ -311,24 +343,25 @@ export default {
             const jsonString = JSON.stringify(editorState);
             if (this.isEditName) {
                 if (nodeProgramName.length === 0) {
-                    Swal.fire('Empty Name', 'The field cannot be left empty, please input a name.', 'error')
+                    Swal.fire(this.t('messages.empty'), this.t('messages.textempty'), 'error')
                 }
                 else if (exist) {
-                    Swal.fire('Duplicate Name', 'The name already exists in the database, please choose a different name.', 'error');
+                    Swal.fire(this.t('messages.duplicate'), this.t('messages.textduplicate'), 'error');
                 } else {
                     await ipcRenderer.invoke('updateJsonFileName', { oldName: this.flowName, newName: nodeProgramName })
                         .then((result) => {
                             this.isEditName = false;
                             this.flowName = nodeProgramName;
                             this.selectedOption = nodeProgramName;
-                            this.notify("The modification has been completed")
+                            this.notify(this.t('messages.update'))
                         })
                         .catch(() => {
-                            Swal.fire(
-                                'Error!',
-                                'Something wrong.',
-                                'error'
-                            );
+                            Swal.fire({
+                                title: this.t('messages.error'),
+                                text: this.t('messages.wrong'),
+                                icon: 'error',
+                                showConfirmButton: false,
+                            })
                         });
 
                 }
@@ -336,22 +369,27 @@ export default {
             else {
                 if (this.action == 'add') {
                     if (nodeProgramName.length === 0) {
-                        Swal.fire('Empty Name', 'The field cannot be left empty, please input a name.', 'error')
+                        Swal.fire(this.t('messages.empty'), this.t('messages.textempty'), 'error')
                     } else {
                         const currentDate = new Date();
                         const currentYear = currentDate.getFullYear();
                         await ipcRenderer.invoke('insertJsonFile', { name: nodeProgramName, data: jsonString, year: currentYear })
+                        const currentDate = new Date();
+                        const currentYear = currentDate.getFullYear();
+                        await ipcRenderer.invoke('insertJsonFile', { name: nodeProgramName, data: jsonString, year: currentYear })
                             .then((result) => {
-                                this.notify("The insertion has been completed")
+                                this.notify(this.t('messages.insertion'))
                                 this.selectedOption = nodeProgramName;
                                 this.action = 'edit';
                                 this.flowName = nodeProgramName;
                             })
                             .catch(() => {
-                                Swal.fire(
-                                    'Error!',
-                                    'Something wrong.',
-                                    'error'
+                                Swal.fire({
+                                    title: this.t('messages.error'),
+                                    text: this.t('messages.wrong'),
+                                    icon: 'error',
+                                    showConfirmButton: false,
+                                }
                                 );
                             });
                     }
@@ -359,13 +397,15 @@ export default {
                 else {
                     await ipcRenderer.invoke('updateJsonFile', { name: this.flowName, data: jsonString })
                         .then((result) => {
-                            this.notify("The modification has been completed")
+                            this.notify(this.t('messages.update'))
                         })
                         .catch(() => {
-                            Swal.fire(
-                                'Error!',
-                                'Something wrong.',
-                                'error'
+                            Swal.fire({
+                                title: this.t('messages.error'),
+                                text: this.t('messages.wrong'),
+                                icon: 'error',
+                                showConfirmButton: false,
+                            }
                             );
                         });
                 }
@@ -374,12 +414,12 @@ export default {
         },
         async delprograme() {
             Swal.fire({
-                title: 'Are you sure?',
-                text: "You won't be able to revert this!",
+                title: this.t('messages.sure'),
+                text: this.t('messages.textsure'),
                 icon: 'warning',
                 showCancelButton: true,
-                confirmButtonText: 'Yes, delete it!',
-                cancelButtonText: 'No, cancel!',
+                confirmButtonText: this.t('messages.yes'),
+                cancelButtonText: this.t('messages.no'),
                 confirmButtonColor: '#3085d6',
                 cancelButtonColor: '#d33',
                 reverseButtons: true
@@ -387,18 +427,24 @@ export default {
                 if (result.isConfirmed) {
                     ipcRenderer.invoke('deleteJsonFile', { name: this.flowName })
                         .then((result) => {
-                            Swal.fire(
-                                'Deleted!',
-                                'Your file has been deleted.',
-                                'success'
+                            Swal.fire({
+                                title: this.t('messages.delete'),
+                                text: this.t('messages.flowdelete'),
+                                icon: 'success',
+                                showConfirmButton: false,
+                                timer: 1500,
+
+                            }
                             )
                             this.createNewFlow();
                         })
                         .catch(() => {
-                            Swal.fire(
-                                'Error!',
-                                'Something wrong.',
-                                'error'
+                            Swal.fire({
+                                title: this.t('messages.error'),
+                                text: this.t('messages.wrong'),
+                                icon: 'error',
+                                showConfirmButton: false,
+                            }
                             );
                         });
 
@@ -406,13 +452,33 @@ export default {
                     result.dismiss === Swal.DismissReason.cancel
                 ) {
                     Swal.fire(
-                        'Cancelled',
-                        'Your imaginary file is safe :)',
+                        this.t('messages.cancel'),
+                        this.t('messages.flowsafe'),
                         'error'
                     )
                 }
             })
 
+        },
+        searchNodeExcel() {
+            const editorData = this.editor.value.export().drawflow.Home.data;
+            let data = "";
+            Object.keys(editorData).forEach(function (i) {
+                if (editorData[i].name === "ImportExcel") {
+                    data = editorData[i];
+                }
+            });
+            return data;
+        },
+        searchNodeExcel() {
+            const editorData = this.editor.value.export().drawflow.Home.data;
+            let data = "";
+            Object.keys(editorData).forEach(function (i) {
+                if (editorData[i].name === "ImportExcel") {
+                    data = editorData[i];
+                }
+            });
+            return data;
         },
         searchNodeExcel() {
             const editorData = this.editor.value.export().drawflow.Home.data;
@@ -450,10 +516,47 @@ export default {
                     this.setHeaders(headNames);
                     this.setExcelData(dataRows);
                 }
+                const nodeExcelData: any = this.searchNodeExcel();
+                if (nodeExcelData) {
+                    var headNames = [] as string[];
+                    var dataRows = [] as string[];
+                    headNames = nodeExcelData.data.headers;
+                    dataRows = nodeExcelData.data.excelData;
+                    this.setHeaders(headNames);
+                    this.setExcelData(dataRows);
+                }
             }
         },
-        cleanEditor() {
-            this.editor.value.clear();
+        cleanFlow() {
+            Swal.fire({
+                title: this.t('messages.sure'),
+                text: this.t('messages.clear'),
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: this.t('flow.clean'),
+                cancelButtonText: this.t('messages.no'),
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                reverseButtons: true
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    this.editor.value.clear();
+                    Swal.fire({
+                        icon: 'success',
+                        html: '<h4 style="color:#6785c1;">' + this.t('messages.clearsuccess') + '</h4>',
+                        width: 400,
+                        showClass: {
+                            popup: 'animate__animated animate__fadeInDown'
+                        },
+                        hideClass: {
+                            popup: 'animate__animated animate__fadeOutUp'
+                        },
+                        showConfirmButton: false,
+                        timer: 1500
+                    })
+
+                }
+            })
         },
         async createNewFlow() {
             this.action = 'add';
@@ -461,7 +564,7 @@ export default {
             this.flowName = null;
             this.isEditName = false;
             this.nodeProgramName = "";
-            this.cleanEditor();
+            this.editor.value.clear();
             this.setHeaders([]);
             this.setExcelData([]);
         },
@@ -470,8 +573,11 @@ export default {
         },
         duplicateFlow() {
             const nameprograme = this.selectedOption;
+        duplicateFlow() {
+            const nameprograme = this.selectedOption;
             const editorState = this.editor.value.export();
             this.createNewFlow()
+            this.nodeProgramName = nameprograme + "-copy";
             this.nodeProgramName = nameprograme + "-copy";
             this.editor.value.import(editorState);
             const nodeExcelData: any = this.searchNodeExcel();
@@ -540,7 +646,16 @@ export default {
                     this.setHeaders(headNames);
                     this.setExcelData(dataRows);
                 }
+                const nodeExcelData: any = this.searchNodeExcel();
+            if (nodeExcelData) {
+                var headNames = [] as string[];
+                var dataRows = [] as string[];
+                headNames = nodeExcelData.data.headers;
+                dataRows = nodeExcelData.data.excelData;
+                this.setHeaders(headNames);
+                this.setExcelData(dataRows);
             }
+        }
         },
 
 

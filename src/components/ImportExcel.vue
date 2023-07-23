@@ -1,10 +1,10 @@
 <template>
   <div ref="el" class="input_field flex flex-col w-max mx-auto text-center">
-    <p id="node-title">Data :</p>
+    <p id="node-title">{{ t("managers.data") }} :</p>
     <label>
       <input class="cursor-pointer w-36 hidden" type="file" @change="loadExcelFile" />
       <div class="w-36 text-white bg-blue font-bold rounded-lg text-sm text-center">
-        {{ excelName || 'Import Excel' }}
+        {{ excelName || t("managers.excel") }}
       </div>
       <input df-excelData type="hidden" v-model="excelData">
       <input type="hidden" v-model="excelName" df-excelName>
@@ -18,10 +18,15 @@ import * as XLSX from 'xlsx';
 import * as fs from 'fs';
 import * as path from 'path';
 import { mapState, mapActions } from 'vuex';
+import { useI18n } from 'vue-i18n'
 const localStorage = window.localStorage;
 
 export default {
   name: 'ImportExcel',
+  setup() {
+    const { t } = useI18n()
+    return { t }
+  },
   data() {
     return {
       el: null as any,
@@ -79,6 +84,15 @@ export default {
             const row: any = {};
             for (let C = range.s.c; C <= range.e.c; ++C) {
               const cell = sheet[XLSX.utils.encode_cell({ r: R, c: C })];
+              var columnName: string = columns[C];
+              columnName=columnName.replace(/\s+/g, "_");
+              columnName=columnName.replace(/([[\]()])/g, "\\$1");
+              columnName=columnName.replace(/[\[\]]/g, "\\$1");
+              columnName=columnName.replace(/([[\]\/])/g, "\\$1");
+              columnName=columnName.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&");
+              columnName=columnName.replace(/\//g, "_");
+              columnName=columnName.replace(/[\(\)]/g, "_");
+              columnName = columnName.replace(/_%/g, "");
               var columnName: string = columns[C];
               columnName=columnName.replace(/\s+/g, "_");
               columnName=columnName.replace(/([[\]()])/g, "\\$1");

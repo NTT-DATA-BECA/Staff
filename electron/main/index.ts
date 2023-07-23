@@ -45,7 +45,7 @@ async function createWindow() {
   const transporter = nodemailer.createTransport({
     host: 'smtp-mail.outlook.com',
     port: 587,
-    secure: false, // use TLS
+    secure: false,
     auth: {
       user: process.env.EMAIL,
       pass: process.env.PASSWORD
@@ -101,6 +101,108 @@ async function createWindow() {
   })
   
   ipcMain.handle('getManagers', async (event, arg) => {
+    return await new Promise((resolve, reject) => {
+      db.all(`SELECT last_name,first_name,email,category FROM managers`, [], (err, rows) => {
+        if (err) reject(err)
+        resolve(rows)
+      })
+    })
+  })
+
+  ipcMain.handle('insertManager', async (event, arg) => {
+    const [first_name, last_name, email, category ] = arg;
+    return await new Promise((resolve, reject) => {
+      db.run(
+        'INSERT INTO managers (first_name, last_name, email, category) VALUES (?, ?, ?, ?)',
+        [first_name, last_name, email, category],
+        function (err) {
+          if (err) reject(err);
+          resolve(this.lastID);
+        }
+      );
+    });
+  });  
+  
+  ipcMain.handle('editManagerByEmail', async (event, arg) => {
+    const [first_name, last_name,email, category,oldemail] = arg;
+    return await new Promise((resolve, reject) => {
+      db.run(
+        'UPDATE managers SET first_name = ?, last_name = ?, category = ?,email=? WHERE email = ?',
+        [first_name, last_name, category, email,oldemail],
+        function (err) {
+          if (err) reject(err);
+          resolve(this.changes);
+        }
+      );
+    });
+  });
+  ipcMain.handle('EmptyManagers', async (event) => {
+    return await new Promise((resolve, reject) => {
+      db.run(
+        'DELETE FROM managers',
+        function (err) {
+          if (err) reject(err);
+          resolve(this.changes);
+        }
+      );
+    });
+  });
+  
+  ipcMain.handle('insertMultiManagers', async (event, arg) => {
+    const managerss = arg; 
+     console.log(JSON.stringify(managerss));
+    return await Promise.all(
+      managerss.map((managers) => {
+        const [first_name, last_name, email, category] = managers;
+  
+        return new Promise((resolve, reject) => {
+          db.run(
+            'INSERT INTO managers (first_name, last_name, email, category) VALUES (?, ?, ?, ?)',
+            [first_name, last_name, email, category],
+            function (err) {
+              if (err) reject(err);
+              resolve(this.lastID);
+            }
+          );
+        });
+      })
+    );
+  });
+  
+
+  ipcMain.handle('deleteManagersbyemail', async (event, emailsToDelete) => {
+    return await new Promise((resolve, reject) => {
+      const placeholders = emailsToDelete.map(() => '?').join(',');
+      const query = `DELETE FROM managers WHERE email IN (${placeholders})`;
+      const values = emailsToDelete;
+      db.run(query, values, function (err) {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(this.changes);
+        }
+      });
+    });
+  });
+  
+  ipcMain.handle('getEmailByManager', async (event, first_name, last_name) => {
+    try {
+      const row :any = await new Promise((resolve, reject) => {
+        db.get(`SELECT email FROM managers WHERE first_name = ? OR last_name = ?`, [first_name, last_name], (err, row) => {
+          if (err) reject(err);
+          resolve(row);
+        });
+      });
+  
+      return row ? row.email : null;
+    } catch (error) {
+      console.error(error);
+      return null;
+    }
+  });
+  
+
+  ipcMain.handle('getJsonFiles', async (event, arg) => {
     return await new Promise((resolve, reject) => {
       db.all(`SELECT last_name,first_name,email,category FROM managers`, [], (err, rows) => {
         if (err) reject(err)
@@ -325,11 +427,13 @@ async function createWindow() {
     });
   });    
   
+  });    
+  
   
   ipcMain.handle('deleteJsonFile', async (event, arg) => {
     try {
       const result = await new Promise<number>((resolve, reject) => {
-        db.run(`DELETE FROM flow WHERE name = ?`, [arg.name], function(err) {
+        db.run(`DELETE FROM flow WHERE name = ?`, [arg.name], (err)=> {
           if (err) {
             console.error(err);
             reject(err);
@@ -456,12 +560,10 @@ app.on('window-all-closed', () => {
 
 app.on('second-instance', () => {
   if (win) {
-    // Focus on the main window if the user tried to open another
     if (win.isMinimized()) win.restore()
     win.focus()
   }
 })
-
 app.on('activate', () => {
   const allWindows = BrowserWindow.getAllWindows()
   if (allWindows.length) {
@@ -471,7 +573,6 @@ app.on('activate', () => {
   }
 })
 
-// new window example arg: new windows url
 ipcMain.handle('open-win', (event, arg) => {
   const childWindow = new BrowserWindow({
     webPreferences: {
@@ -483,6 +584,5 @@ ipcMain.handle('open-win', (event, arg) => {
     childWindow.loadFile(indexHtml, { hash: arg })
   } else {
     childWindow.loadURL(`${url}/#${arg}`)
-    // childWindow.webContents.openDevTools({ mode: "undocked", activate: true })
   }
 })

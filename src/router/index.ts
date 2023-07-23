@@ -1,6 +1,9 @@
-import { createRouter, createWebHashHistory } from 'vue-router';
+import { createRouter, createWebHistory ,RouterView } from 'vue-router';
 
 const routes = [
+  {path: "/:locale?",
+  component: RouterView,
+  children: [
   {
     path: '/flow',
     name: 'Flow',
@@ -21,10 +24,15 @@ const routes = [
     name: 'Managers',
     component: () => import('../views/Managers.vue'),
   }
+  {
+    path: '/managers',
+    name: 'Managers',
+    component: () => import('../views/Managers.vue'),
+  },]}
 ];
 
 const router = createRouter({
-  history: createWebHashHistory(), routes
+  history: createWebHistory(import.meta.env.VITE_BASE_URL), routes
 });
 
 export default router;

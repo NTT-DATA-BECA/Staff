@@ -4,50 +4,50 @@
       <v-select v-model="selectedOption" :options="files" label="name" class="h-9 text-primary-dark rounded w-60 mr-3"
         @click="() => loadNameFiles()" @option:selected="onChangeFile()">
       </v-select>
-      <div className="flex justify-end text-gray-100">
-          <input className="input mr-2"
-            v-bind:placeholder="(action == 'edit' || isEditName) ? 'Edit filename' : 'Add filename'" v-model="fileName"
-            v-if="action == 'add' || isEditName" />
-          <button v-if="action == 'edit'" class="btn flex items-center mr-2 mb-3" @click="editName">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="mr-2 bi bi-pen-fill"
-              viewBox="0 0 16 16">
-              <path
-                d="m13.498.795.149-.149a1.207 1.207 0 1 1 1.707 1.708l-.149.148a1.5 1.5 0 0 1-.059 2.059L4.854 14.854a.5.5 0 0 1-.233.131l-4 1a.5.5 0 0 1-.606-.606l1-4a.5.5 0 0 1 .131-.232l9.642-9.642a.5.5 0 0 0-.642.056L6.854 4.854a.5.5 0 1 1-.708-.708L9.44.854A1.5 1.5 0 0 1 11.5.796a1.5 1.5 0 0 1 1.998-.001z" />
-            </svg>
-            Edit name
-          </button>
-          <button class="btn rounded-lg px-5 py-2.5 text-center mr-2 mb-3 flex items-center" @click="saveToDatabase">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
-              class="mr-2 bi bi-file-earmark-arrow-up-fill" viewBox="0 0 16 16">
-              <path
-                d="M9.293 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V4.707A1 1 0 0 0 13.707 4L10 .293A1 1 0 0 0 9.293 0zM9.5 3.5v-2l3 3h-2a1 1 0 0 1-1-1zM6.354 9.854a.5.5 0 0 1-.708-.708l2-2a.5.5 0 0 1 .708 0l2 2a.5.5 0 0 1-.708.708L8.5 8.707V12.5a.5.5 0 0 1-1 0V8.707L6.354 9.854z" />
-            </svg>
-            Save File
-          </button>
-          <button class="mr-2 btn flex items-center" @click="newFile">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="mr-2 bi bi-plus-lg"
-              viewBox="0 0 16 16">
-              <path fill-rule="evenodd"
-                d="M8 2a.5.5 0 0 1 .5.5v5h5a.5.5 0 0 1 0 1h-5v5a.5.5 0 0 1-1 0v-5h-5a.5.5 0 0 1 0-1h5v-5A.5.5 0 0 1 8 2Z" />
-            </svg>
-            New file
-          </button>
-          <button class="btn flex items-center" @click="duplicateFile">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
-              class="mr-2 bi bi-file-earmark-plus-fill" viewBox="0 0 16 16">
-              <path
-                d="M9.293 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V4.707A1 1 0 0 0 13.707 4L10 .293A1 1 0 0 0 9.293 0zM9.5 3.5v-2l3 3h-2a1 1 0 0 1-1-1zM8.5 7v1.5H10a.5.5 0 0 1 0 1H8.5V11a.5.5 0 0 1-1 0V9.5H6a.5.5 0 0 1 0-1h1.5V7a.5.5 0 0 1 1 0z" />
-            </svg>
-            Duplicate file
-          </button>
-          <button class="btn ml-2 flex items-center" @click="deleteFile">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="mr-2 bi bi-trash-fill"
-              viewBox="0 0 16 16">
-              <path
-                d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1H2.5zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5zM8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5zm3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0z" />
-            </svg>
-            delete
-          </button>
+      <div class="flex justify-end text-gray-100">
+        <input className="input mr-2"
+          v-bind:placeholder="getPlaceholderText()"  v-model="fileName"
+          v-if="action == 'add' || isEditName" />
+        <button v-if="action == 'edit'" class="btn flex items-center mr-2 mb-3" @click="editName">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="mr-2 bi bi-pen-fill"
+            viewBox="0 0 16 16">
+            <path
+              d="m13.498.795.149-.149a1.207 1.207 0 1 1 1.707 1.708l-.149.148a1.5 1.5 0 0 1-.059 2.059L4.854 14.854a.5.5 0 0 1-.233.131l-4 1a.5.5 0 0 1-.606-.606l1-4a.5.5 0 0 1 .131-.232l9.642-9.642a.5.5 0 0 0-.642.056L6.854 4.854a.5.5 0 1 1-.708-.708L9.44.854A1.5 1.5 0 0 1 11.5.796a1.5 1.5 0 0 1 1.998-.001z" />
+          </svg>
+          {{ t("editor.edit") }}
+        </button>
+        <button class="btn rounded-lg px-5 py-2.5 text-center mr-2 mb-3 flex items-center" @click="saveToDatabase">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+            class="mr-2 bi bi-file-earmark-arrow-up-fill" viewBox="0 0 16 16">
+            <path
+              d="M9.293 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V4.707A1 1 0 0 0 13.707 4L10 .293A1 1 0 0 0 9.293 0zM9.5 3.5v-2l3 3h-2a1 1 0 0 1-1-1zM6.354 9.854a.5.5 0 0 1-.708-.708l2-2a.5.5 0 0 1 .708 0l2 2a.5.5 0 0 1-.708.708L8.5 8.707V12.5a.5.5 0 0 1-1 0V8.707L6.354 9.854z" />
+          </svg>
+          {{ t("editor.save") }}
+        </button>
+        <button class="mr-2 btn flex items-center" @click="newFile">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="mr-2 bi bi-plus-lg"
+            viewBox="0 0 16 16">
+            <path fill-rule="evenodd"
+              d="M8 2a.5.5 0 0 1 .5.5v5h5a.5.5 0 0 1 0 1h-5v5a.5.5 0 0 1-1 0v-5h-5a.5.5 0 0 1 0-1h5v-5A.5.5 0 0 1 8 2Z" />
+          </svg>
+          {{ t("editor.new") }}
+        </button>
+        <button v-if="action == 'edit'" class="btn flex items-center" @click="duplicateFile">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+            class="mr-2 bi bi-file-earmark-plus-fill" viewBox="0 0 16 16">
+            <path
+              d="M9.293 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V4.707A1 1 0 0 0 13.707 4L10 .293A1 1 0 0 0 9.293 0zM9.5 3.5v-2l3 3h-2a1 1 0 0 1-1-1zM8.5 7v1.5H10a.5.5 0 0 1 0 1H8.5V11a.5.5 0 0 1-1 0V9.5H6a.5.5 0 0 1 0-1h1.5V7a.5.5 0 0 1 1 0z" />
+          </svg>
+          {{ t("editor.duplicate") }}
+        </button>
+        <button v-if="action == 'edit'" class="btn ml-2 flex items-center" @click="deleteFile">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="mr-2 bi bi-trash-fill"
+            viewBox="0 0 16 16">
+            <path
+              d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1H2.5zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5zM8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5zm3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0z" />
+          </svg>
+          {{ t("editor.delete") }}
+        </button>
       </div>
     </div>
       <div className="flex flex-row w-full h-full">
@@ -154,8 +154,11 @@ import { ipcRenderer } from 'electron';
 import {reactive} from 'vue';
 import QuillImageDropAndPaste from 'quill-image-drop-and-paste'
 import Vue3TreeVue from '../components/tree-component.vue';
-import { TreeViewItem } from 'src/Tree/types';
-
+import { TreeViewItem } from 'src/Tree/types';import { reactive } from 'vue';
+import QuillImageDropAndPaste from 'quill-image-drop-and-paste'
+import { useI18n } from 'vue-i18n'
+import treeview from "vue3-treeview";
+import "vue3-treeview/dist/style.css";
 // Quil configuration
 Quill.register('modules/imageDropAndPaste', QuillImageDropAndPaste)
 const Embed = Quill.
@@ -179,11 +182,18 @@ Quill.register(class extends Embed {
 });
 Quill.register("modules/resize", ResizeModule);
 
+
 export default {
   inject: ['ipcRenderer'],
   name: 'Editor',
   components: {
-        Vue3TreeVue
+        Vue3TreeVue,
+        tree: treeview,
+
+    },
+  setup() {
+      const { t } = useI18n()
+      return { t }
     },
   data() {
     return {
@@ -204,16 +214,28 @@ export default {
       selectedItems: null as any,
       onItemSelected: [] as any,
       isExpanded: localStorage.getItem('is_expanded') === 'true',
-      showSidebar: false
+      showSidebar: false,
+      excelName:'',
+      config: {
+        roots: ["columns"],
+      },
+      nodes: {
+        columns: {
+          text: "",
+          children: [],
+        }
+      },
+      allow:false
     }
   },
-  async mounted() {
-   
+  mounted() {
+    const { t } = useI18n()
+    
     const image = reactive({
-      type: '', 
+      type: '',
       dataUrl: null,
-      blob: null, 
-      file: null, 
+      blob: null,
+      file: null,
     })
     const imageHandler = (dataUrl, type, imageData) => {
       imageData.minify({
@@ -222,32 +244,32 @@ export default {
         quality: .7
       }).then((miniImageData) => {
         image.type = type
-        image.dataUrl = dataUrl  
-        this.editor.root.innerHTML = this.editor.root.innerHTML + "<img src='"+dataUrl+"' style='width:100px;height:100px'>" ;
+        image.dataUrl = dataUrl
+        this.editor.root.innerHTML = this.editor.root.innerHTML + "<img src='" + dataUrl + "' style='width:100px;height:100px'>";
       })
     }
     var toolbarOptions = [
-      ['bold', 'italic', 'underline', 'strike'],  
+      ['bold', 'italic', 'underline', 'strike'],
       ['image', 'blockquote', 'code-block'],
-      [{ 'header': 1 }, { 'header': 2 }],               
+      [{ 'header': 1 }, { 'header': 2 }],
       [{ 'list': 'ordered' }, { 'list': 'bullet' }],
-      [{ 'script': 'sub' }, { 'script': 'super' }],     
-      [{ 'indent': '-1' }, { 'indent': '+1' }],         
+      [{ 'script': 'sub' }, { 'script': 'super' }],
+      [{ 'indent': '-1' }, { 'indent': '+1' }],
       [{ 'direction': 'rtl' }],
-      [{ 'size': ['small', false, 'large', 'huge'] }],                        
+      [{ 'size': ['small', false, 'large', 'huge'] }],
       [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
-      [{ 'color': [] }, { 'background': [] }],          
+      [{ 'color': [] }, { 'background': [] }],
       [{ 'font': [] }],
       [{ 'align': [] }],
-      ['clean'],  
+      ['clean'],
     ];
     this.editor = new Quill(this.$refs.editor, {
       theme: 'snow',
       modules: {
         toolbar: toolbarOptions,
         imageDropAndPaste: {
-            handler: imageHandler
-          },
+          handler: imageHandler
+        },
         resize: {
           locale: {
             altTip: "altTip",
@@ -256,37 +278,41 @@ export default {
             center: "center",
             restore: "restore"
           }
-        }
+        },    
+        
       },
 
     })
-    this.editor.root.innerHTML = ''
-    document.getElementById('sidebar')?.querySelectorAll('.header')
-      .forEach((e: any) => {
-        e.setAttribute('draggable', 'true')
-        e.ondragstart = (ev: any) => {
-          ev.dropEffect = 'copy'
-          ev.effectAllowed = 'copy'
-          ev.dataTransfer.setData('text/html', `${ev.target.innerHTML.slice(1)}`)
-        }
-        e.ondragend = ev => {
-          var data = ev.dataTransfer.getData("text/html");
-          var index = this.editor.getSelection(true).index;
-          this.editor.insertEmbed(index, 'customEmbed', data);
-        }
-      });
-    this.loadItems();
+    this.editor.root.innerHTML = ''   
+    this.editor.root.addEventListener('drop', (event) => {
+      event.preventDefault();
+      event.stopPropagation();  
+      const column = event.dataTransfer.getData('text/plain');
+      if (column) {
+        this.editor.enable()
+        this.editor.focus();
+        const range = this.editor.getSelection(true);
+        this.editor.insertText(range?.index, `{${column}}`);
+      }
+    });
 
   },
   methods: {
+    getPlaceholderText() {
+    if (this.action === 'edit' || this.isEditName) {
+      return  this.t('editor.editname');
+    } else {
+      return this.t('editor.addname');
+    }
+  },
     deleteFile() {
       Swal.fire({
-        title: 'Are you sure?',
-        text: "You won't be able to revert this!",
+        title: this.t('messages.sure'),
+        text: this.t('messages.textsure'),
         icon: 'warning',
         showCancelButton: true,
-        confirmButtonText: 'Yes, delete it!',
-        cancelButtonText: 'No, cancel!',
+        confirmButtonText: this.t('messages.yes'),
+        cancelButtonText: this.t('messages.no'),
         confirmButtonColor: '#3085d6',
         cancelButtonColor: '#d33',
         reverseButtons: true
@@ -295,27 +321,33 @@ export default {
           this.fileName = ''
           ipcRenderer.invoke('deleteQuillFile', { name: this.selectedOption })
             .then(() => {
-              Swal.fire(
-                'Deleted!',
-                'Your file has been deleted.',
-                'success'
-              );
+              Swal.fire({
+                title: this.t('messages.delete'),
+                text: this.t('messages.filedelete'),
+                icon: 'success',
+                showConfirmButton: false,
+                timer: 1500
+              });
               this.newFile();
             })
             .catch(() => {
-              Swal.fire(
-                'Error!',
-                'Something wrong.',
-                'error'
+              Swal.fire( {
+                title:this.t('messages.error'),
+                text:this.t('messages.wrong'),
+                icon:'error',
+                showConfirmButton: false,
+              }
               );
               this.newFile();
             });
         }
         else if (result.dismiss === Swal.DismissReason.cancel) {
-          Swal.fire(
-            'Cancelled',
-            'Your file is safe :)',
-            'error'
+          Swal.fire({
+           title: this.t('messages.cancel'),
+           text: this.t('messages.fileSafe'),
+           icon:'error',
+           showConfirmButton: false,
+          }
           );
         }
       })
@@ -333,7 +365,10 @@ export default {
     },
     loadExcelFile(event) {
       const file = event.target.files[0];
+      this.excelName = event.target.files[0].name;
+      this.nodes.columns.text=this.excelName;
       const reader = new FileReader();
+      var pointer = require('json-pointer');
       reader.onload = (e) => {
         const data = e.target?.result;
         const workbook = XLSX.read(data, { type: 'binary' });
@@ -346,6 +381,7 @@ export default {
           for (let C = range.s.c; C <= range.e.c; ++C) {
             const cell = sheet[XLSX.utils.encode_cell({ r: range.s.r, c: C })];
             const columnName: string = XLSX.utils.format_cell(cell);
+            pointer.set(this.nodes, '/'+columnName+'/text',columnName);
             columns.push(columnName);
           }
           for (let R = range.s.r + 1; R <= range.e.r; ++R) {
@@ -360,6 +396,8 @@ export default {
           }
         }
         this.columns = columns;
+        this.allow=true;
+        pointer.set(this.nodes, '/columns/children',this.columns);
         this.dataRows = dataRows;
       };
       reader.readAsBinaryString(file);
@@ -382,34 +420,37 @@ export default {
       var contenu = this.editor.root.innerHTML;
       var name = this.selectedOption
       var html = '<html><head><style> footer{position: fixed;bottom: 0;margin-left:90px; margin-right:130px}' + quillCSS + '</style></head><body><div class="ql-editor">' + contenu + ' <footer style="padding-top: 100px;"><div style="border-top: 2px solid #011627;"><div style="font-size :15px; text-align:center; color:#011627;margin-left:0px;margin-right:5px;"><p> NTT DATA Morocco Centers – SARL au capital de 7.700.000 Dhs – Parc Technologique de Tétouanshore, Route de Cabo Negro, Martil – Maroc – RC: 19687 – IF : 15294847 – CNSS : 4639532 – Taxe Prof. :51840121</p></div></footer> </div></body></html>'
-      
+
       var pdf = require('hm-html-pdf');
       var options = {
-        "height": "1700px",     
-        "width": "1375px", 
-         
+        "height": "1700px",
+        "width": "1375px",
+
       };
-      pdf.create(html, options).toFile( "C:/pdfsApp/" + name + '.pdf', function (err, res) {
-          if (err) return console.log(err);
-          else {
-            Swal.fire(
-                'Generated!',
-                'Your PDF has been generated.',
-                'success'
-              );
+      pdf.create(html, options).toFile("C:/pdfsApp/" + name + '.pdf',  (err, res) => {
+        if (err) return console.log(err);
+        else {
+          Swal.fire({
+            title: this.t('messages.titlegenerate'),
+            text: this.t('messages.textgenerate'),
+            icon: 'success',
+            showConfirmButton: false,
+            timer: 1500
           }
-        });
+          );
+        }
+      });
     },
     async saveToDatabase() {
       if (this.fileName) {
         if (this.isEditName) {
           if (this.fileName.length === 0) {
-            Swal.fire('Empty Name', 'The field cannot be left empty, please input a name.', 'error')
+            Swal.fire(this.t('messages.empty'),this.t('messages.textempty'), 'error')
           }
           else {
             var exist = await ipcRenderer.invoke('checkFileNameExists', { name: this.fileName })
             if (exist) {
-              Swal.fire('Duplicate Name', 'The name already exists in the database, please choose a different name.', 'error');
+              Swal.fire(this.t('messages.duplicate'), this.t('messages.textduplicate'), 'error');
             }
             else {
               ipcRenderer.invoke('updateQuillFileName', { oldName: this.selectedOption, newName: this.fileName });
@@ -421,12 +462,12 @@ export default {
         }
         else {
           if (this.fileName.length === 0) {
-            Swal.fire('Empty Name', 'The field cannot be left empty, please input a name.', 'error')
+            Swal.fire(this.t('messages.empty'),this.t('messages.textempty'), 'error');
           }
           else {
             var exist = await ipcRenderer.invoke('checkFileNameExists', { name: this.fileName })
             if (exist) {
-              Swal.fire('Duplicate Name', 'The name already exists in the database, please choose a different name.', 'error');
+              Swal.fire(this.t('messages.duplicate'), this.t('messages.textduplicate'), 'error');
             }
             else {
               const currentDate = new Date();
@@ -453,16 +494,12 @@ export default {
       Swal.fire({
         toast: true,
         icon: 'success',
-        title: 'The operation has been completed!',
+        title: this.t('messages.showSucess'),
         position: 'bottom-left',
         timer: 2000,
         showConfirmButton: false,
         timerProgressBar: true,
       })
-    },
-    onDrop(event) {
-      this.editor.setSelection(0);
-
     },
     async loadNameFiles() {
       const response = await ipcRenderer.invoke('getQuillContentName');
@@ -480,167 +517,19 @@ export default {
       const contenuEditor = this.editor.root.innerHTML;
       const nameFile = this.selectedOption;
       this.newFile();
-      this.fileName = nameFile + "-copy";
-      this.editor.root.innerHTML = contenuEditor;
-    },
-    toggleMenu() {
-            this.isExpanded = !this.isExpanded;
-            localStorage.setItem('is_expanded', this.isExpanded.toString());
-    },
-    async loadItems() {
-            try {
-                const years = await ipcRenderer.invoke('getYearsFile');
-                this.items = [
-                    {
-                        name: 'Years',
-                        id: 'years',
-                        type: 'string',
-                        children: await Promise.all(
-                            years.map(async (years: number) => {
-                                const files = await ipcRenderer.invoke('getFilesByYear', { years });
-                                return {
-                                    name: years.toString(),
-                                    id: years,
-                                    type: 'number',
-                                    children: files.map((file: string) => ({
-                                        name: file,
-                                        type: 'string',
-                                        id: file,
-
-                                    })),
-                                };
-                            })
-                        ),
-                    },
-                ];
-                console.log("items:", this.items);
-            } catch (error) {
-                console.error(error);
-            }
-    },
-    async handleFileClick(selectedItem) {
-      const selectedFile = selectedItem?.name;
-      const response = await ipcRenderer.invoke('getQuillContentData', { name: selectedFile });
-      this.fileName = '';
-      this.editor.root.innerHTML = response;
-        
-      },
-
+      this.fileName=nameFile+"-copy";
+      this.editor.root.innerHTML=contenuEditor;
+    }
   }
 }
 </script>
 
-<style lang="scss" scoped>
+<style scoped>
+.node {
+  @apply text-white bg-primary-light hover:bg-primary-dark font-bold rounded-lg text-sm px-1 py-3 text-center mr-4 ml-4 mb-2;
+}
+
 .customEmbed {
   @apply p-2 mb-2 block text-white bg-primary-light hover:bg-primary-dark rounded-lg w-full text-center;
-}
-
-.scroll-container {
-        max-height: 599px;
-        margin-right: -6.5%;
-        flex: 1;
-        overflow-y: auto;
-    }
-
-    /* Width */
-    .scroll-container::-webkit-scrollbar {
-        width: 10px;
-        height: 10px;
-
-    }
-    
-    /* Track */
-    .scroll-container::-webkit-scrollbar-track {
-        background:#f1eeee;
-    }
-    
-    /* Handle */
-    .scroll-container::-webkit-scrollbar-thumb {
-        @apply bg-primary-light;        
-        border-radius: 5px;
-    }
-    
-    /* Handle on hover */
-    .scroll-container::-webkit-scrollbar-thumb:hover {
-        @apply bg-primary-light        
-    }
-
-
-aside {
-
-display: none;
-
-
-.flex {
-    flex: 1 1 0%;
-}
-
-
-.menu-toggle-wrap {
-    display: flex;
-    justify-content: flex-end;
-    margin-bottom: 1rem;
-    position: relative;
-    top: 0;
-    transition: 0.2s ease-in-out;
-
-    .menu-toggle {
-        transition: 0.2s ease-in-out;
-
-        .material-icons {
-            font-size: 2rem;
-            color: white;
-            transition: 0.2s ease-out;
-
-
-        }
-
-        &:hover {
-            .material-icons {
-                color: white;
-                transform: translateX(1rem);
-            }
-        }
-    }
-}
-
-&.is-expanded {
-    display: flex;
-    flex-direction: column;
-    @apply bg-primary-dark text-white font-bold;
-    overflow: hidden;
-    padding: 1rem;
-    transition: width 0.2s ease-in-out;
-    width: 241px;
-    height: 71%;
-    position: absolute;
-    top: 0;
-    left: 0;
-    bottom: 0;
-    z-index: 99;
-    margin-top: 14%;
-    margin-left: 1%;
-
-
-
-
-    .menu-toggle-wrap {
-        top: -1rem;
-
-        .menu-toggle {
-            transform: rotate(-180deg);
-        }
-    }
-}
-
-@media (max-width: 1024px) {
-    position: absolute;
-    z-index: 99;
-}
-}
-
-  * {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-    font-size: 14px;
 }
 </style>

@@ -1,24 +1,34 @@
 <template>
   <div class="h-screen flex flex-col">
     <nav class="flex bg-slate-50 shadow justify-between">
-      <div class="flex">
-        <router-link class="link-item" to="/">Editor</router-link>
-        <router-link class="link-item" to="/flow">Flow</router-link>
-        <router-link class="link-item" to="/generator">Generator</router-link>
-        <router-link class="link-item" to="/managers">Managers</router-link>
+      <div class="flex items-center">
+        <div class="flex">
+          <router-link class="link-item" to="/">{{ t("nav.editor") }}</router-link>
+          <router-link class="link-item" to="/flow">{{ t("nav.flow") }}</router-link>
+          <router-link class="link-item" to="/generator">{{ t("nav.generator") }}</router-link>
+          <router-link class="link-item" to="/managers">{{ t("nav.managers") }}</router-link>
+        </div>
+      </div>
+      <div class="flex items-center ml-auto mr-2">
+        <LocaleChanger></LocaleChanger>
       </div>
     </nav>
     <router-view />
   </div>
 </template>
 
+
+
 <script lang="ts">
+ import { useI18n } from 'vue-i18n'
+ import LocaleChanger from "./components/LocaleChanger.vue"
 export default {
-  methods: {
-    closeApp() {
-      window.close();
+  name:"App",
+  components: { LocaleChanger },
+  setup() {
+      const { t } = useI18n()
+      return { t }
     }
-  }
 }
 </script>
 
