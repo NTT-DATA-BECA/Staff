@@ -2,7 +2,8 @@
     <div className="h-full w-full flex flex-col p-4">
         <div class="flex justify-between">
             <v-select v-model="selectedOption" label="name" class="h-9 text-primary-dark rounded w-60 mr-3"
-                @click="() => loadJsonFiles()" :options="programs" @option:selected="onChangeFile()"></v-select>
+                @click="() => loadJsonFiles()" :options="programs" @option:selected="onChangeFile()">
+            </v-select>
             <div className="flex justify-end mb-3 text-gray-100">
                 <input v-if="action == 'add' || isEditName" className="input mr-2" v-bind:placeholder="getPlaceholderText()"
                     @input="addProgramName($event)" v-model="nodeProgramName" />
@@ -40,11 +41,41 @@
                 </button>
             </div>
         </div>
-        <div class="flex flex-row w-full h-full">
-            <div className="flex flex-col gap-2 w-[200px] mx-auto mr-3">
-                <h4 className="border-b-4 p-2 text-center font-bold text-slate-500">{{ t("flow.types") }}</h4>
-                <div class="nodes-list" draggable="true" v-for="i in nodesList " :key="i.name" :node-item="i.item"
-                    @dragstart=" drag($event)">
+        <div class="sidebar-wrapper">
+            <aside :class="`${showSidebar ? 'is-expanded' : showSidebar}`">
+                <link href="https://fonts.googleapis.com/css2?family=Material+Icons" rel="stylesheet">
+                <button class=" menu-toggle-wrap menu-toggle" @click="showSidebar = !showSidebar">
+                    <span class="material-icons">keyboard_double_arrow_left</span>
+                </button>
+                <div id="app" class="scroll-container">
+                    <div>
+                        <div style="display: flex">
+                            <vue3-tree-vue :items="items"
+                                :hideGuideLines="false"
+                                v-model:selectedItem="selectedItem"
+                                @onSelect="handleFlowClick(selectedItem)"
+                                :expandAll="true"
+                                style="width: 500px; display: block; border-right: 1px solid gray"
+                            >
+                                        <template v-slot:item-expander="item">
+                                            <div class="d-flex" style="display: flex; justify-content: center; vertical-align: center; justify-items: center; align-items: center; margin-right: 10px;" :style="{background: item.type == 'folder' ? 'blue' : 'white', height: '14px', width: '14px', 'margin-right': '0.2em', 'border-radius': '4px'}">
+                                            <span style="color: black;">-</span>
+                                            </div>
+                                        </template>
+                            </vue3-tree-vue>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+            <div className="flex flex-col gap-2 w-[170px] mx-auto mr-20">
+                <div className="relative w-[200px] mx-auto mr-40">
+                    <button class="menu-toggle absolute left-0 top-0" @click="showSidebar = !showSidebar">
+                        <span class="material-icons">keyboard_double_arrow_right</span>
+                    </button>
+                    <h4 className="border-b-4 p-2 text-center font-bold text-slate-500 ">{{ t("flow.types") }}</h4>
+                </div>
+                <div class="nodes-list" draggable="true" v-for="i in nodesList" :key="i.name" :node-item="i.item"
+                    @dragstart="drag($event)">
                     <span class="node"> <span v-html="i.icon" class="m-1 "></span> {{ t("nodes." + i.name) }}</span>
                 </div>
             </div>
@@ -76,7 +107,8 @@
                             d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z" />
                     </svg>
                 </a>
-            </div>
+        </div>
+
         </div>
     </div>
 </template>
@@ -100,13 +132,17 @@ import { ipcRenderer } from 'electron';
 import { toast } from 'vue3-toastify';
 import { useI18n } from 'vue-i18n'
 import 'vue3-toastify/dist/index.css';
-
+import Vue3TreeVue from '../components/tree-component.vue';
+import { TreeViewItem } from '../Tree/types';
 import { useStore } from 'vuex';
 import { mapActions } from 'vuex';
 
 export default {
     name: "DrawflowDashboard",
     inject: ['ipcRenderer'],
+    components: {
+        Vue3TreeVue
+    },
     setup() {
         const { t } = useI18n()
         return { t }
@@ -124,7 +160,13 @@ export default {
             node_select: '',
             node_last_move: null as any,
             nodesList: nodesList,
-            cleanFlowTitle:""
+            cleanFlowTitle:"",
+            items: [] as TreeViewItem[],
+            selectedItem: null as any,
+            selectedItems: null as any,
+            onItemSelected: [] as any,
+            isExpanded: localStorage.getItem('is_expanded') === 'true',
+            showSidebar: false,
         };
     },
     async mounted() {
@@ -208,6 +250,8 @@ export default {
                 }
             });
         });
+        
+        this.loadItems();
 
     },
     methods: {
@@ -486,15 +530,78 @@ export default {
                 this.setHeaders(headNames);
                 this.setExcelData(dataRows);
             }
+        },
+        toggleMenu() {
+            this.isExpanded = !this.isExpanded;
+            localStorage.setItem('is_expanded', this.isExpanded.toString());
+        },
+        async loadItems() {
+            try {
+                const years = await ipcRenderer.invoke('getYearsFlow');
+                this.items = [
+                    {
+                        name: 'Years',
+                        id: years,
+                        type: 'string',
+                        children: await Promise.all(
+                            years.map(async (year: number) => {
+                                const flows = await ipcRenderer.invoke('getFlowsByYear', { year });
+                                return {
+                                    name: year.toString(),
+                                    id: year,
+                                    type: 'number',
+                                    children: flows.map((flow: string) => ({
+                                        name: flow,
+                                        type: 'string',
+                                        id: flow,
+
+                                    })),
+                                };
+                            })
+                        ),
+                    },
+                ];
+            } catch (error) {
+                console.error(error);
+            }
+        },
+        async handleFlowClick(selectedItem) {
+
+            const selectedFlow = selectedItem?.name;
+            this.flowName = selectedFlow;
+            this.isEditName = false;
+            const response = await ipcRenderer.invoke('getJsonFile', { name: selectedFlow });
+            const jsonData = JSON.parse(response);
+            if (jsonData?.drawflow) {
+                const dataa = jsonData.drawflow.Home.data;
+                const ob = {
+                    drawflow: {
+                        Home: {
+                            data: dataa
+                        }
+                    }
+                };
+                this.editor.value.import(ob);
+                const nodeExcelData: any = this.searchNodeExcel();
+                if (nodeExcelData) {
+                    var headNames = [] as string[];
+                    var dataRows = [] as string[];
+                    headNames = nodeExcelData.data.headers;
+                    dataRows = nodeExcelData.data.excelData;
+                    this.setHeaders(headNames);
+                    this.setExcelData(dataRows);
+                }
         }
+        },
     }
 }
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .node {
-    @apply bg-primary-light border border-collapse text-white p-3 rounded w-full cursor-pointer sm:text-sm flex hover:bg-primary-dark hover:border hover:border-gray-800;
+    @apply bg-primary-light border border-collapse text-white p-3 rounded w-60  cursor-pointer sm:text-sm flex hover:bg-primary-dark hover:border hover:border-gray-800;
 }
+
 
 #drawflow {
     text-align: initial;
@@ -503,5 +610,113 @@ export default {
     background: #f1eeee;
     background-size: 20px 20px;
     background-image: radial-gradient(#c5c3c3 1px, transparent 1px);
+}
+
+.scroll-container {
+        max-height: 599px;
+        margin-right: -6.5%;
+        flex: 1;
+        overflow-y: auto;
+    }
+
+    /* Width */
+    .scroll-container::-webkit-scrollbar {
+        width: 10px;
+    }
+    
+    /* Track */
+    .scroll-container::-webkit-scrollbar-track {
+        background:#f1eeee;
+    }
+    
+    /* Handle */
+    .scroll-container::-webkit-scrollbar-thumb {
+        @apply bg-primary-light;        
+        border-radius: 5px;
+    }
+    
+    /* Handle on hover */
+    .scroll-container::-webkit-scrollbar-thumb:hover {
+        @apply bg-primary-light        
+    }
+
+.sidebar-wrapper {
+    position: relative;
+    display: flex;
+    overflow: hidden;
+
+}
+
+aside {
+
+    display: none;
+
+
+    .flex {
+        flex: 1 1 0%;
+    }
+
+
+    .menu-toggle-wrap {
+        display: flex;
+        justify-content: flex-end;
+        margin-bottom: 1rem;
+        position: relative;
+        top: 0;
+        transition: 0.2s ease-in-out;
+
+        .menu-toggle {
+            transition: 0.2s ease-in-out;
+
+            .material-icons {
+                font-size: 2rem;
+                color: white;
+                transition: 0.2s ease-out;
+
+
+            }
+
+            &:hover {
+                .material-icons {
+                    color: white;
+                    transform: translateX(1rem);
+                }
+            }
+        }
+    }
+
+    &.is-expanded {
+        display: flex;
+        flex-direction: column;
+        @apply bg-primary-dark text-white font-bold;
+        overflow: hidden;
+        padding: 1rem;
+        transition: width 0.2s ease-in-out;
+        width: 239px;
+        position: absolute;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        z-index: 99;
+
+        .menu-toggle-wrap {
+            top: -1rem;
+
+            .menu-toggle {
+                transform: rotate(-180deg);
+            }
+        }
+    }
+
+    @media (max-width: 1024px) {
+        position: absolute;
+        z-index: 99;
+    }
+}
+
+
+* {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    font-size: 14px;
 }
 </style>
