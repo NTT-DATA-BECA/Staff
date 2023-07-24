@@ -122,7 +122,7 @@
                     </label>
                   </div>
                 </div>
-                <div v-if="allow" class="scroll-container">
+                <div v-if="allow" class="scroll-container1">
         <tree  class="cursor-grab" :nodes="nodes" :config="config"></tree>
       </div>
               </div>
@@ -540,6 +540,32 @@ export default {
 </script>
 
 <style lang="scss"  scoped>
+.scroll-container1 {
+    overflow-y: scroll;
+    overflow-x: hidden; /* Hide the horizontal scrollbar */
+    max-height: 350px;
+    margin-right: 0%;
+}
+
+.scroll-container1::-webkit-scrollbar {
+    width: 12px;
+    height: 12px; 
+}
+
+.scroll-container1::-webkit-scrollbar-track {
+    background: #f1eeee;
+}
+
+.scroll-container1::-webkit-scrollbar-thumb {
+    @apply bg-primary-light;
+    border-radius: 5px;
+}
+
+.scroll-container1::-webkit-scrollbar-thumb:hover {
+    @apply bg-primary-light;
+}
+
+//---------------
 
 .scroll-container {
         max-height: 599px;
