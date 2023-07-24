@@ -56,6 +56,8 @@
                         <button class=" menu-toggle-wrap menu-toggle" @click="showSidebar = !showSidebar">
                             <span class="material-icons">keyboard_double_arrow_left</span>
                         </button>
+                        <h4 className="border-b-4 p-2 border-white text-center font-bold text-black-700 mt-0.1 ">File History</h4>
+
                         <div id="app" class="scroll-container">
                             <div>
                                 <div style="display: flex">
@@ -122,7 +124,7 @@
                     </label>
                   </div>
                 </div>
-                <div v-if="allow" class="scroll-container">
+                <div v-if="allow" class="scroll-container1">
                   <tree  class="cursor-grab" :nodes="nodes" :config="config"></tree>
                 </div>
               </div>
@@ -540,6 +542,32 @@ export default {
 </script>
 
 <style lang="scss"  scoped>
+
+.scroll-container1 {
+    overflow-y: auto;
+    max-height: 380px;
+    margin-right: 0%;
+}
+
+.scroll-container1::-webkit-scrollbar {
+    width: 12px;
+    height: 12px; 
+}
+
+.scroll-container1::-webkit-scrollbar-track {
+    background: #f1eeee;
+}
+
+.scroll-container1::-webkit-scrollbar-thumb {
+    @apply bg-primary-light;
+    border-radius: 5px;
+}
+
+.scroll-container1::-webkit-scrollbar-thumb:hover {
+    @apply bg-primary-light;
+}
+
+//---------------
 
 .scroll-container {
         max-height: 599px;

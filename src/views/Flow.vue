@@ -47,6 +47,8 @@
                 <button class=" menu-toggle-wrap menu-toggle" @click="showSidebar = !showSidebar">
                     <span class="material-icons">keyboard_double_arrow_left</span>
                 </button>
+                <h4 className="border-b-4 p-2 border-white text-center font-bold text-black-700 mt-0.1 ">Flow History</h4>
+            <br>
                 <div id="app" class="scroll-container">
                     <div>
                         <div style="display: flex">
@@ -68,7 +70,7 @@
                 </div>
             </aside>
             <div className="flex flex-col gap-2 w-[170px] mx-auto mr-20">
-                <div className="relative w-[240px] mx-auto mr-40">
+                <div className="relative w-[239px] mx-auto mr-40">
                     <button class="menu-toggle absolute left-0 top-0" @click="showSidebar = !showSidebar">
                         <span class="material-icons">keyboard_double_arrow_right</span>
                     </button>
@@ -541,7 +543,7 @@ export default {
                 this.items = [
                     {
                         name: 'Years',
-                        id: years,
+                        id: 'years',
                         type: 'string',
                         children: await Promise.all(
                             years.map(async (year: number) => {
