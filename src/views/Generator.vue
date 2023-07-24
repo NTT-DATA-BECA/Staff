@@ -194,10 +194,6 @@ export default {
                                 }
                             }
                             else if (dataExcel) {
-                                if (!templateName) {
-                                    var dataNodeinput = this.MoveToNextNodeByOutput1(dataNode)
-                                    templateName = dataNodeinput.data.mytemplate;
-                                }
                                 for (var i = 0; i < dataExcel.length; i++) {
                                     var dataemployee = dataExcel[i];
                                     if (nameNode == "groupPdfBy") {
