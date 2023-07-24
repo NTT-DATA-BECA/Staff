@@ -329,7 +329,7 @@ async function createWindow() {
 
   ipcMain.handle('insertQuillcontent', async (event, data) => {
     return new Promise((resolve, reject) => {
-      db.run('INSERT INTO files (name, data) VALUES (?, ?)', [data.name, data.data], (err) => {
+      db.run('INSERT INTO files (name, data, years) VALUES (?, ?, ?)', [data.name, data.data, data.years], (err) => {
         if (err) {
           console.error(`Error inserting data into file table: ${err}`);
           reject(err);

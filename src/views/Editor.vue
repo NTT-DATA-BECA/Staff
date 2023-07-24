@@ -399,7 +399,9 @@ export default {
               Swal.fire(this.t('messages.duplicate'), this.t('messages.textduplicate'), 'error');
             }
             else {
-              ipcRenderer.invoke('insertQuillcontent', { name: this.fileName, data: this.editor.root.innerHTML })
+              const currentDate = new Date();
+              const currentYear = currentDate.getFullYear();
+              ipcRenderer.invoke('insertQuillcontent', { name: this.fileName, data: this.editor.root.innerHTML, years: currentYear })
                 .catch((error) => {
                   console.error(`Error insert: ${error}`);
                 });
