@@ -101,7 +101,7 @@
                   </svg>
                   {{ t("editor.generate") }}
                 </button>
-                <div className="relative w-[240px] mx-auto mr-40">
+                <div className="relative w-[240px] mx-auto mr-4">
                       <button class="menu-toggle absolute left-0 top-0" @click="showSidebar = !showSidebar">
                           <span class="material-icons">keyboard_double_arrow_right</span>
                       </button>
