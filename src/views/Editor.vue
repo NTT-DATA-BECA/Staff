@@ -101,7 +101,7 @@
                   </svg>
                   {{ t("editor.generate") }}
                 </button>
-                <div className="relative w-[240px] mx-auto mr-40">
+                <div className="relative w-[240px] mx-auto mr-4">
                       <button class="menu-toggle absolute left-0 top-0" @click="showSidebar = !showSidebar">
                           <span class="material-icons">keyboard_double_arrow_right</span>
                       </button>
@@ -123,8 +123,8 @@
                   </div>
                 </div>
                 <div v-if="allow" class="scroll-container">
-        <tree  class="cursor-grab" :nodes="nodes" :config="config"></tree>
-      </div>
+                  <tree  class="cursor-grab" :nodes="nodes" :config="config"></tree>
+                </div>
               </div>
               <div className="flex flex-col w-full h-full">
                 <div id="editor" ref="editor">
