@@ -87,7 +87,8 @@
           "selectrow":"Please select a row to delete.",
           "succedelet":"Successful deletion,",
           "linesremoved":" lines removed.",
-          "textcanceled":"You have cancelled the deletion"
+          "textcanceled":"You have cancelled the deletion",
+          "years" : "Years"
         },
         "nodes":{
           "end":"End",

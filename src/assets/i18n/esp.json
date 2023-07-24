@@ -84,7 +84,8 @@
   "textemail": "Por favor ingresa una dirección de correo electrónico válida.'",
   "selectrow": "Por favor selecciona una fila para eliminar.",
   "succedelet": "Eliminación exitosa,",
-  "linesremoved": " líneas eliminadas."
+  "linesremoved": " líneas eliminadas.",
+  "years" : "Años"
   },
   "nodes":{
   "end": "Fin",
