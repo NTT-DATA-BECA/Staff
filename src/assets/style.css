@@ -139,3 +139,114 @@
   top: 15px;
   right: 5px;
 }
+.selected-tree-item {
+  background: gainsboro;
+  color: white;
+}
+
+.tree-item {
+  padding: 0.5em;
+}
+
+ul {
+  padding-left: 0;
+  margin: 0;
+  list-style-type: none;
+  display: inline-block;
+}
+
+li {
+  border-radius: 4px;
+}
+
+li.drag-over {
+  background-color: rgba(22, 22, 22, 0.068);
+}
+
+.chevron-right {
+  color: gray;
+}
+
+.hide-chevron {
+  visibility: collapse;
+}
+
+.icon-area {
+  width: 22px;
+  margin-right: 0.4em;
+}
+
+.horizontal-dashes {
+  width: 1em;
+  border-top: 1px dashed rgb(192, 192, 192);
+}
+
+.node-name {
+  cursor: pointer;
+  margin-left: 5px;
+}
+
+.d-flex {
+  display: flex;
+}
+
+.align-items-center {
+  align-items: center;
+}
+
+.nested {
+  margin-left: 47px !important;
+}
+
+.root {
+  margin-left: 30px !important;
+}
+
+.node-child {
+  border-left: 1px dashed rgb(192, 192, 192);
+  display: block;
+}
+
+.hide {
+  display: none;
+}
+
+.hide-guidelines {
+  border-left: none !important;
+}
+
+.chevron-right {
+  box-sizing: border-box;
+  position: relative;
+  display: block;
+  transform: scale(var(--ggs,1));
+  width: 22px;
+  height: 22px;
+  border: 2px solid transparent;
+  border-radius: 100px;
+  transition: .2s;
+}
+
+.pointer {
+  cursor: pointer;
+}
+
+.chevron-right.rotate-90::after { 
+  transform: rotateZ(45deg);
+}
+
+.chevron-right::after {
+  content: "";
+  display: block;
+  box-sizing: border-box;
+  position: absolute;
+  width: 7px;
+  height: 7px;
+  border-bottom: 2px solid;
+  border-right: 2px solid;
+  transform: rotate(-45deg);
+  right: 6px;
+  top: 5px
+}
+
+

@@ -1,6 +1,6 @@
 <template>
   <div className="h-full w-full flex flex-col p-4">
-    <div className="flex justify-between mb-3 text-gray-100">
+    <div class="flex justify-between mb-3 text-gray-100">
       <v-select v-model="selectedOption" :options="files" label="name" class="h-9 text-primary-dark rounded w-60 mr-3"
         @click="() => loadNameFiles()" @option:selected="onChangeFile()">
       </v-select>
@@ -50,53 +50,88 @@
         </button>
       </div>
     </div>
-    <div class="flex flex-row w-full h-full mb-5">
-      <div className="flex flex-col gap-2 w-[200px] mx-auto mr-3 h-full">
-        <label>
-          <input class="text-sm  w-36 hidden" type="file" @input="importDocument" accept=".doc, .docx">
-          <div class="text-sm btn w-full mr-2 mb-2 flex items-center justify-center">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
-              class="mr-2 bi bi-cloud-arrow-up-fill" viewBox="0 0 16 16">
-              <path
-                d="M8 2a5.53 5.53 0 0 0-3.594 1.342c-.766.66-1.321 1.52-1.464 2.383C1.266 6.095 0 7.555 0 9.318 0 11.366 1.708 13 3.781 13h8.906C14.502 13 16 11.57 16 9.773c0-1.636-1.242-2.969-2.834-3.194C12.923 3.999 10.69 2 8 2zm2.354 5.146a.5.5 0 0 1-.708.708L8.5 6.707V10.5a.5.5 0 0 1-1 0V6.707L6.354 7.854a.5.5 0 1 1-.708-.708l2-2a.5.5 0 0 1 .708 0l2 2z" />
-            </svg>
-            {{ t("editor.open") }}
-          </div>
-        </label>
-        <button class="text-sm btn mr-3 w-full flex items-center justify-center" @click="downloadPdf">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
-            class="mr-2 bi bi-cloud-arrow-down-fill" viewBox="0 0 16 16">
-            <path
-              d="M8 2a5.53 5.53 0 0 0-3.594 1.342c-.766.66-1.321 1.52-1.464 2.383C1.266 6.095 0 7.555 0 9.318 0 11.366 1.708 13 3.781 13h8.906C14.502 13 16 11.57 16 9.773c0-1.636-1.242-2.969-2.834-3.194C12.923 3.999 10.69 2 8 2zm2.354 6.854-2 2a.5.5 0 0 1-.708 0l-2-2a.5.5 0 1 1 .708-.708L7.5 9.293V5.5a.5.5 0 0 1 1 0v3.793l1.146-1.147a.5.5 0 0 1 .708.708z" />
-          </svg>
-          {{ t("editor.generate") }}
-        </button>
-        <h2 className="border-b-4 p-2 border-primary-dark text-center font-bold text-black-700  ">Node Excel</h2>
-
-        <div class="file_upload p-1 relative border-4 border-dotted border-primary-dark rounded-lg"
-          style="width: 190px; height: 130px;">
-          <svg class="text-primary-dark w-24 mx-auto mb-2" style="width: 100px; height: 70px;"
-            xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-          </svg>
-          <div class="input_field flex flex-col w-max mx-auto text-center">
-            <label>
-              <input class="text-sm cursor-pointer w-36 hidden" type="file" @change="loadExcelFile" />
-              <div class="text-sm btn rounded-lg text-center m-auto" style="height: unset;">
-                {{ t("editor.select") }}</div>
-            </label>
-          </div>
-        </div>
-        <div v-if="allow" class="scroll-container">
+      <div className="flex flex-row w-full h-full">
+              <aside :class="`${showSidebar ? 'is-expanded' : showSidebar}`">
+                        <link href="https://fonts.googleapis.com/css2?family=Material+Icons" rel="stylesheet">
+                        <button class=" menu-toggle-wrap menu-toggle" @click="showSidebar = !showSidebar">
+                            <span class="material-icons">keyboard_double_arrow_left</span>
+                        </button>
+                        <div id="app" class="scroll-container">
+                            <div>
+                                <div style="display: flex">
+                                    <vue3-tree-vue :items="items"
+                                        :hideGuideLines="false"
+                                        v-model:selectedItem="selectedItem"
+                                        @onSelect="handleFileClick(selectedItem)"
+                                        :expandAll="true"
+                                        style="width: 500px; display: block; border-right: 1px solid gray"
+                                    >
+                                                <template v-slot:item-expander="item">
+                                                    <div class="d-flex" style="display: flex; justify-content: center; vertical-align: center; justify-items: center; align-items: center; margin-right: 10px;" :style="{background: item.type == 'folder' ? 'blue' : 'white', height: '14px', width: '14px', 'margin-right': '0.2em', 'border-radius': '4px'}">
+                                                    <span style="color: black;">-</span>
+                                                    </div>
+                                                </template>
+                                                <template>
+                                                    <div class="d-flex" style="display: flex; justify-content: center; vertical-align: center; justify-items: center; align-items: center; margin-right: 10px;">
+                                                    <span style="color: black;">-</span>
+                                                    </div>
+                                                </template>
+                                    </vue3-tree-vue>
+                                </div>
+                            </div>
+                        </div>
+              </aside>
+              <div className="flex flex-col gap-2 w-[300px] mx-auto mr-0.1 h-full">
+                <label>
+                  <input class="text-sm cursor-pointer w-36 hidden" type="file" @input="importDocument" accept=".doc, .docx">
+                  <div class="btn  mr-2 mb-2 w-[240px] cursor-pointer flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                      class="mr-2 bi bi-cloud-arrow-up-fill" viewBox="0 0 16 16">
+                      <path
+                        d="M8 2a5.53 5.53 0 0 0-3.594 1.342c-.766.66-1.321 1.52-1.464 2.383C1.266 6.095 0 7.555 0 9.318 0 11.366 1.708 13 3.781 13h8.906C14.502 13 16 11.57 16 9.773c0-1.636-1.242-2.969-2.834-3.194C12.923 3.999 10.69 2 8 2zm2.354 5.146a.5.5 0 0 1-.708.708L8.5 6.707V10.5a.5.5 0 0 1-1 0V6.707L6.354 7.854a.5.5 0 1 1-.708-.708l2-2a.5.5 0 0 1 .708 0l2 2z" />
+                    </svg>
+                    {{ t("editor.open") }}
+                  </div>
+                </label>
+                <button class="btn mr-3 w-[240px] flex items-center justify-center" @click="downloadPdf">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                    class="mr-2 bi bi-cloud-arrow-down-fill" viewBox="0 0 16 16">
+                    <path
+                      d="M8 2a5.53 5.53 0 0 0-3.594 1.342c-.766.66-1.321 1.52-1.464 2.383C1.266 6.095 0 7.555 0 9.318 0 11.366 1.708 13 3.781 13h8.906C14.502 13 16 11.57 16 9.773c0-1.636-1.242-2.969-2.834-3.194C12.923 3.999 10.69 2 8 2zm2.354 6.854-2 2a.5.5 0 0 1-.708 0l-2-2a.5.5 0 1 1 .708-.708L7.5 9.293V5.5a.5.5 0 0 1 1 0v3.793l1.146-1.147a.5.5 0 0 1 .708.708z" />
+                  </svg>
+                  {{ t("editor.generate") }}
+                </button>
+                <div className="relative w-[240px] mx-auto mr-40">
+                      <button class="menu-toggle absolute left-0 top-0" @click="showSidebar = !showSidebar">
+                          <span class="material-icons">keyboard_double_arrow_right</span>
+                      </button>
+                      <h2 className="border-b-4 p-2 border-primary-dark text-center font-bold text-black-700  ">Node Excel</h2>
+                </div>
+                <div class="file_upload p-1 relative border-4 border-dotted border-primary-dark rounded-lg"
+                  style="width: 210px; height: 130px; margin-left: 5%;">
+                  <svg class="text-primary-dark w-24 mx-auto mb-2" style="width: 100px; height: 70px;"
+                    xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                  </svg>
+                  <div class="input_field flex flex-col w-max mx-auto text-center">
+                    <label>
+                      <input class="text-sm cursor-pointer w-36 hidden" type="file" @change="loadExcelFile" />
+                      <div class="btn text-sm rounded-lg text-center m-auto" style="height: unset; width: 190px;">
+                        {{ t("editor.select") }}</div>
+                    </label>
+                  </div>
+                </div>
+                <div v-if="allow" class="scroll-container">
         <tree  class="cursor-grab" :nodes="nodes" :config="config"></tree>
       </div>
+              </div>
+              <div className="flex flex-col w-full h-full">
+                <div id="editor" ref="editor">
+                </div>
+              </div>
       </div>
-      <div class="flex flex-col w-full h-full">
-        <div id="editor" ref="editor" >
-        </div>
-      </div>
-    </div>
+  
   </div>
 </template>
 
@@ -115,6 +150,9 @@ import QuillImageDropAndPaste from 'quill-image-drop-and-paste'
 import { useI18n } from 'vue-i18n'
 import treeview from "vue3-treeview";
 import "vue3-treeview/dist/style.css";
+import Vue3TreeVue from '../components/tree-component.vue';
+import { TreeViewItem } from '../Tree/types';
+
 // Quil configuration
 Quill.register('modules/imageDropAndPaste', QuillImageDropAndPaste)
 Quill.register("modules/resize", ResizeModule);
@@ -128,7 +166,8 @@ export default {
       return { t }
     },
   components: {
-    tree: treeview,
+        Vue3TreeVue,
+        tree: treeview,
   },
   data() {
     return {
@@ -144,6 +183,12 @@ export default {
       worksheet: null,
       isEditName: false,
       action: 'add',
+      items: [] as TreeViewItem[],
+      selectedItem: null as any,
+      selectedItems: null as any,
+      onItemSelected: [] as any,
+      isExpanded: localStorage.getItem('is_expanded') === 'true',
+      showSidebar: false,
       excelName:'',
       config: {
         roots: ["columns"],
@@ -224,6 +269,7 @@ export default {
         this.editor.insertText(range?.index, `{${column}}`);
       }
     });
+    this.loadItems();
 
   },
   methods: {
@@ -446,30 +492,140 @@ export default {
       this.newFile();
       this.fileName = nameFile + "-copy";
       this.editor.root.innerHTML = contenuEditor;
-    }
+    },
+    toggleMenu() {
+            this.isExpanded = !this.isExpanded;
+            localStorage.setItem('is_expanded', this.isExpanded.toString());
+    },
+    async loadItems() {
+            try {
+                const years = await ipcRenderer.invoke('getYearsFile');
+                this.items = [
+                    {
+                        name: 'Years',
+                        id: 'years',
+                        type: 'string',
+                        children: await Promise.all(
+                            years.map(async (years: number) => {
+                                const files = await ipcRenderer.invoke('getFilesByYear', { years });
+                                return {
+                                    name: years.toString(),
+                                    id: years,
+                                    type: 'number',
+                                    children: files.map((file: string) => ({
+                                        name: file,
+                                        type: 'string',
+                                        id: file,
+                                    })),
+                                };
+                            })
+                        ),
+                    },
+                ];
+                console.log("items:", this.items);
+            } catch (error) {
+                console.error(error);
+            }
+    },
+    async handleFileClick(selectedItem) {
+      const selectedFile = selectedItem?.name;
+      const response = await ipcRenderer.invoke('getQuillContentData', { name: selectedFile });
+      this.fileName = '';
+      this.editor.root.innerHTML = response;
+        
+      },
   }
 }
 </script>
 
-<style scoped>
+<style lang="scss"  scoped>
+
 .scroll-container {
-        overflow-y: scroll;
-        max-height: 350px; 
+        max-height: 599px;
         margin-right: -6.5%;
+        flex: 1;
+        overflow-y: auto;
     }
+    /* Width */
     .scroll-container::-webkit-scrollbar {
-        width: 15px;
+        width: 10px;
+        height: 10px;
     }
+    
+    /* Track */
     .scroll-container::-webkit-scrollbar-track {
         background:#f1eeee;
     }
+    
+    /* Handle */
     .scroll-container::-webkit-scrollbar-thumb {
         @apply bg-primary-light;        
         border-radius: 5px;
     }
+    
+    /* Handle on hover */
     .scroll-container::-webkit-scrollbar-thumb:hover {
         @apply bg-primary-light        
     }
+
+    aside {
+display: none;
+.flex {
+    flex: 1 1 0%;
+}
+.menu-toggle-wrap {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 1rem;
+    position: relative;
+    top: 0;
+    transition: 0.2s ease-in-out;
+    .menu-toggle {
+        transition: 0.2s ease-in-out;
+        .material-icons {
+            font-size: 2rem;
+            color: white;
+            transition: 0.2s ease-out;
+        }
+        &:hover {
+            .material-icons {
+                color: white;
+                transform: translateX(1rem);
+            }
+        }
+    }
+}
+&.is-expanded {
+    display: flex;
+    flex-direction: column;
+    @apply bg-primary-dark text-white font-bold;
+    overflow: hidden;
+    padding: 1rem;
+    transition: width 0.2s ease-in-out;
+    width: 241px;
+    height: 71%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    z-index: 99;
+    margin-top: 14%;
+    margin-left: 1%;
+    .menu-toggle-wrap {
+        top: -1rem;
+        .menu-toggle {
+            transform: rotate(-180deg);
+    z-index: 99;
+    }
+}
+}
+}
+
+
+* {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    font-size: 14px;
+}
 
 </style>
 
