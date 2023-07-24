@@ -127,18 +127,16 @@ import Condition from '../components/Node-Condition.vue'
 import sendEmail from '../components/Node-sendEmail.vue'
 import groupPdfBy from '../components/Node-groupPdfBy.vue'
 import alert from '../components/Node-alert.vue'
-import alert from '../components/Node-alert.vue'
 import Swal from 'sweetalert2'
 import { nodesList } from '../utils/nodesList'
 import { ipcRenderer } from 'electron';
 import { toast } from 'vue3-toastify';
 import { useI18n } from 'vue-i18n'
 import 'vue3-toastify/dist/index.css';
-
 import { useStore } from 'vuex';
 import { mapActions } from 'vuex';
 import Vue3TreeVue from '../components/tree-component.vue';
-import { TreeViewItem } from 'src/Tree/types';
+import { TreeViewItem } from '../Tree/types';
 
 
 export default {
@@ -169,12 +167,11 @@ export default {
             selectedItems: null as any,
             onItemSelected: [] as any,
             isExpanded: localStorage.getItem('is_expanded') === 'true',
-            showSidebar: false
-,
-            cleanFlowTitle:""
+            showSidebar: false,
+            cleanFlowTitle:"",
         };
     },
-    async async mounted() {
+    async mounted() {
         this.cleanFlowTitle=this.t("flow.clear")
         const internalInstance: any = getCurrentInstance();
         internalInstance.appContext.app._context.config.globalProperties.$df = this.editor;
@@ -203,16 +200,13 @@ export default {
         let mytemplate = ""
         let excelName = ""
         const store = useStore()
-        let headers = store.getters.getHeaders // Access headers from Vuex getter
-        let excelData = store.getters.getExcelData // Access excelData from Vuex getter
+        let headers = store.getters.getHeaders
+        let excelData = store.getters.getExcelData
         let symbole = ""
         let pdfpath = ""
         let message = ""
         let variable2 = ""
-        let variable1 = ""
-        let group = ""
-        let myzip = ""
-        const updateNodeOperation = (output_class: any, outputTemplate: any, outputExcelName: any, outputHeaders: any, outputExcelData: any, outputSymbole: any, outputpdfpath: any, outputmessage: any, outputVariable2: any, outputVariable1: any, outputMyzip: any, outputGroup: any, inputNodeData: any) => {
+        let variable1 = ""        
         let group = ""
         let myzip = ""
         const updateNodeOperation = (output_class: any, outputTemplate: any, outputExcelName: any, outputHeaders: any, outputExcelData: any, outputSymbole: any, outputpdfpath: any, outputmessage: any, outputVariable2: any, outputVariable1: any, outputMyzip: any, outputGroup: any, inputNodeData: any) => {
@@ -263,12 +257,6 @@ export default {
                     this.editor.value.import(editorContent);
                 }
             });
-            const editorContent = this.editor.value.export();
-            document.addEventListener('keydown', (event) => {
-                if (event.ctrlKey && event.key === 'v') {
-                    this.editor.value.import(editorContent);
-                }
-            });
         });
         this.loadItems();
     },
@@ -278,7 +266,6 @@ export default {
             this.isExpanded = !this.isExpanded;
             localStorage.setItem('is_expanded', this.isExpanded.toString());
         },
-        ...mapActions(['setHeaders', 'setExcelData']),
         getPlaceholderText() {
             if (this.action === 'edit' || this.isEditName) {
                 return this.t('flow.editname');
@@ -371,9 +358,6 @@ export default {
                     if (nodeProgramName.length === 0) {
                         Swal.fire(this.t('messages.empty'), this.t('messages.textempty'), 'error')
                     } else {
-                        const currentDate = new Date();
-                        const currentYear = currentDate.getFullYear();
-                        await ipcRenderer.invoke('insertJsonFile', { name: nodeProgramName, data: jsonString, year: currentYear })
                         const currentDate = new Date();
                         const currentYear = currentDate.getFullYear();
                         await ipcRenderer.invoke('insertJsonFile', { name: nodeProgramName, data: jsonString, year: currentYear })
@@ -470,26 +454,6 @@ export default {
             });
             return data;
         },
-        searchNodeExcel() {
-            const editorData = this.editor.value.export().drawflow.Home.data;
-            let data = "";
-            Object.keys(editorData).forEach(function (i) {
-                if (editorData[i].name === "ImportExcel") {
-                    data = editorData[i];
-                }
-            });
-            return data;
-        },
-        searchNodeExcel() {
-            const editorData = this.editor.value.export().drawflow.Home.data;
-            let data = "";
-            Object.keys(editorData).forEach(function (i) {
-                if (editorData[i].name === "ImportExcel") {
-                    data = editorData[i];
-                }
-            });
-            return data;
-        },
         async onChangeFile() {
             const selectedFile = this.selectedOption;
             this.action = "edit"
@@ -516,15 +480,7 @@ export default {
                     this.setHeaders(headNames);
                     this.setExcelData(dataRows);
                 }
-                const nodeExcelData: any = this.searchNodeExcel();
-                if (nodeExcelData) {
-                    var headNames = [] as string[];
-                    var dataRows = [] as string[];
-                    headNames = nodeExcelData.data.headers;
-                    dataRows = nodeExcelData.data.excelData;
-                    this.setHeaders(headNames);
-                    this.setExcelData(dataRows);
-                }
+                
             }
         },
         cleanFlow() {
@@ -571,9 +527,7 @@ export default {
         showinput() {
             this.isEditName = true;
         },
-        duplicateFlow() {
-            const nameprograme = this.selectedOption;
-        duplicateFlow() {
+        async duplicateFlow() {
             const nameprograme = this.selectedOption;
             const editorState = this.editor.value.export();
             this.createNewFlow()
@@ -646,15 +600,6 @@ export default {
                     this.setHeaders(headNames);
                     this.setExcelData(dataRows);
                 }
-                const nodeExcelData: any = this.searchNodeExcel();
-            if (nodeExcelData) {
-                var headNames = [] as string[];
-                var dataRows = [] as string[];
-                headNames = nodeExcelData.data.headers;
-                dataRows = nodeExcelData.data.excelData;
-                this.setHeaders(headNames);
-                this.setExcelData(dataRows);
-            }
         }
         },
 
@@ -784,4 +729,5 @@ aside {
 * {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
     font-size: 14px;
-}</style>
+}
+</style>

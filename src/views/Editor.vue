@@ -154,8 +154,7 @@ import { ipcRenderer } from 'electron';
 import {reactive} from 'vue';
 import QuillImageDropAndPaste from 'quill-image-drop-and-paste'
 import Vue3TreeVue from '../components/tree-component.vue';
-import { TreeViewItem } from 'src/Tree/types';import { reactive } from 'vue';
-import QuillImageDropAndPaste from 'quill-image-drop-and-paste'
+import { TreeViewItem } from '../Tree/types';
 import { useI18n } from 'vue-i18n'
 import treeview from "vue3-treeview";
 import "vue3-treeview/dist/style.css";
@@ -295,6 +294,8 @@ export default {
         this.editor.insertText(range?.index, `{${column}}`);
       }
     });
+    this.loadItems();
+
 
   },
   methods: {
@@ -401,6 +402,9 @@ export default {
         this.dataRows = dataRows;
       };
       reader.readAsBinaryString(file);
+    },
+    onDrop(event) {
+      this.editor.setSelection(0);
     },
     async importDocument(event: Event) {
       const file = (event.target as HTMLInputElement).files?.[0];
@@ -519,7 +523,48 @@ export default {
       this.newFile();
       this.fileName=nameFile+"-copy";
       this.editor.root.innerHTML=contenuEditor;
-    }
+    },
+    toggleMenu() {
+            this.isExpanded = !this.isExpanded;
+            localStorage.setItem('is_expanded', this.isExpanded.toString());
+    },
+    async loadItems() {
+            try {
+                const years = await ipcRenderer.invoke('getYearsFile');
+                this.items = [
+                    {
+                        name: 'Years',
+                        id: 'years',
+                        type: 'string',
+                        children: await Promise.all(
+                            years.map(async (years: number) => {
+                                const files = await ipcRenderer.invoke('getFilesByYear', { years });
+                                return {
+                                    name: years.toString(),
+                                    id: years,
+                                    type: 'number',
+                                    children: files.map((file: string) => ({
+                                        name: file,
+                                        type: 'string',
+                                        id: file,
+                                    })),
+                                };
+                            })
+                        ),
+                    },
+                ];
+                console.log("items:", this.items);
+            } catch (error) {
+                console.error(error);
+            }
+    },
+    async handleFileClick(selectedItem) {
+      const selectedFile = selectedItem?.name;
+      const response = await ipcRenderer.invoke('getQuillContentData', { name: selectedFile });
+      this.fileName = '';
+      this.editor.root.innerHTML = response;
+        
+      },
   }
 }
 </script>

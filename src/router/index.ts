@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory ,RouterView } from 'vue-router';
 
+
 const routes = [
   {path: "/:locale?",
   component: RouterView,
@@ -23,16 +24,12 @@ const routes = [
     path: '/managers',
     name: 'Managers',
     component: () => import('../views/Managers.vue'),
-  }
-  {
-    path: '/managers',
-    name: 'Managers',
-    component: () => import('../views/Managers.vue'),
   },]}
 ];
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.VITE_BASE_URL), routes
+
 });
 
 export default router;
