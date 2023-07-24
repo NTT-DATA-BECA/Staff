@@ -203,14 +203,34 @@ async function createWindow() {
   
 
   ipcMain.handle('getJsonFiles', async (event, arg) => {
+    const year = new Date().getFullYear();
     return await new Promise((resolve, reject) => {
-      db.all(`SELECT name FROM flow`, [], (err, rows) => {
-        if (err) reject(err)
-        resolve(rows.map(row => row.name))
-      })
-    })
-  })
-  
+      db.all(`SELECT name FROM flow WHERE year = ?`, [year], (err, rows) => {
+        if (err) reject(err);
+        resolve(rows.map(row => row.name));
+      });
+    });
+  });
+  ipcMain.handle('getFlowsByYear', async (event, arg) => {
+   
+      return await new Promise((resolve, reject) => {
+        db.all(`SELECT name FROM flow WHERE year = ?`, [arg.year], (err, rows) => {
+          if (err) reject(err);
+          resolve(rows.map(row => row.name));
+        });
+      });
+  });
+
+  ipcMain.handle('getFilesByYear', async (event, arg) => {
+ 
+    return await new Promise((resolve, reject) => {
+      db.all(`SELECT name FROM files WHERE years = ?`, [arg.years], (err, rows) => {
+        if (err) reject(err);
+        resolve(rows.map(row => row.name));
+      });
+    });
+  });
+
   ipcMain.handle('updateJsonFileName', async (event, arg) => {
     return new Promise<void>((resolve, reject) => {
       db.run(`UPDATE flow SET name = ? WHERE name = ?`, [arg.newName, arg.oldName], (err) => {
@@ -271,6 +291,26 @@ async function createWindow() {
     }
   });
   
+  ipcMain.handle('getYearsFlow', async (event, arg) => {
+    const currentYear = new Date().getFullYear();
+    return await new Promise((resolve, reject) => {
+      db.all(`SELECT DISTINCT year FROM flow WHERE year < ?`, [currentYear], (err, rows) => {
+        if (err) reject(err);
+        resolve(rows.map(row => row.year));
+      });
+    });
+  });
+  
+
+  ipcMain.handle('getYearsFile', async (event, arg) => {
+    const currentYear = new Date().getFullYear();
+    return await new Promise((resolve, reject) => {
+      db.all(`SELECT DISTINCT years FROM files  WHERE years < ?`, [currentYear], (err, rows) => {
+        if (err) reject(err)
+        resolve(rows.map(row => row.years))
+      })
+    })
+  });
  
   ipcMain.handle('insertJsonFile', async (event, arg) => {
     return new Promise<void>((resolve, reject) => {
@@ -285,7 +325,6 @@ async function createWindow() {
       });
     });
   });    
-  
   
   ipcMain.handle('deleteJsonFile', async (event, arg) => {
     try {
@@ -329,7 +368,7 @@ async function createWindow() {
 
   ipcMain.handle('insertQuillcontent', async (event, data) => {
     return new Promise((resolve, reject) => {
-      db.run('INSERT INTO files (name, data) VALUES (?, ?)', [data.name, data.data], (err) => {
+      db.run('INSERT INTO files (name, data, years) VALUES (?, ?, ?)', [data.name, data.data, data.years], (err) => {
         if (err) {
           console.error(`Error inserting data into file table: ${err}`);
           reject(err);
@@ -395,16 +434,16 @@ async function createWindow() {
     }
   }); 
 
-
   ipcMain.handle('getQuillContentName', async (event, arg) => {
+    const year = new Date().getFullYear();
     return await new Promise((resolve, reject) => {
-      db.all(`SELECT name FROM files`, [], (err, rows) => {
+      db.all(`SELECT name FROM files WHERE years = ?`, [year], (err, rows) => {
         if (err) reject(err)
         resolve(rows.map(row => row.name))
       })
     })
-  });  
-  
+});  
+
 }  
   
 app.whenReady().then(createWindow)
