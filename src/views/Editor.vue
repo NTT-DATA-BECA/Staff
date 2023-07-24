@@ -471,10 +471,6 @@ export default {
 .scroll-container::-webkit-scrollbar-thumb:hover {
     @apply bg-primary-light;
 }
-.tree {
-  margin-left:5px;
-  margin-bottom:5px;
-  
-}
+
 </style>
 
