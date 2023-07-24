@@ -47,8 +47,8 @@
                 <button class=" menu-toggle-wrap menu-toggle" @click="showSidebar = !showSidebar">
                     <span class="material-icons">keyboard_double_arrow_left</span>
                 </button>
-                <h4 className="border-b-4 p-2 border-white text-center font-bold text-black-700 mt-0.1 ">Flow History</h4>
-            <br>
+                <h4 className="border-b-4 p-2 border-white text-center font-bold text-black-700 -mt-10 ">Flow History</h4>
+               <br>
                 <div id="app" class="scroll-container">
                     <div>
                         <div style="display: flex">
