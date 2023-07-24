@@ -4,6 +4,7 @@ const store = createStore({
   state: {
     headers: [],
     excelData: [],
+    traYears:""
   },
   mutations: {
     setHeaders(state, headers) {
@@ -12,7 +13,10 @@ const store = createStore({
     setExcelData(state, excelData) {
       state.excelData = excelData;
     },
-  },
+    setTraYears(state, traYears) {
+      state.traYears = traYears;
+    
+  }},
   actions: {
     setHeaders({ commit }, headers) {
       commit('setHeaders', headers);
@@ -20,6 +24,9 @@ const store = createStore({
     setExcelData({ commit }, excelData) {
       commit('setExcelData', excelData);
     },
+    setTraYears({ commit }, traYears) {
+      commit('setTraYears', traYears);
+    }
   },
   getters: {
     getHeaders(state) {
@@ -28,6 +35,9 @@ const store = createStore({
     getExcelData(state) {
       return state.excelData;
     },
+    getTraYears(state) {
+      return state.traYears;
+    }
   },
 });
 
