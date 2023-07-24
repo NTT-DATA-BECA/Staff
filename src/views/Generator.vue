@@ -194,6 +194,10 @@ export default {
                                 }
                             }
                             else if (dataExcel) {
+                                if (!templateName) {
+                                    var dataNodeinput = this.MoveToNextNodeByOutput1(dataNode)
+                                    templateName = dataNodeinput.data.mytemplate;
+                                }
                                 for (var i = 0; i < dataExcel.length; i++) {
                                     var dataemployee = dataExcel[i];
                                     if (nameNode == "groupPdfBy") {
@@ -206,6 +210,10 @@ export default {
 
                             }
                             if (genebasic == "yes") {
+                                if (!templateName) {
+                                    var dataNodeinput = this.MoveToNextNodeByOutput1(dataNode)
+                                    templateName = dataNodeinput.data.mytemplate;
+                                }
                                 await this.startgenerationpdf(dataNode, null, null, templateName);
                             }
 
@@ -353,7 +361,7 @@ export default {
                     return await this.generateNodePdf(dataNode, conditions, dataemployee, group);
                 }
                 else if (conditions.accept) {
-                    await this.startgenerationpdf(dataNode, dataemployee, group, conditions.accept);
+                    this.startgenerationpdf(dataNode, dataemployee, group, conditions.accept);
                 }
             }
             else {
@@ -362,12 +370,11 @@ export default {
                     await this.generateNodePdf(dataNode, conditions, dataemployee, group);
                 }
                 else if (conditions.refuse) {
-                    await this.startgenerationpdf(dataNode, dataemployee, group, conditions.refuse);
+                    this.startgenerationpdf(dataNode, dataemployee, group, conditions.refuse);
                 }
             }
         },
         async startgenerationpdf(dataNode: any, dataemployee: any, group: any, template: any) {
-            console.log(template + " template")
             var response = await ipcRenderer.invoke('getQuillContentData', { name: template });
             if (response) {
                 if (dataemployee) {
@@ -598,7 +605,7 @@ export default {
                 options = {
                     "height": "1700px",
                     "width": "1375px",
-                    timeout: 400000
+                    timeout: 500000
                 };
             }
             pdf.create(html, options).toFile(path + name + '.pdf', (err, res) => {

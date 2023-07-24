@@ -485,6 +485,7 @@ export default {
       this.fileName = '';
       this.editor.root.innerHTML = response;
       this.action = 'edit';
+      this.isEditName = false;
     },
     duplicateFile() {
       const contenuEditor = this.editor.root.innerHTML;
