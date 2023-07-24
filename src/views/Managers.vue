@@ -146,7 +146,6 @@ export default {
     };
   },
   async mounted() {
-   
     this.headers = [
       { text: "First Name", value: "first_name" },
       { text: "Last Name ", value: "last_name" },
@@ -218,8 +217,6 @@ export default {
             "category": row[3]
           };
         });
-
-
       };
       reader.readAsArrayBuffer(file);
     }

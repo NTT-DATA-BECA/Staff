@@ -89,8 +89,8 @@
           </div>
         </div>
         <div v-if="allow" class="scroll-container">
-        <tree  class="cursor-grab" :nodes="nodes" :config="config"></tree>
-      </div>
+        <tree  class="tree cursor-grab" :nodes="nodes" :config="config"></tree>
+        </div>
       </div>
       <div class="flex flex-col w-full h-full">
         <div id="editor" ref="editor" >
@@ -437,6 +437,7 @@ export default {
       this.fileName = '';
       this.editor.root.innerHTML = response;
       this.action = 'edit';
+      this.isEditName = false;
     },
     duplicateFile() {
       const contenuEditor = this.editor.root.innerHTML;
@@ -451,23 +452,25 @@ export default {
 
 <style scoped>
 .scroll-container {
-        overflow-y: scroll;
-        max-height: 350px; 
-        margin-right: -6.5%;
-    }
-    .scroll-container::-webkit-scrollbar {
-        width: 15px;
-    }
-    .scroll-container::-webkit-scrollbar-track {
-        background:#f1eeee;
-    }
-    .scroll-container::-webkit-scrollbar-thumb {
-        @apply bg-primary-light;        
-        border-radius: 5px;
-    }
-    .scroll-container::-webkit-scrollbar-thumb:hover {
-        @apply bg-primary-light        
-    }
+    overflow-y: scroll;
+    max-height: 350px;
+    margin-right: 0%;
+}
+
+.scroll-container::-webkit-scrollbar {
+    width: 12px;
+    height: 12px; 
+}
+.scroll-container::-webkit-scrollbar-track {
+    background: #f1eeee;
+}
+.scroll-container::-webkit-scrollbar-thumb {
+    @apply bg-primary-light;
+    border-radius: 5px;
+}
+.scroll-container::-webkit-scrollbar-thumb:hover {
+    @apply bg-primary-light;
+}
 
 </style>
 
