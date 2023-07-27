@@ -56,7 +56,7 @@
                         <button class=" menu-toggle-wrap menu-toggle" @click="showSidebar = !showSidebar">
                             <span class="material-icons">keyboard_double_arrow_left</span>
                         </button>
-                        <h4 className="border-b-4 p-2 border-white text-center font-bold text-black-700 -mt-10 ">File History</h4>
+                        <h4 className="border-b-4 p-2 border-white text-center font-bold text-black-700 -mt-10 ">{{ t("messages.TranslateTitleEditorHistory") }}</h4>
                         <br>
                         <div id="app" class="scroll-container">
                             <div>
@@ -83,6 +83,7 @@
                             </div>
                         </div>
               </aside>
+              <div v-if="showSidebar" class="sidebar-overlay" @click="closeSidebar"></div>
               <div className="flex flex-col gap-2 w-[300px] mx-auto mr-0.1 h-full">
                 <label>
                   <input class="text-sm cursor-pointer w-36 hidden" type="file" @input="importDocument" accept=".doc, .docx">
@@ -104,7 +105,7 @@
                   {{ t("editor.generate") }}
                 </button>
                 <div className="relative w-[240px] mx-auto mr-4">
-                      <button class="menu-toggle absolute left-0 top-0" @click="showSidebar = !showSidebar">
+                      <button class="menu-toggle absolute left-0 top-0" @click="toggleSidebarAndChangeItems">
                           <span class="material-icons">keyboard_double_arrow_right</span>
                       </button>
                       <h2 className="border-b-4 p-2 border-primary-dark text-center font-bold text-black-700  ">Node Excel</h2>
@@ -154,7 +155,7 @@ import treeview from "vue3-treeview";
 import "vue3-treeview/dist/style.css";
 import Vue3TreeVue from '../components/tree-component.vue';
 import { TreeViewItem } from '../Tree/types';
-
+import { useStore } from 'vuex';
 // Quil configuration
 Quill.register('modules/imageDropAndPaste', QuillImageDropAndPaste)
 Quill.register("modules/resize", ResizeModule);
@@ -271,10 +272,18 @@ export default {
         this.editor.insertText(range?.index, `{${column}}`);
       }
     });
-    this.loadItems();
+    const store = useStore()
+    this.loadItems(store.getters.getTranslateYears);
 
   },
   methods: {
+    closeSidebar(){
+            this.showSidebar=false;
+        },
+        toggleSidebarAndChangeItems(){
+         this.showSidebar = !this.showSidebar
+         this.loadItems(this.$store.getters.getTranslateYears);  
+        },
     getPlaceholderText() {
     if (this.action === 'edit' || this.isEditName) {
       return  this.t('editor.editname');
@@ -500,12 +509,12 @@ export default {
             this.isExpanded = !this.isExpanded;
             localStorage.setItem('is_expanded', this.isExpanded.toString());
     },
-    async loadItems() {
+    async loadItems(traductionYear) {
             try {
                 const years = await ipcRenderer.invoke('getYearsFile');
                 this.items = [
                     {
-                        name: 'Years',
+                        name: traductionYear,
                         id: 'years',
                         type: 'string',
                         children: await Promise.all(
@@ -655,6 +664,17 @@ display: none;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
     font-size: 14px;
 }
+.sidebar-wrapper {
+  position: relative;
+}
 
+.sidebar-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 999; /* Make sure the overlay is above other elements */
+}
 </style>
 

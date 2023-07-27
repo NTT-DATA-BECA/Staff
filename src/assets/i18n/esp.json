@@ -85,7 +85,9 @@
   "selectrow": "Por favor selecciona una fila para eliminar.",
   "succedelet": "Eliminación exitosa,",
   "linesremoved": " líneas eliminadas.",
-  "years" : "Años"
+  "years" : "Años",
+  "TranslateTitleFlowHistory": "Historial de Flujo",
+"TranslateTitleEditorHistory": "Historial de Archivo"
   },
   "nodes":{
   "end": "Fin",
