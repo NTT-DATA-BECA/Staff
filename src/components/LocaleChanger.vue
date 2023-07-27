@@ -1,10 +1,8 @@
-<script setup lang="ts"/>
-
 <template>
   <button class="btn flex items-center">
-    <select class="bg-primary-dark" v-model="$i18n.locale">
-      <option v-for="(lang, i) in langs" :key="`Lang${i}`" :value="lang.code">
-        {{ lang.text }}
+    <select class="bg-primary-dark" v-model="$i18n.locale" @change="onChangeLang()">
+      <option v-for="(lang, i) in langs" :key="`Lang${i}`" :value="lang.code" >
+        {{ lang.text }} 
       </option>
     </select>
     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="ml-2 bi bi-translate"
@@ -17,9 +15,22 @@
   </button>
 </template>
 
-<script>
+<script lang="ts">
+import { mapActions } from 'vuex';
+import { useI18n } from 'vue-i18n';
+import { useStore } from 'vuex';
+
 export default {
   name: "locale-changer",
+  setup() {
+        const { t } = useI18n()
+        return { t }
+    },
+    async mounted() {
+      this.setTranslateYears(this.t('messages.years'));
+      this.setTranslateTitleEditorHistory(this.t('messages.TranslateTitleEditorHistory'));
+      this.setTranslateTitleFlowHistory(this.t('messages.TranslateTitleFlowHistory'));
+    },
   data() {
     return {
       langs: [
@@ -28,6 +39,14 @@ export default {
       ],
     };
   },
+  methods: {
+        ...mapActions(['setTranslateYears','setTranslateTitleEditorHistory','setTranslateTitleFlowHistory']), 
+        onChangeLang(){
+          this.setTranslateYears(this.t('messages.years'));
+          this.setTranslateTitleEditorHistory(this.t('messages.TranslateTitleEditorHistory'));
+          this.setTranslateTitleFlowHistory(this.t('messages.TranslateTitleFlowHistory'));
+        }
+      }
 };
 </script>
 <style scoped>

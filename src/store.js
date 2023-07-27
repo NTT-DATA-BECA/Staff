@@ -4,7 +4,9 @@ const store = createStore({
   state: {
     headers: [],
     excelData: [],
-    traYears:""
+    TranslateYears:"",
+    TranslateTitleFlowHistory:"",
+    TranslateTitleEditorHistory:"",
   },
   mutations: {
     setHeaders(state, headers) {
@@ -13,10 +15,16 @@ const store = createStore({
     setExcelData(state, excelData) {
       state.excelData = excelData;
     },
-    setTraYears(state, traYears) {
-      state.traYears = traYears;
-    
-  }},
+    setTranslateYears(state, TranslateYears) {
+      state.TranslateYears = TranslateYears;
+  },
+  setTranslateTitleFlowHistory(state, TranslateTitleFlowHistory) {
+    state.TranslateTitleFlowHistory = TranslateTitleFlowHistory;
+},
+setTranslateTitleEditorHistory(state, TranslateTitleEditorHistory) {
+  state.TranslateTitleEditorHistory = TranslateTitleEditorHistory;
+}
+},
   actions: {
     setHeaders({ commit }, headers) {
       commit('setHeaders', headers);
@@ -24,8 +32,14 @@ const store = createStore({
     setExcelData({ commit }, excelData) {
       commit('setExcelData', excelData);
     },
-    setTraYears({ commit }, traYears) {
-      commit('setTraYears', traYears);
+    setTranslateYears({ commit }, TranslateYears) {
+      commit('setTranslateYears', TranslateYears);
+    },
+    setTranslateTitleFlowHistory({ commit }, TranslateTitleFlowHistory) {
+      commit('setTranslateTitleFlowHistory', TranslateTitleFlowHistory);
+    }
+    ,    setTranslateTitleEditorHistory({ commit }, TranslateTitleEditorHistory) {
+      commit('setTranslateTitleEditorHistory', TranslateTitleEditorHistory);
     }
   },
   getters: {
@@ -35,8 +49,14 @@ const store = createStore({
     getExcelData(state) {
       return state.excelData;
     },
-    getTraYears(state) {
-      return state.traYears;
+    getTranslateYears(state) {
+      return state.TranslateYears;
+    },
+    getTranslateTitleEditorHistory(state) {
+      return state.TranslateTitleEditorHistory;
+    },
+    getTranslateTitleFlowHistory(state) {
+      return state.TranslateTitleFlowHistory;
     }
   },
 });
