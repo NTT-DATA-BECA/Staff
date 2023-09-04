@@ -34,7 +34,7 @@ const indexHtml = join(process.env.DIST, 'index.html')
 async function createWindow() {
   Menu.setApplicationMenu(Menu.buildFromTemplate([]));
   // Create a new instance of the database
-  let db = new sqlite3.Database('./db/flows.db', sqlite3.OPEN_READWRITE, (err) => {
+  let db = new sqlite3.Database(app.getAppPath(), sqlite3.OPEN_READWRITE, (err) => {
     if (err) {
       console.error(err.message);
     }
