@@ -4,12 +4,93 @@ process.env.PUBLIC = app.isPackaged ? process.env.DIST : join(process.env.DIST, 
 
 
 import { app, BrowserWindow, shell, ipcMain, Menu } from 'electron'
-const sqlite3 = require('sqlite3').verbose();
 import { release } from 'os'
 import { join } from 'path'
 const nodemailer = require('nodemailer');
 require('dotenv').config();
+import { homedir } from "os";
+import { knex } from "knex";
+import type { Knex } from "knex";
+import pkg from "../../package.json";
 
+export let appDirectory = join(homedir(), pkg.name);
+
+
+const config: Knex.Config = {
+  client: "sqlite3",
+  connection: {
+    filename: join(appDirectory, "storage.db"),
+  },
+  useNullAsDefault: true,
+};
+
+const dbsqlite3 = knex(config);
+
+// Création de la table 'flow'
+dbsqlite3.schema.hasTable("flow").then((exists) => {
+  if (!exists) {
+  
+    dbsqlite3.schema
+      .createTable("flow", (table) => {
+        table.increments("id").primary();
+        table.string("name");
+        table.json("data");
+        table.integer("year");
+      })
+      .then(() => {
+        
+      })
+      .catch((err) => {
+       
+      });
+  } else {
+   
+  }
+});
+
+// Création de la table 'files'
+dbsqlite3.schema.hasTable("files").then((exists) => {
+  if (!exists) {
+    
+    dbsqlite3.schema
+      .createTable("files", (table) => {
+        table.increments("id").primary();
+        table.string("name").notNullable();
+        table.json("data").notNullable();
+        table.integer("years");
+      })
+      .then(() => {
+       
+      })
+      .catch((err) => {
+       
+      });
+  } else {
+   
+  }
+});
+
+// Création de la table 'managers'
+dbsqlite3.schema.hasTable("managers").then((exists) => {
+  if (!exists) {
+    dbsqlite3.schema
+      .createTable("managers", (table) => {
+        table.increments("id").primary();
+        table.string("first_name").notNullable();
+        table.string("last_name").notNullable();
+        table.string("email").notNullable().unique();
+        table.string("category").notNullable();
+      })
+      .then(() => {
+      
+      })
+      .catch((err) => {
+       
+      });
+  } else {
+    
+  }
+});
 
 // Disable GPU Acceleration for Windows 7
 if (release().startsWith('6.1')) app.disableHardwareAcceleration()
@@ -27,20 +108,20 @@ if (!app.requestSingleInstanceLock()) {
 // process.env['ELECTRON_DISABLE_SECURITY_WARNINGS'] = 'true'
 let win: BrowserWindow | null = null
 // Here, you can also use other preload
-const preload = join(__dirname, '../preload/index.js')
+const preload = join("./db/flows.db", '../preload/index.js')
 const url = process.env.VITE_DEV_SERVER_URL as string
 const indexHtml = join(process.env.DIST, 'index.html')
 
 async function createWindow() {
   Menu.setApplicationMenu(Menu.buildFromTemplate([]));
   // Create a new instance of the database
-  let db = new sqlite3.Database('./db/flows.db', sqlite3.OPEN_READWRITE, (err) => {
-    if (err) {
-      console.error(err.message);
-    }
-    console.log('Connected to the database.');
-  });
-
+  // let db = new sqlite3.Database('./db/flows.db', sqlite3.OPEN_READWRITE, (err) => {
+  //   if (err) {
+  //     console.error(err.message);
+  //   }
+  //   console.log('Connected to the database.');
+  // });
+  let db=dbsqlite3
 // Create a transporter for sending emails
   const transporter = nodemailer.createTransport({
     host: 'smtp-mail.outlook.com',
@@ -101,348 +182,374 @@ async function createWindow() {
   })
   
   ipcMain.handle('getManagers', async (event, arg) => {
-    return await new Promise((resolve, reject) => {
-      db.all(`SELECT last_name,first_name,email,category FROM managers`, [], (err, rows) => {
-        if (err) reject(err)
-        resolve(rows)
-      })
-    })
-  })
+    try {
+      const managers = await db('managers').select('last_name', 'first_name', 'email', 'category');
+      return managers;
+    } catch (error) {
+      console.error('Erreur lors de la récupération des gestionnaires :', error);
+      throw error;
+    }
+  });
+  
 
   ipcMain.handle('insertManager', async (event, arg) => {
-    const [first_name, last_name, email, category ] = arg;
-    return await new Promise((resolve, reject) => {
-      db.run(
-        'INSERT INTO managers (first_name, last_name, email, category) VALUES (?, ?, ?, ?)',
-        [first_name, last_name, email, category],
-        function (err) {
-          if (err) reject(err);
-          resolve(this.lastID);
-        }
-      );
-    });
-  });  
+    const [first_name, last_name, email, category] = arg;
+    try {
+      const insertedManager = await db('managers').insert({
+        first_name,
+        last_name,
+        email,
+        category,
+      });
+      return insertedManager[0]; // Retourne l'ID du nouveau gestionnaire inséré
+    } catch (error) {
+      console.error('Erreur lors de l\'insertion du gestionnaire :', error);
+      throw error;
+    }
+  });
+  
   
   ipcMain.handle('editManagerByEmail', async (event, arg) => {
-    const [first_name, last_name,email, category,oldemail] = arg;
-    return await new Promise((resolve, reject) => {
-      db.run(
-        'UPDATE managers SET first_name = ?, last_name = ?, category = ?,email=? WHERE email = ?',
-        [first_name, last_name, category, email,oldemail],
-        function (err) {
-          if (err) reject(err);
-          resolve(this.changes);
-        }
-      );
-    });
+    const [first_name, last_name, email, category, oldemail] = arg;
+    try {
+      const updatedRows = await db('managers')
+        .where('email', oldemail)
+        .update({
+          first_name,
+          last_name,
+          email,
+          category,
+        });
+      return updatedRows; // Retourne le nombre de lignes mises à jour
+    } catch (error) {
+      console.error('Erreur lors de la mise à jour du gestionnaire par e-mail :', error);
+      throw error;
+    }
   });
+  
   ipcMain.handle('EmptyManagers', async (event) => {
-    return await new Promise((resolve, reject) => {
-      db.run(
-        'DELETE FROM managers',
-        function (err) {
-          if (err) reject(err);
-          resolve(this.changes);
-        }
-      );
-    });
+    try {
+      await db('managers').del();
+      return 'Tous les gestionnaires ont été supprimés avec succès.';
+    } catch (error) {
+      console.error('Erreur lors de la suppression de tous les gestionnaires :', error);
+      throw error;
+    }
   });
+  
   
   ipcMain.handle('insertMultiManagers', async (event, arg) => {
-    const managerss = arg; 
-     console.log(JSON.stringify(managerss));
-    return await Promise.all(
-      managerss.map((managers) => {
-        const [first_name, last_name, email, category] = managers;
+    const managerss = arg;
+    console.log(JSON.stringify(managerss));
   
-        return new Promise((resolve, reject) => {
-          db.run(
-            'INSERT INTO managers (first_name, last_name, email, category) VALUES (?, ?, ?, ?)',
-            [first_name, last_name, email, category],
-            function (err) {
-              if (err) reject(err);
-              resolve(this.lastID);
-            }
-          );
-        });
-      })
-    );
+    try {
+      const insertedIds = await db('managers').insert(managerss, ['id']);
+      return insertedIds;
+    } catch (error) {
+      console.error('Erreur lors de l\'insertion de plusieurs gestionnaires :', error);
+      throw error;
+    }
   });
   
-
   ipcMain.handle('deleteManagersbyemail', async (event, emailsToDelete) => {
-    return await new Promise((resolve, reject) => {
-      const placeholders = emailsToDelete.map(() => '?').join(',');
-      const query = `DELETE FROM managers WHERE email IN (${placeholders})`;
-      const values = emailsToDelete;
-      db.run(query, values, function (err) {
-        if (err) {
-          reject(err);
-        } else {
-          resolve(this.changes);
-        }
-      });
-    });
+    try {
+      const deletedRows = await db('managers')
+        .whereIn('email', emailsToDelete)
+        .del();
+      return deletedRows;
+    } catch (error) {
+      console.error('Erreur lors de la suppression des gestionnaires par e-mail :', error);
+      throw error;
+    }
   });
+  
   
   ipcMain.handle('getEmailByManager', async (event, first_name, last_name) => {
     try {
-      const row :any = await new Promise((resolve, reject) => {
-        db.get(`SELECT email FROM managers WHERE first_name = ? OR last_name = ?`, [first_name, last_name], (err, row) => {
-          if (err) reject(err);
-          resolve(row);
-        });
-      });
+      const result = await db('managers')
+        .select('email')
+        .where('first_name', first_name)
+        .orWhere('last_name', last_name)
+        .first(); // Utilisez first() pour obtenir le premier résultat
   
-      return row ? row.email : null;
+      return result ? result.email : null;
     } catch (error) {
-      console.error(error);
+      console.error('Erreur lors de la recherche de l\'e-mail du gestionnaire :', error);
       return null;
+    }
+  });  
+  
+  ipcMain.handle('getJsonFiles', async (event, arg) => {
+    const currentYear = new Date().getFullYear();
+  
+    try {
+      const files = await db('flow')
+        .select('name')
+        .where('year', currentYear);
+  
+      const fileNames = files.map((file) => file.name);
+      return fileNames;
+    } catch (error) {
+      console.error('Erreur lors de la récupération des fichiers JSON :', error);
+      return [];
+    }
+  });
+  
+  ipcMain.handle('getFlowsByYear', async (event, arg) => {
+    try {
+      const files = await db('flow')
+        .select('name')
+        .where('year', arg.year);
+  
+      const fileNames = files.map((file) => file.name);
+      return fileNames;
+    } catch (error) {
+      console.error('Erreur lors de la récupération des flux par année :', error);
+      return [];
+    }
+  });  
+
+  ipcMain.handle('getFilesByYear', async (event, arg) => {
+    try {
+      const files = await db('files')
+        .select('name')
+        .where('years', arg.years);
+  
+      const fileNames = files.map((file) => file.name);
+      return fileNames;
+    } catch (error) {
+      console.error('Erreur lors de la récupération des fichiers par année :', error);
+      return [];
+    }
+  });  
+
+  ipcMain.handle('updateJsonFileName', async (event, arg) => {
+    try {
+      await db('flow')
+        .where('name', arg.oldName)
+        .update({
+          name: arg.newName
+        });
+      return;
+    } catch (error) {
+      console.error('Erreur lors de la mise à jour du nom du fichier JSON :', error);
+      throw error;
     }
   });
   
 
-  ipcMain.handle('getJsonFiles', async (event, arg) => {
-    const year = new Date().getFullYear();
-    return await new Promise((resolve, reject) => {
-      db.all(`SELECT name FROM flow WHERE year = ?`, [year], (err, rows) => {
-        if (err) reject(err);
-        resolve(rows.map(row => row.name));
-      });
-    });
-  });
-  ipcMain.handle('getFlowsByYear', async (event, arg) => {
-   
-      return await new Promise((resolve, reject) => {
-        db.all(`SELECT name FROM flow WHERE year = ?`, [arg.year], (err, rows) => {
-          if (err) reject(err);
-          resolve(rows.map(row => row.name));
-        });
-      });
-  });
-
-  ipcMain.handle('getFilesByYear', async (event, arg) => {
- 
-    return await new Promise((resolve, reject) => {
-      db.all(`SELECT name FROM files WHERE years = ?`, [arg.years], (err, rows) => {
-        if (err) reject(err);
-        resolve(rows.map(row => row.name));
-      });
-    });
-  });
-
-  ipcMain.handle('updateJsonFileName', async (event, arg) => {
-    return new Promise<void>((resolve, reject) => {
-      db.run(`UPDATE flow SET name = ? WHERE name = ?`, [arg.newName, arg.oldName], (err) => {
-        if (err) reject(err);
-        resolve();
-      });
-    });
-  });
-
   ipcMain.handle('updateQuillFileName', async (event, arg) => {
-    return new Promise<void>((resolve, reject) => {
-      db.run(`UPDATE files SET name = ? WHERE name = ?`, [arg.newName, arg.oldName], (err) => {
-        if (err) reject(err);
-        resolve();
-      });
-    });
-  });
+    try {
+      await db('files')
+        .where('name', arg.oldName)
+        .update({
+          name: arg.newName
+        });
+      return;
+    } catch (error) {
+      console.error('Erreur lors de la mise à jour du nom du fichier Quill :', error);
+      throw error;
+    }
+  });  
   
   ipcMain.handle('updateJsonFile', async (event, arg) => {
-    return new Promise<void>((resolve, reject) => {
+    try {
       const formattedData = JSON.stringify(arg.data).replace(/\\/g, '').slice(1, -1);
-      db.run(`UPDATE flow SET data = ? WHERE name = ?`, [formattedData, arg.name], (err) => {
-        if (err) {
-          console.error(err);
-          reject(err);
-        } else {
-          resolve();
-        }
-      });
-    });
-  });  
-  ipcMain.handle('updateContentFile', async (event, arg) => {
-    return new Promise<void>((resolve, reject) => {
-      db.run(`UPDATE files SET data = ? WHERE name = ?`, [arg.data, arg.name], (err) => {
-        if (err) {
-          console.error(err);
-          reject(err);
-        } else {
-          resolve();
-        }
-      });
-    });
+  
+      await db('flow')
+        .where('name', arg.name)
+        .update({
+          data: formattedData
+        });
+  
+      return;
+    } catch (error) {
+      console.error('Erreur lors de la mise à jour du fichier JSON :', error);
+      throw error;
+    }
   });
+  
+  ipcMain.handle('updateContentFile', async (event, arg) => {
+    try {
+      await db('files')
+        .where('name', arg.name)
+        .update({
+          data: arg.data
+        });
+  
+      return;
+    } catch (error) {
+      console.error('Erreur lors de la mise à jour du contenu du fichier :', error);
+      throw error;
+    }
+  });  
 
   ipcMain.handle('getJsonFile', async (event, arg) => {
     try {
-      const row: { data: any } = await new Promise((resolve, reject) => {
-        db.get(`SELECT data FROM flow WHERE name = ?`, [arg.name], (err, row) => {
-          if (err) reject(err);
-          resolve(row);
-        });
-      });
-      
-      return row.data;
+      const result = await db('flow')
+        .select('data')
+        .where('name', arg.name)
+        .first();
+  
+      return result ? result.data : null;
     } catch (error) {
-      console.error(error);
+      console.error('Erreur lors de la récupération du fichier JSON :', error);
       return null;
+    }
+  });  
+  
+  ipcMain.handle('getYearsFlow', async (event, arg) => {
+    try {
+      const currentYear = new Date().getFullYear();
+      const years = await db('flow')
+        .distinct('year')
+        .where('year', '<', currentYear)
+        .pluck('year');
+  
+      return years;
+    } catch (error) {
+      console.error('Erreur lors de la récupération des années de flux :', error);
+      return [];
     }
   });
   
-  ipcMain.handle('getYearsFlow', async (event, arg) => {
-    const currentYear = new Date().getFullYear();
-    return await new Promise((resolve, reject) => {
-      db.all(`SELECT DISTINCT year FROM flow WHERE year < ?`, [currentYear], (err, rows) => {
-        if (err) reject(err);
-        resolve(rows.map(row => row.year));
-      });
-    });
-  });
   
 
   ipcMain.handle('getYearsFile', async (event, arg) => {
-    const currentYear = new Date().getFullYear();
-    return await new Promise((resolve, reject) => {
-      db.all(`SELECT DISTINCT years FROM files  WHERE years < ?`, [currentYear], (err, rows) => {
-        if (err) reject(err)
-        resolve(rows.map(row => row.years))
-      })
-    })
-  });
- 
-  ipcMain.handle('insertJsonFile', async (event, arg) => {
-    return new Promise<void>((resolve, reject) => {
-      const formattedData = JSON.stringify(arg.data).replace(/\\/g, '').slice(1, -1);
-      db.run(`INSERT INTO flow (name, data,year) VALUES (?, ?,?)`, [arg.name, formattedData,arg.year], (err) => {
-        if (err) {
-          console.error(err);
-          reject(err);
-        } else {
-          resolve();
-        }
-      });
-    });
-  });    
-  
-  ipcMain.handle('deleteJsonFile', async (event, arg) => {
     try {
-      const result = await new Promise<number>((resolve, reject) => {
-        db.run(`DELETE FROM flow WHERE name = ?`, [arg.name], function(err) {
-          if (err) {
-            console.error(err);
-            reject(err);
-          } else {
-            resolve(this.changes);
-          }
-        });
-      });
+      const currentYear = new Date().getFullYear();
+      const years = await db('files')
+        .distinct('years')
+        .where('years', '<', currentYear)
+        .pluck('years');
   
-      return result;
+      return years;
     } catch (error) {
-      console.error(error);
-      throw error;
+      console.error('Erreur lors de la récupération des années de fichiers :', error);
+      return [];
     }
   });
-
-  ipcMain.handle('deleteQuillFile', async (event, arg) => {
-    try {
-      const result = await new Promise<number>((resolve, reject) => {
-        db.run(`DELETE FROM files WHERE name = ?`, [arg.name], function(err) {
-          if (err) {
-            console.error(err);
-            reject(err);
-          } else {
-            resolve(this.changes);
-          }
-        });
-      });
   
-      return result;
-    } catch (error) {
-      console.error(error);
-      throw error;
-    }
-  });
-
-  ipcMain.handle('insertQuillcontent', async (event, data) => {
-    return new Promise((resolve, reject) => {
-      db.run('INSERT INTO files (name, data, years) VALUES (?, ?, ?)', [data.name, data.data, data.years], (err) => {
-        if (err) {
-          console.error(`Error inserting data into file table: ${err}`);
-          reject(err);
-        } else {
-          const result = 'Data inserted successfully';
-          resolve(result); // pass the resolved value here
-        }
-      });
+ipcMain.handle('insertJsonFile', async (event, arg) => {
+  try {
+    const formattedData = JSON.stringify(arg.data).replace(/\\/g, '').slice(1, -1);
+    const insertResult = await db('flow').insert({
+      name: arg.name,
+      data: formattedData,
+      year: arg.year
     });
-  });
+
+    return insertResult;
+  } catch (error) {
+    console.error('Erreur lors de l\'insertion du fichier JSON :', error);
+    throw error;
+  }
+});
+   
   
-  ipcMain.handle('getQuillContentData', async (event, arg) => {
-    try {
-      const row: { data: any } = await new Promise((resolve, reject) => {
-        db.get(`SELECT data FROM files WHERE name = ?`, [arg.name], (err, row) => {
-          if (err) reject(err);
-          resolve(row);
-        });
-      });
-      
-      return row.data;
-    } catch (error) {
-      console.error(error);
+ipcMain.handle('deleteJsonFile', async (event, arg) => {
+  try {
+    const result = await db('flow')
+      .where('name', arg.name)
+      .del();
+
+    return result;
+  } catch (error) {
+    console.error('Erreur lors de la suppression du fichier JSON :', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('deleteQuillFile', async (event, arg) => {
+  try {
+    const result = await db('files')
+      .where('name', arg.name)
+      .del();
+
+    return result;
+  } catch (error) {
+    console.error('Erreur lors de la suppression du fichier Quill :', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('insertQuillcontent', async (event, data) => {
+  try {
+    const insertResult = await db('files').insert({
+      name: data.name,
+      data: data.data,
+      years: data.years
+    });
+
+    const result = 'Data inserted successfully';
+    return result;
+  } catch (error) {
+    console.error('Erreur lors de l\'insertion du contenu Quill :', error);
+    throw error;
+  }
+});
+  
+ipcMain.handle('getQuillContentData', async (event, arg) => {
+  try {
+    const result = await db('files')
+      .select('data')
+      .where('name', arg.name)
+      .first();
+
+    if (result) {
+      return result.data;
+    } else {
       return null;
     }
-  })
+  } catch (error) {
+    console.error('Erreur lors de la récupération des données du contenu Quill :', error);
+    return null;
+  }
+});
   
-  ipcMain.handle('checkFileNameExists', async (event, arg) => {
-    try {
-      const row = await new Promise((resolve, reject) => {
-        db.get(`SELECT * FROM files WHERE name = ?`, [arg.name], (err, row) => {
-          if (err) reject(err);
-          resolve(row);
-        });
-      });
-      if (row) {
-        return true;
-      } else {
-        return false;
-      }
-    } catch (error) {+
-      console.error(error);
-      return false;
-    }
-  }); 
-  
-  ipcMain.handle('checkFlowNameExists', async (event, arg) => {
-    try {
-      const row = await new Promise((resolve, reject) => {
-        db.get(`SELECT * FROM flow WHERE name = ?`, [arg.name], (err, row) => {
-          if (err) reject(err);
-          resolve(row);
-        });
-      });
-      if (row) {
-        return true;
-      } else {
-        return false;
-      }
-    } catch (error) {
-      console.error(error);
-      return false;
-    }
-  }); 
+ipcMain.handle('checkFileNameExists', async (event, arg) => {
+  try {
+    const result = await db('files')
+      .select('name')
+      .where('name', arg.name)
+      .first();
 
-  ipcMain.handle('getQuillContentName', async (event, arg) => {
-    const year = new Date().getFullYear();
-    return await new Promise((resolve, reject) => {
-      db.all(`SELECT name FROM files WHERE years = ?`, [year], (err, rows) => {
-        if (err) reject(err)
-        resolve(rows.map(row => row.name))
-      })
-    })
-});  
+    return !!result; // Renvoie true si le nom de fichier existe, sinon false
+  } catch (error) {
+    console.error('Erreur lors de la vérification de l\'existence du nom de fichier :', error);
+    return false;
+  }
+});
+  
+ipcMain.handle('checkFlowNameExists', async (event, arg) => {
+  try {
+    const result = await db('flow')
+      .select('name')
+      .where('name', arg.name)
+      .first();
+
+    return !!result; // Renvoie true si le nom de flux existe, sinon false
+  } catch (error) {
+    console.error('Erreur lors de la vérification de l\'existence du nom de flux :', error);
+    return false;
+  }
+});
+
+ipcMain.handle('getQuillContentName', async (event, arg) => {
+  const currentYear = new Date().getFullYear();
+
+  try {
+    const files = await db('files')
+      .select('name')
+      .where('years', currentYear);
+
+    const fileNames = files.map((file) => file.name);
+    return fileNames;
+  } catch (error) {
+    console.error('Erreur lors de la récupération des noms de fichiers Quill :', error);
+    return [];
+  }
+});
 
 }  
   

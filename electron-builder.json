@@ -1,5 +1,6 @@
 {
-  "appId": "YourAppID",
+  "appId": "com.example.ea",
+  "productName": "ea",
   "asar": true,
   "directories": {
     "output": "release/${version}"

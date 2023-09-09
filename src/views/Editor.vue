@@ -282,7 +282,8 @@ export default {
         },
         toggleSidebarAndChangeItems(){
          this.showSidebar = !this.showSidebar
-         this.loadItems(this.$store.getters.getTranslateYears);  
+         const store = useStore()
+         this.loadItems(store.getters.getTranslateYears);  
         },
     getPlaceholderText() {
     if (this.action === 'edit' || this.isEditName) {
