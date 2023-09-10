@@ -2,8 +2,8 @@
   "name": "gendoc",
   "version": "23.3.3",
   "main": "dist/electron/main/index.js",
-  "description": "Really simple Electron + Vue + Vite boilerplate.",
-  "author": "cas",
+  "description": "App for Ntt data morocco tetouan.",
+  "author": "azcs",
   "license": "MIT",
   "private": true,
   "scripts": {
