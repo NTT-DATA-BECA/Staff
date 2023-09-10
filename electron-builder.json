@@ -1,6 +1,6 @@
 {
-  "appId": "com.example.ea",
-  "productName": "ea",
+  "appId": "com.example.gendoc",
+  "productName": "genDoc Ntt Data Morocco",
   "asar": true,
   "directories": {
     "output": "release/${version}"

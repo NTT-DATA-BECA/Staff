@@ -15,18 +15,17 @@ import pkg from "../../package.json";
 
 export let appDirectory = join(homedir(), pkg.name);
 
+console.log(join(appDirectory, "storage.db"));
 
 const config: Knex.Config = {
-  client: "sqlite3",
+  client: 'sqlite3', 
   connection: {
-    filename: join(appDirectory, "storage.db"),
-  },
-  useNullAsDefault: true,
+    filename: "./storage.db"
+  }
 };
 
 const dbsqlite3 = knex(config);
 
-// Création de la table 'flow'
 dbsqlite3.schema.hasTable("flow").then((exists) => {
   if (!exists) {
   
@@ -150,12 +149,13 @@ async function createWindow() {
       throw error;
     }
   });
-  
+  const path = require('path');
+
   win = new BrowserWindow({
     title: 'Main window',
     icon: join(process.env.PUBLIC, 'favicon.ico'),
     webPreferences: {
-      preload,
+      preload:path.join(__dirname, 'preload.js'),
       // Warning: Enable nodeIntegration and disable contextIsolation is not secure in production
       // Consider using contextBridge.exposeInMainWorld
       // Read more on https://www.electronjs.org/docs/latest/tutorial/context-isolation
@@ -574,11 +574,11 @@ app.on('activate', () => {
     createWindow()
   }
 })
-
+const path = require('path');
 ipcMain.handle('open-win', (event, arg) => {
   const childWindow = new BrowserWindow({
     webPreferences: {
-      preload,
+      preload:path.join(__dirname, 'preload.js'),
     },
   })
 
