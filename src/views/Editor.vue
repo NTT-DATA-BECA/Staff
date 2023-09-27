@@ -156,6 +156,9 @@ import "vue3-treeview/dist/style.css";
 import Vue3TreeVue from '../components/tree-component.vue';
 import { TreeViewItem } from '../Tree/types';
 import { useStore } from 'vuex';
+import pkg from "../../package.json";
+import { join } from 'path'
+import { homedir } from "os";
 // Quil configuration
 Quill.register('modules/imageDropAndPaste', QuillImageDropAndPaste)
 Quill.register("modules/resize", ResizeModule);
@@ -407,26 +410,35 @@ export default {
       var contenu = this.editor.root.innerHTML;
       var name = this.selectedOption
       var html = '<html><head><style> footer{position: fixed;bottom: 0;margin-left:90px; margin-right:130px}' + quillCSS + '</style></head><body><div class="ql-editor">' + contenu + ' <footer style="padding-top: 100px;"><div style="border-top: 2px solid #011627;"><div style="font-size :15px; text-align:center; color:#011627;margin-left:0px;margin-right:5px;"><p> NTT DATA Morocco Centers – SARL au capital de 7.700.000 Dhs – Parc Technologique de Tétouanshore, Route de Cabo Negro, Martil – Maroc – RC: 19687 – IF : 15294847 – CNSS : 4639532 – Taxe Prof. :51840121</p></div></footer> </div></body></html>'
-
-      var pdf = require('hm-html-pdf');
+      const path = require('path'); 
+      let appDirectory = join(homedir(), pkg.name);
+      const pdf = require('html-pdf-phantomjs-included');
       var options = {
-        "height": "1700px",
-        "width": "1375px",
-
-      };
-      pdf.create(html, options).toFile("C:/pdfsApp/" + name + '.pdf',  (err, res) => {
-        if (err) return console.log(err);
-        else {
-          Swal.fire({
-            title: this.t('messages.titlegenerate'),
+      "height": "920px",
+      "width": "690px",
+    phantomPath: require('requireg')('phantomjs').path.replace('app.asar', 'app.asar.unpacked'),
+    script: path.join(__dirname, 'node_modules/html-pdf-phantomjs-included/lib/scripts/pdf_a4_portrait.js').replace('app.asar', 'app.asar.unpacked').replace('\dist',''),
+    };
+    pdf.create(html, options).toFile(join(appDirectory, "pdfsApp/" + name + '.pdf'),  (err, res) => {
+      if (err) {
+        Swal.fire({
+            title: "Error",
+          text: err,
+            icon: 'error',
+            showConfirmButton: false,
+            timer: 5000 });
+      }
+      else {
+                Swal.fire({
+              title: this.t('messages.titlegenerate'),
             text: this.t('messages.textgenerate'),
             icon: 'success',
             showConfirmButton: false,
-            timer: 1500
-          }
-          );
-        }
-      });
+            timer: 5000
+          });
+      }
+    });
+
     },
     async saveToDatabase() {
       if (this.fileName) {
@@ -443,6 +455,7 @@ export default {
               ipcRenderer.invoke('updateQuillFileName', { oldName: this.selectedOption, newName: this.fileName });
               this.selectedOption = this.fileName;
               this.isEditName = false;
+              this.fileName="";
               this.showSucess();
             }
           }

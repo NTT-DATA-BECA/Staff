@@ -591,17 +591,24 @@ export default {
         downloadPdf(htmlforpdf: any, namefile: any, path: any) {
             var name = namefile
             var html = '<html><head><style> footer{position: fixed;bottom: 0;margin-left:90px; margin-right:130px}' + quillCSS + '</style></head><body><div class="ql-editor">' + htmlforpdf + ' <footer style="padding-top: 100px;"><div style="border-top: 2px solid #011627;"><div style="font-size :15px; text-align:center; color:#011627;margin-left:0px;margin-right:5px;"><p> NTT DATA Morocco Centers – SARL au capital de 7.700.000 Dhs – Parc Technologique de Tétouanshore, Route de Cabo Negro, Martil – Maroc – RC: 19687 – IF : 15294847 – CNSS : 4639532 – Taxe Prof. :51840121</p></div></footer> </div></body></html>'
-            var pdf = require('hm-html-pdf');
+            var pdf = require('html-pdf-phantomjs-included');
+            const pathpdf = require('path');
             var options = {
                 "height": "1700px",
                 "width": "1375px",
-                timeout: 210000
+                timeout: 210000,
+                phantomPath: require('requireg')('phantomjs').path.replace('app.asar', 'app.asar.unpacked'),
+               script: pathpdf.join(__dirname, 'node_modules/html-pdf-phantomjs-included/lib/scripts/pdf_a4_portrait.js').replace('app.asar', 'app.asar.unpacked').replace('\dist',''),
+   
             };
             if (this.lenghtData > 300) {
                 options = {
-                    "height": "1700px",
-                    "width": "1375px",
-                    timeout: 500000
+                    "height": "920px",
+                    "width": "690px",
+                    timeout: 500000 ,
+                    phantomPath: require('requireg')('phantomjs').path.replace('app.asar', 'app.asar.unpacked'),
+    script: pathpdf.join(__dirname, 'node_modules/html-pdf-phantomjs-included/lib/scripts/pdf_a4_portrait.js').replace('app.asar', 'app.asar.unpacked').replace('\dist',''),
+   
                 };
             }
             pdf.create(html, options).toFile(path + name + '.pdf', (err, res) => {

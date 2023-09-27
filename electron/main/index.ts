@@ -15,8 +15,6 @@ import pkg from "../../package.json";
 
 export let appDirectory = join(homedir(), pkg.name);
 
-console.log(join(appDirectory, "storage.db"));
-
 const config: Knex.Config = {
   client: 'sqlite3', 
   connection: {
@@ -25,7 +23,6 @@ const config: Knex.Config = {
 };
 
 const dbsqlite3 = knex(config);
-
 dbsqlite3.schema.hasTable("flow").then((exists) => {
   if (!exists) {
   
@@ -69,6 +66,7 @@ dbsqlite3.schema.hasTable("files").then((exists) => {
   }
 });
 
+
 // Création de la table 'managers'
 dbsqlite3.schema.hasTable("managers").then((exists) => {
   if (!exists) {
@@ -107,9 +105,15 @@ if (!app.requestSingleInstanceLock()) {
 // process.env['ELECTRON_DISABLE_SECURITY_WARNINGS'] = 'true'
 let win: BrowserWindow | null = null
 // Here, you can also use other preload
-const preload = join("./db/flows.db", '../preload/index.js')
 const url = process.env.VITE_DEV_SERVER_URL as string
-const indexHtml = join(process.env.DIST, 'index.html')
+export const ROOT_PATH = {
+	// /dist
+	dist: join(__dirname, "../.."),
+	// /dist or /public
+	public: join(__dirname, app.isPackaged ? "../.." : "../../../public"),
+};
+
+const indexHtml = join(ROOT_PATH.dist, "index.html");
 
 async function createWindow() {
   Menu.setApplicationMenu(Menu.buildFromTemplate([]));
@@ -152,7 +156,7 @@ async function createWindow() {
   const path = require('path');
 
   win = new BrowserWindow({
-    title: 'Main window',
+    title: 'Auto Documents Generation NTT DATA Tetouan',
     icon: join(process.env.PUBLIC, 'favicon.ico'),
     webPreferences: {
       preload:path.join(__dirname, 'preload.js'),
@@ -180,17 +184,36 @@ async function createWindow() {
     if (url.startsWith('https:')) shell.openExternal(url)
     return { action: 'deny' }
   })
-  
-  ipcMain.handle('getManagers', async (event, arg) => {
-    try {
-      const managers = await db('managers').select('last_name', 'first_name', 'email', 'category');
-      return managers;
-    } catch (error) {
-      console.error('Erreur lors de la récupération des gestionnaires :', error);
-      throw error;
+
+  ipcMain.handle('generatePdf', async (event, arg) => {
+    let appDirectory = join(homedir(), pkg.name);
+    const pdf = require('html-pdf');
+    var options = {
+    "height": "1700px",
+    "width": "1375px",
+  phantomPath: require('requireg')('phantomjs').path.replace('app.asar', 'app.asar.unpacked'),
+  script: require('requireg')('html-pdf-phantomjs-included/').path
+  };
+  pdf.create(arg.html, options).toFile(join(appDirectory, "pdfsApp/" + arg.name + '.pdf'),  (err, res) => {
+    if (err) {
+     return require('requireg')('html-pdf-phantomjs-included/').path
+    }
+    else {
+      console.error('path :', path.join(app.getAppPath(), 'node_modules/html-pdf/lib/scripts/pdf_a4_portrait.js'));
     }
   });
+  });
+  ipcMain.handle('getManagers', async (event, arg) => {
+    try {
+      // Utilisez Knex pour exécuter la requête SELECT et obtenir les gestionnaires
+      const managers =  await db('managers').select('last_name', 'first_name', 'email', 'category').from('managers');
   
+      return managers;
+    } catch (error) {
+      console.error(error);
+      throw error;
+    } 
+  });
 
   ipcMain.handle('insertManager', async (event, arg) => {
     const [first_name, last_name, email, category] = arg;
@@ -201,9 +224,9 @@ async function createWindow() {
         email,
         category,
       });
-      return insertedManager[0]; // Retourne l'ID du nouveau gestionnaire inséré
+      return insertedManager[0]; 
     } catch (error) {
-      console.error('Erreur lors de l\'insertion du gestionnaire :', error);
+      console.error(error);
       throw error;
     }
   });
@@ -300,7 +323,6 @@ async function createWindow() {
       const files = await db('flow')
         .select('name')
         .where('year', arg.year);
-  
       const fileNames = files.map((file) => file.name);
       return fileNames;
     } catch (error) {
