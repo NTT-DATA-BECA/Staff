@@ -594,8 +594,8 @@ export default {
             var pdf = require('html-pdf-phantomjs-included');
             const pathpdf = require('path');
             var options = {
-                "height": "1700px",
-                "width": "1375px",
+                "height": "920px",
+                 "width": "690px",
                 timeout: 210000,
                 phantomPath: require('requireg')('phantomjs').path.replace('app.asar', 'app.asar.unpacked'),
                script: pathpdf.join(__dirname, 'node_modules/html-pdf-phantomjs-included/lib/scripts/pdf_a4_portrait.js').replace('app.asar', 'app.asar.unpacked').replace('\dist',''),
