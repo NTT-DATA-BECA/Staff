@@ -117,13 +117,6 @@ const indexHtml = join(ROOT_PATH.dist, "index.html");
 
 async function createWindow() {
   Menu.setApplicationMenu(Menu.buildFromTemplate([]));
-  // Create a new instance of the database
-  // let db = new sqlite3.Database('./db/flows.db', sqlite3.OPEN_READWRITE, (err) => {
-  //   if (err) {
-  //     console.error(err.message);
-  //   }
-  //   console.log('Connected to the database.');
-  // });
   let db=dbsqlite3
 // Create a transporter for sending emails
   const transporter = nodemailer.createTransport({
@@ -159,23 +152,29 @@ async function createWindow() {
     title: 'Auto Documents Generation NTT DATA Tetouan',
     icon: join(process.env.PUBLIC, 'favicon.ico'),
     webPreferences: {
-      preload:path.join(__dirname, 'preload.js'),
+      preload:join(__dirname, '../preload/index.js'),
       // Warning: Enable nodeIntegration and disable contextIsolation is not secure in production
       // Consider using contextBridge.exposeInMainWorld
       // Read more on https://www.electronjs.org/docs/latest/tutorial/context-isolation
       nodeIntegration: true,
       contextIsolation: false,
+     
     },
   })
+  
 
   if (app.isPackaged) {
     win.loadFile(indexHtml)
   } else {
     win.loadURL(url)
     // Open devTool if the app is not packaged
-    win.webContents.openDevTools()
+    win.on("ready-to-show", () => {
+      win.webContents.openDevTools();
+    });
   }
+ 
   // Test actively push message to the Electron-Renderer
+ 
   win.webContents.on('did-finish-load', () => {
     win?.webContents.send('main-process-message', new Date().toLocaleString())
   })
@@ -600,7 +599,7 @@ const path = require('path');
 ipcMain.handle('open-win', (event, arg) => {
   const childWindow = new BrowserWindow({
     webPreferences: {
-      preload:path.join(__dirname, 'preload.js'),
+      preload:join(__dirname, '../preload/index.js'),
     },
   })
 

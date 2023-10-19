@@ -56,8 +56,8 @@
                         <button class=" menu-toggle-wrap menu-toggle" @click="showSidebar = !showSidebar">
                             <span class="material-icons">keyboard_double_arrow_left</span>
                         </button>
-                        <h4 className="border-b-4 p-2 border-white text-center font-bold text-black-700 -mt-10 ">{{ t("messages.TranslateTitleEditorHistory") }}</h4>
-                        <br>
+                        <h4 className="border-b-4 p-2 border-white text-center font-bold text-black-700 mt-0.1 ">File History</h4>
+                      <br>
                         <div id="app" class="scroll-container">
                             <div>
                                 <div style="display: flex">
@@ -83,55 +83,54 @@
                             </div>
                         </div>
               </aside>
-              <div v-if="showSidebar" class="sidebar-overlay" @click="closeSidebar"></div>
               <div className="flex flex-col gap-2 w-[300px] mx-auto mr-0.1 h-full">
-                <label>
-                  <input class="text-sm cursor-pointer w-36 hidden" type="file" @input="importDocument" accept=".doc, .docx">
-                  <div class="btn  mr-2 mb-2 w-[240px] cursor-pointer flex items-center justify-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
-                      class="mr-2 bi bi-cloud-arrow-up-fill" viewBox="0 0 16 16">
-                      <path
-                        d="M8 2a5.53 5.53 0 0 0-3.594 1.342c-.766.66-1.321 1.52-1.464 2.383C1.266 6.095 0 7.555 0 9.318 0 11.366 1.708 13 3.781 13h8.906C14.502 13 16 11.57 16 9.773c0-1.636-1.242-2.969-2.834-3.194C12.923 3.999 10.69 2 8 2zm2.354 5.146a.5.5 0 0 1-.708.708L8.5 6.707V10.5a.5.5 0 0 1-1 0V6.707L6.354 7.854a.5.5 0 1 1-.708-.708l2-2a.5.5 0 0 1 .708 0l2 2z" />
-                    </svg>
-                    {{ t("editor.open") }}
-                  </div>
-                </label>
-                <button class="btn mr-3 w-[240px] flex items-center justify-center" @click="downloadPdf">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
-                    class="mr-2 bi bi-cloud-arrow-down-fill" viewBox="0 0 16 16">
-                    <path
-                      d="M8 2a5.53 5.53 0 0 0-3.594 1.342c-.766.66-1.321 1.52-1.464 2.383C1.266 6.095 0 7.555 0 9.318 0 11.366 1.708 13 3.781 13h8.906C14.502 13 16 11.57 16 9.773c0-1.636-1.242-2.969-2.834-3.194C12.923 3.999 10.69 2 8 2zm2.354 6.854-2 2a.5.5 0 0 1-.708 0l-2-2a.5.5 0 1 1 .708-.708L7.5 9.293V5.5a.5.5 0 0 1 1 0v3.793l1.146-1.147a.5.5 0 0 1 .708.708z" />
-                  </svg>
-                  {{ t("editor.generate") }}
-                </button>
-                <div className="relative w-[240px] mx-auto mr-4">
-                      <button class="menu-toggle absolute left-0 top-0" @click="toggleSidebarAndChangeItems">
-                          <span class="material-icons">keyboard_double_arrow_right</span>
-                      </button>
-                      <h2 className="border-b-4 p-2 border-primary-dark text-center font-bold text-black-700  ">Node Excel</h2>
-                </div>
-                <div class="file_upload p-1 relative border-4 border-dotted border-primary-dark rounded-lg"
-                  style="width: 210px; height: 130px; margin-left: 5%;">
-                  <svg class="text-primary-dark w-24 mx-auto mb-2" style="width: 100px; height: 70px;"
-                    xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                  </svg>
-                  <div class="input_field flex flex-col w-max mx-auto text-center">
                     <label>
-                      <input class="text-sm cursor-pointer w-36 hidden" type="file" @change="loadExcelFile" />
-                      <div class="btn text-sm rounded-lg text-center m-auto" style="height: unset; width: 190px;">
-                        {{ t("editor.select") }}</div>
+                      <input class="text-sm cursor-pointer w-36 hidden" type="file" @input="importDocument" accept=".doc, .docx">
+                      <div class="btn  mr-2 mb-2 w-[240px] cursor-pointer flex items-center justify-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                          class="mr-2 bi bi-cloud-arrow-up-fill" viewBox="0 0 16 16">
+                          <path
+                            d="M8 2a5.53 5.53 0 0 0-3.594 1.342c-.766.66-1.321 1.52-1.464 2.383C1.266 6.095 0 7.555 0 9.318 0 11.366 1.708 13 3.781 13h8.906C14.502 13 16 11.57 16 9.773c0-1.636-1.242-2.969-2.834-3.194C12.923 3.999 10.69 2 8 2zm2.354 5.146a.5.5 0 0 1-.708.708L8.5 6.707V10.5a.5.5 0 0 1-1 0V6.707L6.354 7.854a.5.5 0 1 1-.708-.708l2-2a.5.5 0 0 1 .708 0l2 2z" />
+                        </svg>
+                        {{ t("editor.open") }}
+                      </div>
                     </label>
-                  </div>
-                </div>
-                <div v-if="allow" class="scroll-container1">
-        <tree  class="cursor-grab" :nodes="nodes" :config="config"></tree>
-      </div>
+                    <button class="btn mr-3 w-[240px] flex items-center justify-center" @click="downloadPdf">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                        class="mr-2 bi bi-cloud-arrow-down-fill" viewBox="0 0 16 16">
+                        <path
+                          d="M8 2a5.53 5.53 0 0 0-3.594 1.342c-.766.66-1.321 1.52-1.464 2.383C1.266 6.095 0 7.555 0 9.318 0 11.366 1.708 13 3.781 13h8.906C14.502 13 16 11.57 16 9.773c0-1.636-1.242-2.969-2.834-3.194C12.923 3.999 10.69 2 8 2zm2.354 6.854-2 2a.5.5 0 0 1-.708 0l-2-2a.5.5 0 1 1 .708-.708L7.5 9.293V5.5a.5.5 0 0 1 1 0v3.793l1.146-1.147a.5.5 0 0 1 .708.708z" />
+                      </svg>
+                      {{ t("editor.generate") }}
+                    </button>
+                    <div className="relative w-[240px] mx-auto mr-4">
+                          <button class="menu-toggle absolute left-0 top-0" @click="showSidebar = !showSidebar">
+                              <span class="material-icons">keyboard_double_arrow_right</span>
+                          </button>
+                          <h2 className="border-b-4 p-2 border-primary-dark text-center font-bold text-black-700  ">Node Excel</h2>
+                    </div>
+                    <div class="file_upload p-1 relative border-4 border-dotted border-primary-dark rounded-lg"
+                      style="width: 210px; height: 130px; margin-left: 5%;">
+                      <svg class="text-primary-dark w-24 mx-auto mb-2" style="width: 100px; height: 70px;"
+                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                      </svg>
+                      <div class="input_field flex flex-col w-max mx-auto text-center">
+                        <label>
+                          <input class="text-sm cursor-pointer w-36 hidden" type="file" @change="loadExcelFile" />
+                          <div class="btn text-sm rounded-lg text-center m-auto" style="height: unset; width: 190px;">
+                            {{ t("editor.select") }}</div>
+                        </label>
+                      </div>
+                    </div>
+                    <div v-if="allow" class="scroll-container1">
+                      <tree  class="cursor-grab" :nodes="nodes" :config="config"></tree>
+                    </div>
               </div>
               <div className="flex flex-col w-full h-full">
-                <div id="editor" ref="editor">
-                </div>
+                    <div id="editor" ref="editor">
+                    </div>
               </div>
       </div>
   
@@ -155,10 +154,7 @@ import treeview from "vue3-treeview";
 import "vue3-treeview/dist/style.css";
 import Vue3TreeVue from '../components/tree-component.vue';
 import { TreeViewItem } from '../Tree/types';
-import { useStore } from 'vuex';
-import pkg from "../../package.json";
-import { join } from 'path'
-import { homedir } from "os";
+
 // Quil configuration
 Quill.register('modules/imageDropAndPaste', QuillImageDropAndPaste)
 Quill.register("modules/resize", ResizeModule);
@@ -275,19 +271,10 @@ export default {
         this.editor.insertText(range?.index, `{${column}}`);
       }
     });
-    const store = useStore()
-    this.loadItems(store.getters.getTranslateYears);
+    this.loadItems();
 
   },
   methods: {
-    closeSidebar(){
-            this.showSidebar=false;
-        },
-        toggleSidebarAndChangeItems(){
-         this.showSidebar = !this.showSidebar
-         const store = useStore()
-         this.loadItems(store.getters.getTranslateYears);  
-        },
     getPlaceholderText() {
     if (this.action === 'edit' || this.isEditName) {
       return  this.t('editor.editname');
@@ -410,35 +397,26 @@ export default {
       var contenu = this.editor.root.innerHTML;
       var name = this.selectedOption
       var html = '<html><head><style> footer{position: fixed;bottom: 0;margin-left:90px; margin-right:130px}' + quillCSS + '</style></head><body><div class="ql-editor">' + contenu + ' <footer style="padding-top: 100px;"><div style="border-top: 2px solid #011627;"><div style="font-size :15px; text-align:center; color:#011627;margin-left:0px;margin-right:5px;"><p> NTT DATA Morocco Centers – SARL au capital de 7.700.000 Dhs – Parc Technologique de Tétouanshore, Route de Cabo Negro, Martil – Maroc – RC: 19687 – IF : 15294847 – CNSS : 4639532 – Taxe Prof. :51840121</p></div></footer> </div></body></html>'
-      const path = require('path'); 
-      let appDirectory = join(homedir(), pkg.name);
-      const pdf = require('html-pdf-phantomjs-included');
+
+      var pdf = require('hm-html-pdf');
       var options = {
-      "height": "920px",
-      "width": "690px",
-    phantomPath: require('requireg')('phantomjs').path.replace('app.asar', 'app.asar.unpacked'),
-    script: path.join(__dirname, 'node_modules/html-pdf-phantomjs-included/lib/scripts/pdf_a4_portrait.js').replace('app.asar', 'app.asar.unpacked').replace('\dist',''),
-    };
-    pdf.create(html, options).toFile(join(appDirectory, "pdfsApp/" + name + '.pdf'),  (err, res) => {
-      if (err) {
-        Swal.fire({
-            title: "Error",
-          text: err,
-            icon: 'error',
-            showConfirmButton: false,
-            timer: 5000 });
-      }
-      else {
-                Swal.fire({
-              title: this.t('messages.titlegenerate'),
+        "height": "1700px",
+        "width": "1375px",
+
+      };
+      pdf.create(html, options).toFile("C:/pdfsApp/" + name + '.pdf',  (err, res) => {
+        if (err) return console.log(err);
+        else {
+          Swal.fire({
+            title: this.t('messages.titlegenerate'),
             text: this.t('messages.textgenerate'),
             icon: 'success',
             showConfirmButton: false,
-            timer: 5000
-          });
-      }
-    });
-
+            timer: 1500
+          }
+          );
+        }
+      });
     },
     async saveToDatabase() {
       if (this.fileName) {
@@ -455,7 +433,6 @@ export default {
               ipcRenderer.invoke('updateQuillFileName', { oldName: this.selectedOption, newName: this.fileName });
               this.selectedOption = this.fileName;
               this.isEditName = false;
-              this.fileName="";
               this.showSucess();
             }
           }
@@ -523,12 +500,12 @@ export default {
             this.isExpanded = !this.isExpanded;
             localStorage.setItem('is_expanded', this.isExpanded.toString());
     },
-    async loadItems(traductionYear) {
+    async loadItems() {
             try {
                 const years = await ipcRenderer.invoke('getYearsFile');
                 this.items = [
                     {
-                        name: traductionYear,
+                        name: 'Years',
                         id: 'years',
                         type: 'string',
                         children: await Promise.all(
@@ -566,9 +543,9 @@ export default {
 
 <style lang="scss"  scoped>
 .scroll-container1 {
-    overflow-y: auto;
+    overflow-y: scroll;
     overflow-x: hidden; /* Hide the horizontal scrollbar */
-    max-height: 389px;
+    max-height: 350px;
     margin-right: 0%;
 }
 
@@ -678,17 +655,5 @@ display: none;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
     font-size: 14px;
 }
-.sidebar-wrapper {
-  position: relative;
-}
 
-.sidebar-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 999; /* Make sure the overlay is above other elements */
-}
 </style>
-

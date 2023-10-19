@@ -47,9 +47,9 @@
                 <button class=" menu-toggle-wrap menu-toggle" @click="showSidebar = !showSidebar">
                     <span class="material-icons">keyboard_double_arrow_left</span>
                 </button>
-                <h4 className="border-b-4 p-2 border-white text-center font-bold text-black-700 -mt-10 ">{{ t("messages.TranslateTitleFlowHistory") }}</h4>
-               <br>
-                <div class="scroll-container">
+                <h4 className="border-b-4 p-2 border-white text-center font-bold text-black-700 mt-0.1 ">Flow History</h4>
+            <br>
+                <div id="app" class="scroll-container">
                     <div>
                         <div style="display: flex">
                             <vue3-tree-vue :items="items"
@@ -69,10 +69,9 @@
                     </div>
                 </div>
             </aside>
-            <div v-if="showSidebar" class="sidebar-overlay" @click="closeSidebar"></div>
             <div className="flex flex-col gap-2 w-[170px] mx-auto mr-20">
                 <div className="relative w-[239px] mx-auto mr-40">
-                    <button class="menu-toggle absolute left-0 top-0" @click="toggleSidebarAndChangeItems">
+                    <button class="menu-toggle absolute left-0 top-0" @click="showSidebar = !showSidebar">
                         <span class="material-icons">keyboard_double_arrow_right</span>
                     </button>
                     <h4 className="border-b-4 p-2 border-primary-dark text-center font-bold text-black-700  ">{{ t("flow.types") }}</h4>
@@ -114,11 +113,10 @@
 
         </div>
     </div>
-    
 </template>
 
 <script lang="ts">
-import { h, getCurrentInstance, render,nextTick } from 'vue'
+import { h, getCurrentInstance, render } from 'vue'
 import Drawflow from 'drawflow'
 import ImportExcel from '../components/ImportExcel.vue'
 import NodeFileInput from '../components/Node-file-input.vue'
@@ -171,7 +169,6 @@ export default {
             onItemSelected: [] as any,
             isExpanded: localStorage.getItem('is_expanded') === 'true',
             showSidebar: false,
-            initialTranslateYears:"years"
         };
     },
     async mounted() {
@@ -256,19 +253,11 @@ export default {
             });
         });
         
-        this.loadItems(store.getters.getTranslateYears);
+        this.loadItems();
 
     },
     methods: {
         ...mapActions(['setHeaders', 'setExcelData']),
-        closeSidebar(){
-            this.showSidebar=false;
-        },
-        toggleSidebarAndChangeItems(){
-         this.showSidebar = !this.showSidebar
-         const store = useStore()
-         this.loadItems(store.getters.getTranslateYears);  
-        },
         getPlaceholderText() {
             if (this.action === 'edit' || this.isEditName) {
                 return this.t('flow.editname');
@@ -548,13 +537,12 @@ export default {
             this.isExpanded = !this.isExpanded;
             localStorage.setItem('is_expanded', this.isExpanded.toString());
         },
-        async loadItems(traductionYear:any) {
-   
+        async loadItems() {
             try {
                 const years = await ipcRenderer.invoke('getYearsFlow');
                 this.items = [
                     {
-                        name: traductionYear,
+                        name: 'Years',
                         id: 'years',
                         type: 'string',
                         children: await Promise.all(
@@ -580,6 +568,7 @@ export default {
             }
         },
         async handleFlowClick(selectedItem) {
+
             const selectedFlow = selectedItem?.name;
             this.flowName = selectedFlow;
             this.isEditName = false;
@@ -732,18 +721,4 @@ aside {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
     font-size: 14px;
 }
-.sidebar-wrapper {
-  position: relative;
-}
-
-.sidebar-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 999; /* Make sure the overlay is above other elements */
-}
-
 </style>
-
