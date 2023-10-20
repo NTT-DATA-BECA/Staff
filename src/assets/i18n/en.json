@@ -104,7 +104,8 @@
           "grouppdf":"GroupPDFBy",
           "generatepdf":"GeneratePDF",
           "path":"Path",
-          "group":"choose a group"
+          "group":"choose a group",
+          "newNode":"newNode"
         }
     
 }
