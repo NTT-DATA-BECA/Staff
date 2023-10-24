@@ -598,7 +598,7 @@ export default {
                  "width": "690px",
                 timeout: 210000,
                 phantomPath: require('requireg')('phantomjs').path.replace('app.asar', 'app.asar.unpacked'),
-               script: pathpdf.join(__dirname, 'node_modules/html-pdf-phantomjs-included/lib/scripts/pdf_a4_portrait.js').replace('app.asar', 'app.asar.unpacked').replace('\dist',''),
+              // script: pathpdf.join(__dirname, 'node_modules/html-pdf-phantomjs-included/lib/scripts/pdf_a4_portrait.js').replace('app.asar', 'app.asar.unpacked').replace('\dist',''),
    
             };
             if (this.lenghtData > 300) {
@@ -607,7 +607,7 @@ export default {
                     "width": "690px",
                     timeout: 500000 ,
                     phantomPath: require('requireg')('phantomjs').path.replace('app.asar', 'app.asar.unpacked'),
-    script: pathpdf.join(__dirname, 'node_modules/html-pdf-phantomjs-included/lib/scripts/pdf_a4_portrait.js').replace('app.asar', 'app.asar.unpacked').replace('\dist',''),
+   // script: pathpdf.join(__dirname, 'node_modules/html-pdf-phantomjs-included/lib/scripts/pdf_a4_portrait.js').replace('app.asar', 'app.asar.unpacked').replace('\dist',''),
    
                 };
             }
