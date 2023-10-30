@@ -50,7 +50,7 @@
         </button>
       </div>
     </div>
-      <div className="flex flex-row w-full h-full">
+      <div className="flex flex-row w-[1380px] h-full">
               <aside :class="`${showSidebar ? 'is-expanded' : showSidebar}`">
                         <link href="https://fonts.googleapis.com/css2?family=Material+Icons" rel="stylesheet">
                         <button class=" menu-toggle-wrap menu-toggle" @click="showSidebar = !showSidebar">
@@ -83,7 +83,7 @@
                             </div>
                         </div>
               </aside>
-              <div className="flex flex-col gap-2 w-[300px] mx-auto mr-0.1 h-full">
+              <div className="flex flex-col gap-2 w-[300px] mx-auto mr-28 h-full">
                     <label>
                       <input class="text-sm cursor-pointer w-36 hidden" type="file" @input="importDocument" accept=".doc, .docx">
                       <div class="btn  mr-2 mb-2 w-[240px] cursor-pointer flex items-center justify-center">
