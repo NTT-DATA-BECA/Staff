@@ -49,6 +49,7 @@ import NodeGeneratePdf from '../components/Node-GeneratePdf.vue'
 import NodeZipFolder from '../components/Node-zipFolder.vue'
 import sendEmail from '../components/Node-sendEmail.vue'
 import groupPdfBy from '../components/Node-groupPdfBy.vue'
+import NodeQrCode from '../components/Node-QrCode.vue'
 import alert from '../components/Node-alert.vue'
 import { nodesList } from '../utils/nodesList'
 import { ipcRenderer } from 'electron';
@@ -56,6 +57,7 @@ import { useI18n } from 'vue-i18n'
 import quillCSS from 'quill/dist/quill.snow.css'
 import 'vue3-toastify/dist/index.css';
 import { mapActions } from 'vuex';
+import QR from 'qrcode-base64'
 
 export default {
     name: "DrawflowDashboard",
@@ -83,7 +85,8 @@ export default {
             dataList: [] as any,
             lenghtData: 0,
             nonGeneratedPdf: false,
-            allow: true
+            allow: true,
+            vCardData: '' as any
         };
     },
     mounted() {
@@ -103,6 +106,7 @@ export default {
         this.editor.value.registerNode("send-email", sendEmail, {}, {});
         this.editor.value.registerNode("zip-folder", NodeZipFolder, {}, {});
         this.editor.value.registerNode("alert", alert, {}, {});
+        this.editor.value.registerNode("Qr-Code", NodeQrCode, {}, {});
     },
     methods: {
         ...mapActions(['setHeaders', 'setExcelData']),
@@ -174,6 +178,19 @@ export default {
                         }
                         if (nameNode == "file-input") {
                             templateName = dataNode.data.mytemplate;
+                        }
+                        if (nameNode == "Qr-Code") {
+                            console.log(dataExcel);
+                            console.log(dataNode);
+                            for (var i = 0; i < dataExcel.length; i++) {
+                                var dataemployee = dataExcel[i];
+                                if (nameNode == "groupPdfBy") {
+                                    await this.generateQrCodePdf(dataNode, dataemployee, dataNode.data.group, templateName);
+                                }
+                                else {
+                                    await this.generateQrCodePdf(dataNode, dataemployee, null, templateName);
+                                }
+                            }
                         }
                         if (nameNode == "Generatepdf" || nameNode == "groupPdfBy") {
                             this.lenghtData = dataExcel.length;
@@ -370,6 +387,53 @@ export default {
                 }
             }
         },
+        async generateQrCodePdf(dataNode: any, dataemployee: any, group: any, template: any) {
+            var response = await ipcRenderer.invoke('getQuillContentData', { name: template });
+            if (response) {
+                if (dataemployee) {
+                    const currentDate = new Date();
+                    const currentYear = currentDate.getFullYear();
+                    const currentDateStr = currentDate.toISOString().split('T')[0];
+                    const lastNameKeys = ["LastName", "Last Name", "Lastname", "Last name", "Surname", "SurName"];
+                    var lastName = this.searchAndReplace(lastNameKeys, dataemployee, lastName);
+                    const firstNameKeys = ["FirstName", "First Name", "Firstname", "First name", "name", "Name"];
+                    var firstName = this.searchAndReplace(firstNameKeys, dataemployee, firstName);
+                    const fullNameKeys = ["Full Name", "FullName", "Fullname", "Full name"];
+                    var fullName = this.searchAndReplace(fullNameKeys, dataemployee, fullName);
+                    response = response.replace(/{ANS}/g, "" + currentYear);
+                    response = response.replace(/{ANS-(\d+)}/g, function (match, number) {
+                        const previousYear = currentYear - parseInt(number);
+                        return "" + previousYear;
+                    });
+                    response = response.replace(/{DATE}/g, currentDateStr);
+                    response = response.replace(/{([^{}]+)}/g, (match, var1) => {
+                        var1 = this.replaceHeader(var1);
+                        return `{${var1}}`;
+                    });
+                    response = this.replaceVariables(response, dataemployee);
+                    response = this.replaceQrCode(response, dataemployee);
+                    if (group) {
+                        if (!lastName || !firstName) {
+                            this.downloadPdf(response, "NTT DATA Morocco Centers -" + fullName, dataNode.data.pdfpath + '/' + dataemployee[group] + '/')
+                        } else {
+                            this.downloadPdf(response, "NTT DATA Morocco Centers -" + lastName + "_" + firstName, dataNode.data.pdfpath + '/' + dataemployee[group] + '/')
+                        }
+                    } else {
+                        if (!lastName || !firstName) {
+                            this.downloadPdf(response, "NTT DATA Morocco Centers -" + fullName, dataNode.data.pdfpath + '/')
+                        } else {
+                            this.downloadPdf(response, "NTT DATA Morocco Centers -" + lastName + "_" + firstName, dataNode.data.pdfpath + '/')
+                        }
+                    }
+                }
+                else {
+                    this.downloadPdf(response, template, dataNode.data.pdfpath + '/')
+                }
+            }
+            else {
+                console.log(fullName + "full Name")
+            }
+        },
         async startgenerationpdf(dataNode: any, dataemployee: any, group: any, template: any) {
             var response = await ipcRenderer.invoke('getQuillContentData', { name: template });
             if (response) {
@@ -450,8 +514,7 @@ export default {
 
             }
             return valeur;
-        }
-        ,
+        },
         MoveToNextNodeByOutput1(dataNode) {
             var idNode = parseFloat(dataNode.outputs?.output_1?.connections[0]?.node);
             if (idNode) {
@@ -475,8 +538,7 @@ export default {
                 }
             }
             return response;
-        }
-        ,
+        },
         searchNodeEnd() {
             const editorData = this.editor.value.export().drawflow.Home.data;
             let idEnd = "";
@@ -595,20 +657,20 @@ export default {
             const pathpdf = require('path');
             var options = {
                 "height": "920px",
-                 "width": "690px",
+                "width": "690px",
                 timeout: 210000,
                 phantomPath: require('requireg')('phantomjs').path.replace('app.asar', 'app.asar.unpacked'),
-               script: pathpdf.join(__dirname, 'node_modules/html-pdf-phantomjs-included/lib/scripts/pdf_a4_portrait.js').replace('app.asar', 'app.asar.unpacked').replace('\dist',''),
-   
+                //script: pathpdf.join(__dirname, 'node_modules/html-pdf-phantomjs-included/lib/scripts/pdf_a4_portrait.js').replace('app.asar', 'app.asar.unpacked').replace('\dist',''),
+
             };
             if (this.lenghtData > 300) {
                 options = {
                     "height": "920px",
                     "width": "690px",
-                    timeout: 500000 ,
+                    timeout: 500000,
                     phantomPath: require('requireg')('phantomjs').path.replace('app.asar', 'app.asar.unpacked'),
-    script: pathpdf.join(__dirname, 'node_modules/html-pdf-phantomjs-included/lib/scripts/pdf_a4_portrait.js').replace('app.asar', 'app.asar.unpacked').replace('\dist',''),
-   
+                    //script: pathpdf.join(__dirname, 'node_modules/html-pdf-phantomjs-included/lib/scripts/pdf_a4_portrait.js').replace('app.asar', 'app.asar.unpacked').replace('\dist',''),
+
                 };
             }
             pdf.create(html, options).toFile(path + name + '.pdf', (err, res) => {
@@ -623,7 +685,6 @@ export default {
             });
             console.log("next2")
         },
-
         modalMessage(title: string, type: string, message: SweetAlertIcon) {
             Swal.fire(
                 title,
@@ -632,15 +693,42 @@ export default {
             );
         },
         replaceHeader(header: string) {
-            header = header.replace(/\s+/g, "_");
-            header = header.replace(/([[\]()])/g, "\\$1");
-            header = header.replace(/[\[\]]/g, "\\$1");
-            header = header.replace(/([[\]\/])/g, "\\$1");
-            header = header.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&");
-            header = header.replace(/\//g, "_");
-            header = header.replace(/[\(\)]/g, "_");
-            header = header.replace(/_%/g, "");
+            if (header != null && header != "") {
+                header = header.replace(/\s+/g, "_");
+                header = header.replace(/([[\]()])/g, "\\$1");
+                header = header.replace(/[\[\]]/g, "\\$1");
+                header = header.replace(/([[\]\/])/g, "\\$1");
+                header = header.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&");
+                header = header.replace(/\//g, "_");
+                header = header.replace(/[\(\)]/g, "_");
+                header = header.replace(/_%/g, "");
+            }
             return header;
+        },
+        replaceQrCode(response: any, dataemployee: any) {
+            var imgBase64 = this.getImageFormQrCode(dataemployee);
+            if (response != null) {
+                response = response.replace("{qrcode}", "<img style='height: 300px; width: 300px; text-align: center;' src=" + imgBase64 + "></img>")
+            }
+            return response
+        },
+        getImageFormQrCode(dataemployee: any) {
+            this.vCardData = `BEGIN:VCARD
+VERSION:3.0
+N:${dataemployee.Firstname} ${dataemployee.Lastname}
+FN:${dataemployee.Firstname} ${dataemployee.Lastname}
+ORG:${dataemployee.Organization}
+TEL;TYPE=voce,work,pref:${dataemployee.Phone} 
+EMAIL:${dataemployee.Email}
+ADR:${dataemployee.Address}
+URL:${dataemployee.web_site}
+END:VCARD` 
+            var imgData = QR.drawImg(this.vCardData, {
+                typeNumber: 4,
+                errorCorrectLevel: 'M',
+                size: 500
+            })
+            return imgData;
         }
     }
 }

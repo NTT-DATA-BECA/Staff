@@ -124,6 +124,7 @@ import ImportExcel from '../components/ImportExcel.vue'
 import NodeFileInput from '../components/Node-file-input.vue'
 import NodeStart from '../components/Node-start.vue'
 import NodeEnd from '../components/Node-end.vue'
+import NodeQrCode from '../components/Node-QrCode.vue'
 import NodeGeneratePdf from '../components/Node-GeneratePdf.vue'
 import NodeZipFolder from '../components/Node-zipFolder.vue'
 import Condition from '../components/Node-Condition.vue'
@@ -200,6 +201,7 @@ export default {
         this.editor.value.registerNode("send-email", sendEmail, {}, {});
         this.editor.value.registerNode("groupPdfBy", groupPdfBy, {}, {});
         this.editor.value.registerNode("alert", alert, {}, {});
+        this.editor.value.registerNode("Qr-Code", NodeQrCode, {}, {});
         let mytemplate = ""
         let excelName = ""
         const store = useStore()

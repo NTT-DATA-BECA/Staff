@@ -44,7 +44,8 @@
         "delete":"Delete Manager",
         "edit":"Edit",
         "table":"managers per page",
-        "merge":"Merge"
+        "merge":"Merge",
+        "excel":"Import excel"
         },
         "messages":{
           "showSucess":"Operation has been completed !!",
@@ -104,7 +105,8 @@
           "grouppdf":"GroupPDFBy",
           "generatepdf":"GeneratePDF",
           "path":"Path",
-          "group":"choose a group"
+          "group":"choose a group",
+          "Qr-Code":"Qr Code"
         }
     
 }

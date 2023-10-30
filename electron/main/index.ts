@@ -16,7 +16,7 @@ import pkg from "../../package.json";
 export let appDirectory = join(homedir(), pkg.name);
 
 const config: Knex.Config = {
-  client: 'sqlite3', 
+  client: 'sqlite3',
   connection: {
     filename: "./storage.db"
   }
@@ -25,7 +25,7 @@ const config: Knex.Config = {
 const dbsqlite3 = knex(config);
 dbsqlite3.schema.hasTable("flow").then((exists) => {
   if (!exists) {
-  
+
     dbsqlite3.schema
       .createTable("flow", (table) => {
         table.increments("id").primary();
@@ -34,20 +34,20 @@ dbsqlite3.schema.hasTable("flow").then((exists) => {
         table.integer("year");
       })
       .then(() => {
-        
+
       })
       .catch((err) => {
-       
+
       });
   } else {
-   
+
   }
 });
 
 // Création de la table 'files'
 dbsqlite3.schema.hasTable("files").then((exists) => {
   if (!exists) {
-    
+
     dbsqlite3.schema
       .createTable("files", (table) => {
         table.increments("id").primary();
@@ -56,13 +56,13 @@ dbsqlite3.schema.hasTable("files").then((exists) => {
         table.integer("years");
       })
       .then(() => {
-       
+
       })
       .catch((err) => {
-       
+
       });
   } else {
-   
+
   }
 });
 
@@ -79,13 +79,13 @@ dbsqlite3.schema.hasTable("managers").then((exists) => {
         table.string("category").notNullable();
       })
       .then(() => {
-      
+
       })
       .catch((err) => {
-       
+
       });
   } else {
-    
+
   }
 });
 
@@ -107,10 +107,10 @@ let win: BrowserWindow | null = null
 // Here, you can also use other preload
 const url = process.env.VITE_DEV_SERVER_URL as string
 export const ROOT_PATH = {
-	// /dist
-	dist: join(__dirname, "../.."),
-	// /dist or /public
-	public: join(__dirname, app.isPackaged ? "../.." : "../../../public"),
+  // /dist
+  dist: join(__dirname, "../.."),
+  // /dist or /public
+  public: join(__dirname, app.isPackaged ? "../.." : "../../../public"),
 };
 
 const indexHtml = join(ROOT_PATH.dist, "index.html");
@@ -125,7 +125,7 @@ async function createWindow() {
   //   console.log('Connected to the database.');
   // });
   let db=dbsqlite3
-// Create a transporter for sending emails
+  // Create a transporter for sending emails
   const transporter = nodemailer.createTransport({
     host: 'smtp-mail.outlook.com',
     port: 587,
@@ -159,7 +159,7 @@ async function createWindow() {
     title: 'Auto Documents Generation NTT DATA Tetouan',
     icon: join(process.env.PUBLIC, 'favicon.ico'),
     webPreferences: {
-      preload:path.join(__dirname, 'preload.js'),
+      preload: path.join(__dirname, '../preload/index.js'),
       // Warning: Enable nodeIntegration and disable contextIsolation is not secure in production
       // Consider using contextBridge.exposeInMainWorld
       // Read more on https://www.electronjs.org/docs/latest/tutorial/context-isolation
@@ -173,12 +173,14 @@ async function createWindow() {
   } else {
     win.loadURL(url)
     // Open devTool if the app is not packaged
-    win.webContents.openDevTools()
+    win.on("ready-to-show", () => {
+      win.webContents.openDevTools();
+    });
   }
   // Test actively push message to the Electron-Renderer
   win.webContents.on('did-finish-load', () => {
     win?.webContents.send('main-process-message', new Date().toLocaleString())
-  })
+      })
 
   win.webContents.setWindowOpenHandler(({ url }) => {
     if (url.startsWith('https:')) shell.openExternal(url)
@@ -189,30 +191,50 @@ async function createWindow() {
     let appDirectory = join(homedir(), pkg.name);
     const pdf = require('html-pdf');
     var options = {
-    "height": "1700px",
-    "width": "1375px",
-  phantomPath: require('requireg')('phantomjs').path.replace('app.asar', 'app.asar.unpacked'),
-  script: require('requireg')('html-pdf-phantomjs-included/').path
-  };
-  pdf.create(arg.html, options).toFile(join(appDirectory, "pdfsApp/" + arg.name + '.pdf'),  (err, res) => {
-    if (err) {
-     return require('requireg')('html-pdf-phantomjs-included/').path
-    }
-    else {
-      console.error('path :', path.join(app.getAppPath(), 'node_modules/html-pdf/lib/scripts/pdf_a4_portrait.js'));
-    }
+      "height": "1700px",
+      "width": "1375px",
+      phantomPath: require('requireg')('phantomjs').path.replace('app.asar', 'app.asar.unpacked'),
+      script: require('requireg')('html-pdf-phantomjs-included/').path
+    };
+    pdf.create(arg.html, options).toFile(join(appDirectory, "pdfsApp/" + arg.name + '.pdf'),  (err, res) => {
+      if (err) {
+        return require('requireg')('html-pdf-phantomjs-included/').path
+      }
+      else {
+        console.error('path :', path.join(app.getAppPath(), 'node_modules/html-pdf/lib/scripts/pdf_a4_portrait.js'));
+      }
+    });
   });
+
+  ipcMain.handle('Qr-Code', async (event, arg) => {
+    let appDirectory = join(homedir(), pkg.name);
+    const pdf = require('html-pdf');
+    var options = {
+      "height": "1700px",
+      "width": "1375px",
+      phantomPath: require('requireg')('phantomjs').path.replace('app.asar', 'app.asar.unpacked'),
+      script: require('requireg')('html-pdf-phantomjs-included/').path
+    };
+    pdf.create(arg.html, options).toFile(join(appDirectory, "pdfsApp/" + arg.name + '.pdf'),  (err, res) => {
+      if (err) {
+        return require('requireg')('html-pdf-phantomjs-included/').path
+      }
+      else {
+        console.error('path :', path.join(app.getAppPath(), 'node_modules/html-pdf/lib/scripts/pdf_a4_portrait.js'));
+      }
+    });
   });
+
   ipcMain.handle('getManagers', async (event, arg) => {
     try {
       // Utilisez Knex pour exécuter la requête SELECT et obtenir les gestionnaires
       const managers =  await db('managers').select('last_name', 'first_name', 'email', 'category').from('managers');
-  
+
       return managers;
     } catch (error) {
       console.error(error);
       throw error;
-    } 
+    }
   });
 
   ipcMain.handle('insertManager', async (event, arg) => {
@@ -224,14 +246,14 @@ async function createWindow() {
         email,
         category,
       });
-      return insertedManager[0]; 
+      return insertedManager[0];
     } catch (error) {
       console.error(error);
       throw error;
     }
   });
-  
-  
+
+
   ipcMain.handle('editManagerByEmail', async (event, arg) => {
     const [first_name, last_name, email, category, oldemail] = arg;
     try {
@@ -249,7 +271,7 @@ async function createWindow() {
       throw error;
     }
   });
-  
+
   ipcMain.handle('EmptyManagers', async (event) => {
     try {
       await db('managers').del();
@@ -259,12 +281,12 @@ async function createWindow() {
       throw error;
     }
   });
-  
-  
+
+
   ipcMain.handle('insertMultiManagers', async (event, arg) => {
     const managerss = arg;
     console.log(JSON.stringify(managerss));
-  
+
     try {
       const insertedIds = await db('managers').insert(managerss, ['id']);
       return insertedIds;
@@ -273,7 +295,7 @@ async function createWindow() {
       throw error;
     }
   });
-  
+
   ipcMain.handle('deleteManagersbyemail', async (event, emailsToDelete) => {
     try {
       const deletedRows = await db('managers')
@@ -285,8 +307,8 @@ async function createWindow() {
       throw error;
     }
   });
-  
-  
+
+
   ipcMain.handle('getEmailByManager', async (event, first_name, last_name) => {
     try {
       const result = await db('managers')
@@ -294,22 +316,22 @@ async function createWindow() {
         .where('first_name', first_name)
         .orWhere('last_name', last_name)
         .first(); // Utilisez first() pour obtenir le premier résultat
-  
+
       return result ? result.email : null;
     } catch (error) {
       console.error('Erreur lors de la recherche de l\'e-mail du gestionnaire :', error);
       return null;
     }
-  });  
-  
+  });
+
   ipcMain.handle('getJsonFiles', async (event, arg) => {
     const currentYear = new Date().getFullYear();
-  
+
     try {
       const files = await db('flow')
         .select('name')
         .where('year', currentYear);
-  
+
       const fileNames = files.map((file) => file.name);
       return fileNames;
     } catch (error) {
@@ -317,7 +339,7 @@ async function createWindow() {
       return [];
     }
   });
-  
+
   ipcMain.handle('getFlowsByYear', async (event, arg) => {
     try {
       const files = await db('flow')
@@ -329,21 +351,21 @@ async function createWindow() {
       console.error('Erreur lors de la récupération des flux par année :', error);
       return [];
     }
-  });  
+  });
 
   ipcMain.handle('getFilesByYear', async (event, arg) => {
     try {
       const files = await db('files')
         .select('name')
         .where('years', arg.years);
-  
+
       const fileNames = files.map((file) => file.name);
       return fileNames;
     } catch (error) {
       console.error('Erreur lors de la récupération des fichiers par année :', error);
       return [];
     }
-  });  
+  });
 
   ipcMain.handle('updateJsonFileName', async (event, arg) => {
     try {
@@ -358,7 +380,7 @@ async function createWindow() {
       throw error;
     }
   });
-  
+
 
   ipcMain.handle('updateQuillFileName', async (event, arg) => {
     try {
@@ -372,25 +394,25 @@ async function createWindow() {
       console.error('Erreur lors de la mise à jour du nom du fichier Quill :', error);
       throw error;
     }
-  });  
-  
+  });
+
   ipcMain.handle('updateJsonFile', async (event, arg) => {
     try {
       const formattedData = JSON.stringify(arg.data).replace(/\\/g, '').slice(1, -1);
-  
+
       await db('flow')
         .where('name', arg.name)
         .update({
           data: formattedData
         });
-  
+
       return;
     } catch (error) {
       console.error('Erreur lors de la mise à jour du fichier JSON :', error);
       throw error;
     }
   });
-  
+
   ipcMain.handle('updateContentFile', async (event, arg) => {
     try {
       await db('files')
@@ -398,13 +420,13 @@ async function createWindow() {
         .update({
           data: arg.data
         });
-  
+
       return;
     } catch (error) {
       console.error('Erreur lors de la mise à jour du contenu du fichier :', error);
       throw error;
     }
-  });  
+  });
 
   ipcMain.handle('getJsonFile', async (event, arg) => {
     try {
@@ -412,14 +434,14 @@ async function createWindow() {
         .select('data')
         .where('name', arg.name)
         .first();
-  
+
       return result ? result.data : null;
     } catch (error) {
       console.error('Erreur lors de la récupération du fichier JSON :', error);
       return null;
     }
-  });  
-  
+  });
+
   ipcMain.handle('getYearsFlow', async (event, arg) => {
     try {
       const currentYear = new Date().getFullYear();
@@ -427,15 +449,15 @@ async function createWindow() {
         .distinct('year')
         .where('year', '<', currentYear)
         .pluck('year');
-  
+
       return years;
     } catch (error) {
       console.error('Erreur lors de la récupération des années de flux :', error);
       return [];
     }
   });
-  
-  
+
+
 
   ipcMain.handle('getYearsFile', async (event, arg) => {
     try {
@@ -444,137 +466,137 @@ async function createWindow() {
         .distinct('years')
         .where('years', '<', currentYear)
         .pluck('years');
-  
+
       return years;
     } catch (error) {
       console.error('Erreur lors de la récupération des années de fichiers :', error);
       return [];
     }
   });
+
+  ipcMain.handle('insertJsonFile', async (event, arg) => {
+    try {
+      const formattedData = JSON.stringify(arg.data).replace(/\\/g, '').slice(1, -1);
+      const insertResult = await db('flow').insert({
+        name: arg.name,
+        data: formattedData,
+        year: arg.year
+      });
+
+      return insertResult;
+    } catch (error) {
+      console.error('Erreur lors de l\'insertion du fichier JSON :', error);
+      throw error;
+    }
+  });
+
   
-ipcMain.handle('insertJsonFile', async (event, arg) => {
-  try {
-    const formattedData = JSON.stringify(arg.data).replace(/\\/g, '').slice(1, -1);
-    const insertResult = await db('flow').insert({
-      name: arg.name,
-      data: formattedData,
-      year: arg.year
-    });
+  ipcMain.handle('deleteJsonFile', async (event, arg) => {
+    try {
+      const result = await db('flow')
+        .where('name', arg.name)
+        .del();
 
-    return insertResult;
-  } catch (error) {
-    console.error('Erreur lors de l\'insertion du fichier JSON :', error);
-    throw error;
-  }
-});
-   
-  
-ipcMain.handle('deleteJsonFile', async (event, arg) => {
-  try {
-    const result = await db('flow')
-      .where('name', arg.name)
-      .del();
+      return result;
+    } catch (error) {
+      console.error('Erreur lors de la suppression du fichier JSON :', error);
+      throw error;
+    }
+  });
 
-    return result;
-  } catch (error) {
-    console.error('Erreur lors de la suppression du fichier JSON :', error);
-    throw error;
-  }
-});
+  ipcMain.handle('deleteQuillFile', async (event, arg) => {
+    try {
+      const result = await db('files')
+        .where('name', arg.name)
+        .del();
 
-ipcMain.handle('deleteQuillFile', async (event, arg) => {
-  try {
-    const result = await db('files')
-      .where('name', arg.name)
-      .del();
+      return result;
+    } catch (error) {
+      console.error('Erreur lors de la suppression du fichier Quill :', error);
+      throw error;
+    }
+  });
 
-    return result;
-  } catch (error) {
-    console.error('Erreur lors de la suppression du fichier Quill :', error);
-    throw error;
-  }
-});
+  ipcMain.handle('insertQuillcontent', async (event, data) => {
+    try {
+      const insertResult = await db('files').insert({
+        name: data.name,
+        data: data.data,
+        years: data.years
+      });
 
-ipcMain.handle('insertQuillcontent', async (event, data) => {
-  try {
-    const insertResult = await db('files').insert({
-      name: data.name,
-      data: data.data,
-      years: data.years
-    });
+      const result = 'Data inserted successfully';
+      return result;
+    } catch (error) {
+      console.error('Erreur lors de l\'insertion du contenu Quill :', error);
+      throw error;
+    }
+  });
 
-    const result = 'Data inserted successfully';
-    return result;
-  } catch (error) {
-    console.error('Erreur lors de l\'insertion du contenu Quill :', error);
-    throw error;
-  }
-});
-  
-ipcMain.handle('getQuillContentData', async (event, arg) => {
-  try {
-    const result = await db('files')
-      .select('data')
-      .where('name', arg.name)
-      .first();
+  ipcMain.handle('getQuillContentData', async (event, arg) => {
+    try {
+      const result = await db('files')
+        .select('data')
+        .where('name', arg.name)
+        .first();
 
-    if (result) {
-      return result.data;
-    } else {
+      if (result) {
+        return result.data;
+      } else {
+        return null;
+      }
+    } catch (error) {
+      console.error('Erreur lors de la récupération des données du contenu Quill :', error);
       return null;
     }
-  } catch (error) {
-    console.error('Erreur lors de la récupération des données du contenu Quill :', error);
-    return null;
-  }
-});
-  
-ipcMain.handle('checkFileNameExists', async (event, arg) => {
-  try {
-    const result = await db('files')
-      .select('name')
-      .where('name', arg.name)
-      .first();
+  });
 
-    return !!result; // Renvoie true si le nom de fichier existe, sinon false
-  } catch (error) {
-    console.error('Erreur lors de la vérification de l\'existence du nom de fichier :', error);
-    return false;
-  }
-});
-  
-ipcMain.handle('checkFlowNameExists', async (event, arg) => {
-  try {
-    const result = await db('flow')
-      .select('name')
-      .where('name', arg.name)
-      .first();
+  ipcMain.handle('checkFileNameExists', async (event, arg) => {
+    try {
+      const result = await db('files')
+        .select('name')
+        .where('name', arg.name)
+        .first();
 
-    return !!result; // Renvoie true si le nom de flux existe, sinon false
-  } catch (error) {
-    console.error('Erreur lors de la vérification de l\'existence du nom de flux :', error);
-    return false;
-  }
-});
+      return !!result; // Renvoie true si le nom de fichier existe, sinon false
+    } catch (error) {
+      console.error('Erreur lors de la vérification de l\'existence du nom de fichier :', error);
+      return false;
+    }
+  });
 
-ipcMain.handle('getQuillContentName', async (event, arg) => {
-  const currentYear = new Date().getFullYear();
+  ipcMain.handle('checkFlowNameExists', async (event, arg) => {
+    try {
+      const result = await db('flow')
+        .select('name')
+        .where('name', arg.name)
+        .first();
 
-  try {
-    const files = await db('files')
-      .select('name')
-      .where('years', currentYear);
+      return !!result; // Renvoie true si le nom de flux existe, sinon false
+    } catch (error) {
+      console.error('Erreur lors de la vérification de l\'existence du nom de flux :', error);
+      return false;
+    }
+  });
 
-    const fileNames = files.map((file) => file.name);
-    return fileNames;
-  } catch (error) {
-    console.error('Erreur lors de la récupération des noms de fichiers Quill :', error);
-    return [];
-  }
-});
+  ipcMain.handle('getQuillContentName', async (event, arg) => {
+    const currentYear = new Date().getFullYear();
 
-}  
-  
+    try {
+      const files = await db('files')
+        .select('name')
+        .where('years', currentYear);
+
+      const fileNames = files.map((file) => file.name);
+      return fileNames;
+    } catch (error) {
+      console.error('Erreur lors de la récupération des noms de fichiers Quill :', error);
+      return [];
+    }
+  });
+
+}
+
 app.whenReady().then(createWindow)
 
 app.on('window-all-closed', () => {
@@ -600,7 +622,7 @@ const path = require('path');
 ipcMain.handle('open-win', (event, arg) => {
   const childWindow = new BrowserWindow({
     webPreferences: {
-      preload:path.join(__dirname, 'preload.js'),
+      preload: path.join(__dirname, '../preload/index.js'),
     },
   })
 

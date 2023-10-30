@@ -5,8 +5,7 @@
         @click="() => loadNameFiles()" @option:selected="onChangeFile()">
       </v-select>
       <div class="flex justify-end text-gray-100">
-        <input className="input mr-2"
-          v-bind:placeholder="getPlaceholderText()"  v-model="fileName"
+        <input className="input mr-2" v-bind:placeholder="getPlaceholderText()" v-model="fileName"
           v-if="action == 'add' || isEditName" />
         <button v-if="action == 'edit'" class="btn flex items-center mr-2 mb-3" @click="editName">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="mr-2 bi bi-pen-fill"
@@ -50,91 +49,91 @@
         </button>
       </div>
     </div>
-      <div className="flex flex-row w-full h-full">
-              <aside :class="`${showSidebar ? 'is-expanded' : showSidebar}`">
-                        <link href="https://fonts.googleapis.com/css2?family=Material+Icons" rel="stylesheet">
-                        <button class=" menu-toggle-wrap menu-toggle" @click="showSidebar = !showSidebar">
-                            <span class="material-icons">keyboard_double_arrow_left</span>
-                        </button>
-                        <h4 className="border-b-4 p-2 border-white text-center font-bold text-black-700 -mt-10 ">{{ t("messages.TranslateTitleEditorHistory") }}</h4>
-                        <br>
-                        <div id="app" class="scroll-container">
-                            <div>
-                                <div style="display: flex">
-                                    <vue3-tree-vue :items="items"
-                                        :hideGuideLines="false"
-                                        v-model:selectedItem="selectedItem"
-                                        @onSelect="handleFileClick(selectedItem)"
-                                        :expandAll="true"
-                                        style="width: 500px; display: block; border-right: 1px solid gray"
-                                    >
-                                                <template v-slot:item-expander="item">
-                                                    <div class="d-flex" style="display: flex; justify-content: center; vertical-align: center; justify-items: center; align-items: center; margin-right: 10px;" :style="{background: item.type == 'folder' ? 'blue' : 'white', height: '14px', width: '14px', 'margin-right': '0.2em', 'border-radius': '4px'}">
-                                                    <span style="color: black;">-</span>
-                                                    </div>
-                                                </template>
-                                                <template>
-                                                    <div class="d-flex" style="display: flex; justify-content: center; vertical-align: center; justify-items: center; align-items: center; margin-right: 10px;">
-                                                    <span style="color: black;">-</span>
-                                                    </div>
-                                                </template>
-                                    </vue3-tree-vue>
-                                </div>
-                            </div>
-                        </div>
-              </aside>
-              <div v-if="showSidebar" class="sidebar-overlay" @click="closeSidebar"></div>
-              <div className="flex flex-col gap-2 w-[300px] mx-auto mr-0.1 h-full">
-                <label>
-                  <input class="text-sm cursor-pointer w-36 hidden" type="file" @input="importDocument" accept=".doc, .docx">
-                  <div class="btn  mr-2 mb-2 w-[240px] cursor-pointer flex items-center justify-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
-                      class="mr-2 bi bi-cloud-arrow-up-fill" viewBox="0 0 16 16">
-                      <path
-                        d="M8 2a5.53 5.53 0 0 0-3.594 1.342c-.766.66-1.321 1.52-1.464 2.383C1.266 6.095 0 7.555 0 9.318 0 11.366 1.708 13 3.781 13h8.906C14.502 13 16 11.57 16 9.773c0-1.636-1.242-2.969-2.834-3.194C12.923 3.999 10.69 2 8 2zm2.354 5.146a.5.5 0 0 1-.708.708L8.5 6.707V10.5a.5.5 0 0 1-1 0V6.707L6.354 7.854a.5.5 0 1 1-.708-.708l2-2a.5.5 0 0 1 .708 0l2 2z" />
-                    </svg>
-                    {{ t("editor.open") }}
+    <div className="flex flex-row w-full h-full">
+      <aside :class="`${showSidebar ? 'is-expanded' : showSidebar}`">
+        <link href="https://fonts.googleapis.com/css2?family=Material+Icons" rel="stylesheet">
+        <button class=" menu-toggle-wrap menu-toggle" @click="showSidebar = !showSidebar">
+          <span class="material-icons">keyboard_double_arrow_left</span>
+        </button>
+        <h4 className="border-b-4 p-2 border-white text-center font-bold text-black-700 -mt-10 ">{{
+          t("messages.TranslateTitleEditorHistory") }}</h4>
+        <br>
+        <div id="app" class="scroll-container">
+          <div>
+            <div style="display: flex">
+              <vue3-tree-vue :items="items" :hideGuideLines="false" v-model:selectedItem="selectedItem"
+                @onSelect="handleFileClick(selectedItem)" :expandAll="true"
+                style="width: 500px; display: block; border-right: 1px solid gray">
+                <template v-slot:item-expander="item">
+                  <div class="d-flex"
+                    style="display: flex; justify-content: center; vertical-align: center; justify-items: center; align-items: center; margin-right: 10px;"
+                    :style="{ background: item.type == 'folder' ? 'blue' : 'white', height: '14px', width: '14px', 'margin-right': '0.2em', 'border-radius': '4px' }">
+                    <span style="color: black;">-</span>
                   </div>
-                </label>
-                <button class="btn mr-3 w-[240px] flex items-center justify-center" @click="downloadPdf">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
-                    class="mr-2 bi bi-cloud-arrow-down-fill" viewBox="0 0 16 16">
-                    <path
-                      d="M8 2a5.53 5.53 0 0 0-3.594 1.342c-.766.66-1.321 1.52-1.464 2.383C1.266 6.095 0 7.555 0 9.318 0 11.366 1.708 13 3.781 13h8.906C14.502 13 16 11.57 16 9.773c0-1.636-1.242-2.969-2.834-3.194C12.923 3.999 10.69 2 8 2zm2.354 6.854-2 2a.5.5 0 0 1-.708 0l-2-2a.5.5 0 1 1 .708-.708L7.5 9.293V5.5a.5.5 0 0 1 1 0v3.793l1.146-1.147a.5.5 0 0 1 .708.708z" />
-                  </svg>
-                  {{ t("editor.generate") }}
-                </button>
-                <div className="relative w-[240px] mx-auto mr-4">
-                      <button class="menu-toggle absolute left-0 top-0" @click="toggleSidebarAndChangeItems">
-                          <span class="material-icons">keyboard_double_arrow_right</span>
-                      </button>
-                      <h2 className="border-b-4 p-2 border-primary-dark text-center font-bold text-black-700  ">Node Excel</h2>
-                </div>
-                <div class="file_upload p-1 relative border-4 border-dotted border-primary-dark rounded-lg"
-                  style="width: 210px; height: 130px; margin-left: 5%;">
-                  <svg class="text-primary-dark w-24 mx-auto mb-2" style="width: 100px; height: 70px;"
-                    xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                  </svg>
-                  <div class="input_field flex flex-col w-max mx-auto text-center">
-                    <label>
-                      <input class="text-sm cursor-pointer w-36 hidden" type="file" @change="loadExcelFile" />
-                      <div class="btn text-sm rounded-lg text-center m-auto" style="height: unset; width: 190px;">
-                        {{ t("editor.select") }}</div>
-                    </label>
+                </template>
+                <template>
+                  <div class="d-flex"
+                    style="display: flex; justify-content: center; vertical-align: center; justify-items: center; align-items: center; margin-right: 10px;">
+                    <span style="color: black;">-</span>
                   </div>
-                </div>
-                <div v-if="allow" class="scroll-container1">
-        <tree  class="cursor-grab" :nodes="nodes" :config="config"></tree>
+                </template>
+              </vue3-tree-vue>
+            </div>
+          </div>
+        </div>
+      </aside>
+      <div v-if="showSidebar" class="sidebar-overlay" @click="closeSidebar"></div>
+      <div className="flex flex-col gap-2 w-[300px] mx-auto mr-0.1 h-full">
+        <label>
+          <input class="text-sm cursor-pointer w-36 hidden" type="file" @input="importDocument" accept=".doc, .docx">
+          <div class="btn  mr-2 mb-2 w-[240px] cursor-pointer flex items-center justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+              class="mr-2 bi bi-cloud-arrow-up-fill" viewBox="0 0 16 16">
+              <path
+                d="M8 2a5.53 5.53 0 0 0-3.594 1.342c-.766.66-1.321 1.52-1.464 2.383C1.266 6.095 0 7.555 0 9.318 0 11.366 1.708 13 3.781 13h8.906C14.502 13 16 11.57 16 9.773c0-1.636-1.242-2.969-2.834-3.194C12.923 3.999 10.69 2 8 2zm2.354 5.146a.5.5 0 0 1-.708.708L8.5 6.707V10.5a.5.5 0 0 1-1 0V6.707L6.354 7.854a.5.5 0 1 1-.708-.708l2-2a.5.5 0 0 1 .708 0l2 2z" />
+            </svg>
+            {{ t("editor.open") }}
+          </div>
+        </label>
+        <button class="btn mr-3 w-[240px] flex items-center justify-center" @click="downloadPdf">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+            class="mr-2 bi bi-cloud-arrow-down-fill" viewBox="0 0 16 16">
+            <path
+              d="M8 2a5.53 5.53 0 0 0-3.594 1.342c-.766.66-1.321 1.52-1.464 2.383C1.266 6.095 0 7.555 0 9.318 0 11.366 1.708 13 3.781 13h8.906C14.502 13 16 11.57 16 9.773c0-1.636-1.242-2.969-2.834-3.194C12.923 3.999 10.69 2 8 2zm2.354 6.854-2 2a.5.5 0 0 1-.708 0l-2-2a.5.5 0 1 1 .708-.708L7.5 9.293V5.5a.5.5 0 0 1 1 0v3.793l1.146-1.147a.5.5 0 0 1 .708.708z" />
+          </svg>
+          {{ t("editor.generate") }}
+        </button>
+        <div className="relative w-[240px] mx-auto mr-4">
+          <button class="menu-toggle absolute left-0 top-0" @click="toggleSidebarAndChangeItems">
+            <span class="material-icons">keyboard_double_arrow_right</span>
+          </button>
+          <h2 className="border-b-4 p-2 border-primary-dark text-center font-bold text-black-700  ">Node Excel</h2>
+        </div>
+        <div class="file_upload p-1 relative border-4 border-dotted border-primary-dark rounded-lg"
+          style="width: 210px; height: 130px; margin-left: 5%;">
+          <svg class="text-primary-dark w-24 mx-auto mb-2" style="width: 100px; height: 70px;"
+            xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+          </svg>
+          <div class="input_field flex flex-col w-max mx-auto text-center">
+            <label>
+              <input class="text-sm cursor-pointer w-36 hidden" type="file" @change="loadExcelFile" />
+              <div class="btn text-sm rounded-lg text-center m-auto" style="height: unset; width: 190px;">
+                {{ t("editor.select") }}</div>
+            </label>
+          </div>
+        </div>
+        <div v-if="allow" class="scroll-container1">
+          <tree class="cursor-grab" :nodes="nodes" :config="config"></tree>
+        </div>
       </div>
-              </div>
-              <div className="flex flex-col w-full h-full">
-                <div id="editor" ref="editor">
-                </div>
-              </div>
+      <div className="flex flex-col w-full h-full">
+        <div id="editor" ref="editor">
+        </div>
       </div>
-  
+    </div>
+
   </div>
 </template>
 
@@ -168,12 +167,12 @@ export default {
   inject: ['ipcRenderer'],
   name: 'Editor',
   setup() {
-      const { t } = useI18n()
-      return { t }
-    },
+    const { t } = useI18n()
+    return { t }
+  },
   components: {
-        Vue3TreeVue,
-        tree: treeview,
+    Vue3TreeVue,
+    tree: treeview,
   },
   data() {
     return {
@@ -195,7 +194,7 @@ export default {
       onItemSelected: [] as any,
       isExpanded: localStorage.getItem('is_expanded') === 'true',
       showSidebar: false,
-      excelName:'',
+      excelName: '',
       config: {
         roots: ["columns"],
       },
@@ -205,12 +204,12 @@ export default {
           children: [],
         }
       },
-      allow:false
+      allow: false
     }
   },
   mounted() {
     const { t } = useI18n()
-    
+
     const image = reactive({
       type: '',
       dataUrl: null,
@@ -258,15 +257,15 @@ export default {
             center: "center",
             restore: "restore"
           }
-        },    
-        
+        },
+
       },
 
     })
-    this.editor.root.innerHTML = ''   
+    this.editor.root.innerHTML = ''
     this.editor.root.addEventListener('drop', (event) => {
       event.preventDefault();
-      event.stopPropagation();  
+      event.stopPropagation();
       const column = event.dataTransfer.getData('text/plain');
       if (column) {
         this.editor.enable()
@@ -280,21 +279,21 @@ export default {
 
   },
   methods: {
-    closeSidebar(){
-            this.showSidebar=false;
-        },
-        toggleSidebarAndChangeItems(){
-         this.showSidebar = !this.showSidebar
-         const store = useStore()
-         this.loadItems(store.getters.getTranslateYears);  
-        },
+    closeSidebar() {
+      this.showSidebar = false;
+    },
+    toggleSidebarAndChangeItems() {
+      this.showSidebar = !this.showSidebar
+      const store = useStore()
+      this.loadItems(store.getters.getTranslateYears);
+    },
     getPlaceholderText() {
-    if (this.action === 'edit' || this.isEditName) {
-      return  this.t('editor.editname');
-    } else {
-      return this.t('editor.addname');
-    }
-  },
+      if (this.action === 'edit' || this.isEditName) {
+        return this.t('editor.editname');
+      } else {
+        return this.t('editor.addname');
+      }
+    },
     deleteFile() {
       Swal.fire({
         title: this.t('messages.sure'),
@@ -321,10 +320,10 @@ export default {
               this.newFile();
             })
             .catch(() => {
-              Swal.fire( {
-                title:this.t('messages.error'),
-                text:this.t('messages.wrong'),
-                icon:'error',
+              Swal.fire({
+                title: this.t('messages.error'),
+                text: this.t('messages.wrong'),
+                icon: 'error',
                 showConfirmButton: false,
               }
               );
@@ -333,10 +332,10 @@ export default {
         }
         else if (result.dismiss === Swal.DismissReason.cancel) {
           Swal.fire({
-           title: this.t('messages.cancel'),
-           text: this.t('messages.fileSafe'),
-           icon:'error',
-           showConfirmButton: false,
+            title: this.t('messages.cancel'),
+            text: this.t('messages.fileSafe'),
+            icon: 'error',
+            showConfirmButton: false,
           }
           );
         }
@@ -356,7 +355,7 @@ export default {
     loadExcelFile(event) {
       const file = event.target.files[0];
       this.excelName = event.target.files[0].name;
-      this.nodes.columns.text=this.excelName;
+      this.nodes.columns.text = this.excelName;
       const reader = new FileReader();
       var pointer = require('json-pointer');
       reader.onload = (e) => {
@@ -371,7 +370,7 @@ export default {
           for (let C = range.s.c; C <= range.e.c; ++C) {
             const cell = sheet[XLSX.utils.encode_cell({ r: range.s.r, c: C })];
             const columnName: string = XLSX.utils.format_cell(cell);
-            pointer.set(this.nodes, '/'+columnName+'/text',columnName);
+            pointer.set(this.nodes, '/' + columnName + '/text', columnName);
             columns.push(columnName);
           }
           for (let R = range.s.r + 1; R <= range.e.r; ++R) {
@@ -386,8 +385,8 @@ export default {
           }
         }
         this.columns = columns;
-        this.allow=true;
-        pointer.set(this.nodes, '/columns/children',this.columns);
+        this.allow = true;
+        pointer.set(this.nodes, '/columns/children', this.columns);
         this.dataRows = dataRows;
       };
       reader.readAsBinaryString(file);
@@ -410,41 +409,42 @@ export default {
       var contenu = this.editor.root.innerHTML;
       var name = this.selectedOption
       var html = '<html><head><style> footer{position: fixed;bottom: 0;margin-left:90px; margin-right:130px}' + quillCSS + '</style></head><body><div class="ql-editor">' + contenu + ' <footer style="padding-top: 100px;"><div style="border-top: 2px solid #011627;"><div style="font-size :15px; text-align:center; color:#011627;margin-left:0px;margin-right:5px;"><p> NTT DATA Morocco Centers – SARL au capital de 7.700.000 Dhs – Parc Technologique de Tétouanshore, Route de Cabo Negro, Martil – Maroc – RC: 19687 – IF : 15294847 – CNSS : 4639532 – Taxe Prof. :51840121</p></div></footer> </div></body></html>'
-      const path = require('path'); 
+      const path = require('path');
       let appDirectory = join(homedir(), pkg.name);
       const pdf = require('html-pdf-phantomjs-included');
       var options = {
-      "height": "920px",
-      "width": "690px",
-    phantomPath: require('requireg')('phantomjs').path.replace('app.asar', 'app.asar.unpacked'),
-    script: path.join(__dirname, 'node_modules/html-pdf-phantomjs-included/lib/scripts/pdf_a4_portrait.js').replace('app.asar', 'app.asar.unpacked').replace('\dist',''),
-    };
-    pdf.create(html, options).toFile(join(appDirectory, "pdfsApp/" + name + '.pdf'),  (err, res) => {
-      if (err) {
-        Swal.fire({
+        "height": "920px",
+        "width": "690px",
+        phantomPath: require('requireg')('phantomjs').path.replace('app.asar', 'app.asar.unpacked'),
+        //script: path.join(__dirname, 'node_modules/html-pdf-phantomjs-included/lib/scripts/pdf_a4_portrait.js').replace('app.asar', 'app.asar.unpacked').replace('\dist', ''),
+      }; 
+      pdf.create(html, options).toFile(join(appDirectory, "pdfsApp/" + name + '.pdf'), (err, res) => {
+        if (err) {
+          Swal.fire({
             title: "Error",
-          text: err,
+            text: err,
             icon: 'error',
             showConfirmButton: false,
-            timer: 5000 });
-      }
-      else {
-                Swal.fire({
-              title: this.t('messages.titlegenerate'),
+            timer: 5000
+          });
+        }
+        else {
+          Swal.fire({
+            title: this.t('messages.titlegenerate'),
             text: this.t('messages.textgenerate'),
             icon: 'success',
             showConfirmButton: false,
             timer: 5000
           });
-      }
-    });
+        }
+      });
 
     },
     async saveToDatabase() {
       if (this.fileName) {
         if (this.isEditName) {
           if (this.fileName.length === 0) {
-            Swal.fire(this.t('messages.empty'),this.t('messages.textempty'), 'error')
+            Swal.fire(this.t('messages.empty'), this.t('messages.textempty'), 'error')
           }
           else {
             var exist = await ipcRenderer.invoke('checkFileNameExists', { name: this.fileName })
@@ -455,14 +455,14 @@ export default {
               ipcRenderer.invoke('updateQuillFileName', { oldName: this.selectedOption, newName: this.fileName });
               this.selectedOption = this.fileName;
               this.isEditName = false;
-              this.fileName="";
+              this.fileName = "";
               this.showSucess();
             }
           }
         }
         else {
           if (this.fileName.length === 0) {
-            Swal.fire(this.t('messages.empty'),this.t('messages.textempty'), 'error');
+            Swal.fire(this.t('messages.empty'), this.t('messages.textempty'), 'error');
           }
           else {
             var exist = await ipcRenderer.invoke('checkFileNameExists', { name: this.fileName })
@@ -520,134 +520,142 @@ export default {
       this.editor.root.innerHTML = contenuEditor;
     },
     toggleMenu() {
-            this.isExpanded = !this.isExpanded;
-            localStorage.setItem('is_expanded', this.isExpanded.toString());
+      this.isExpanded = !this.isExpanded;
+      localStorage.setItem('is_expanded', this.isExpanded.toString());
     },
     async loadItems(traductionYear) {
-            try {
-                const years = await ipcRenderer.invoke('getYearsFile');
-                this.items = [
-                    {
-                        name: traductionYear,
-                        id: 'years',
-                        type: 'string',
-                        children: await Promise.all(
-                            years.map(async (years: number) => {
-                                const files = await ipcRenderer.invoke('getFilesByYear', { years });
-                                return {
-                                    name: years.toString(),
-                                    id: years,
-                                    type: 'number',
-                                    children: files.map((file: string) => ({
-                                        name: file,
-                                        type: 'string',
-                                        id: file,
-                                    })),
-                                };
-                            })
-                        ),
-                    },
-                ];
-                console.log("items:", this.items);
-            } catch (error) {
-                console.error(error);
-            }
+      try {
+        const years = await ipcRenderer.invoke('getYearsFile');
+        this.items = [
+          {
+            name: traductionYear,
+            id: 'years',
+            type: 'string',
+            children: await Promise.all(
+              years.map(async (years: number) => {
+                const files = await ipcRenderer.invoke('getFilesByYear', { years });
+                return {
+                  name: years.toString(),
+                  id: years,
+                  type: 'number',
+                  children: files.map((file: string) => ({
+                    name: file,
+                    type: 'string',
+                    id: file,
+                  })),
+                };
+              })
+            ),
+          },
+        ];
+        console.log("items:", this.items);
+      } catch (error) {
+        console.error(error);
+      }
     },
     async handleFileClick(selectedItem) {
       const selectedFile = selectedItem?.name;
       const response = await ipcRenderer.invoke('getQuillContentData', { name: selectedFile });
       this.fileName = '';
       this.editor.root.innerHTML = response;
-        
-      },
+
+    },
   }
 }
 </script>
 
 <style lang="scss"  scoped>
 .scroll-container1 {
-    overflow-y: auto;
-    overflow-x: hidden; /* Hide the horizontal scrollbar */
-    max-height: 389px;
-    margin-right: 0%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  /* Hide the horizontal scrollbar */
+  max-height: 389px;
+  margin-right: 0%;
 }
 
 .scroll-container1::-webkit-scrollbar {
-    width: 12px;
-    height: 12px; 
+  width: 12px;
+  height: 12px;
 }
 
 .scroll-container1::-webkit-scrollbar-track {
-    background: #f1eeee;
+  background: #f1eeee;
 }
 
 .scroll-container1::-webkit-scrollbar-thumb {
-    @apply bg-primary-light;
-    border-radius: 5px;
+  @apply bg-primary-light;
+  border-radius: 5px;
 }
 
 .scroll-container1::-webkit-scrollbar-thumb:hover {
-    @apply bg-primary-light;
+  @apply bg-primary-light;
 }
 
 //---------------
 
 .scroll-container {
-        max-height: 599px;
-        margin-right: -6.5%;
-        flex: 1;
-        overflow-y: auto;
-    }
-    /* Width */
-    .scroll-container::-webkit-scrollbar {
-        width: 10px;
-        height: 10px;
-    }
-    
-    /* Track */
-    .scroll-container::-webkit-scrollbar-track {
-        background:#f1eeee;
-    }
-    
-    /* Handle */
-    .scroll-container::-webkit-scrollbar-thumb {
-        @apply bg-primary-light;        
-        border-radius: 5px;
-    }
-    
-    /* Handle on hover */
-    .scroll-container::-webkit-scrollbar-thumb:hover {
-        @apply bg-primary-light        
-    }
-
-    aside {
-display: none;
-.flex {
-    flex: 1 1 0%;
+  max-height: 599px;
+  margin-right: -6.5%;
+  flex: 1;
+  overflow-y: auto;
 }
-.menu-toggle-wrap {
+
+/* Width */
+.scroll-container::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+/* Track */
+.scroll-container::-webkit-scrollbar-track {
+  background: #f1eeee;
+}
+
+/* Handle */
+.scroll-container::-webkit-scrollbar-thumb {
+  @apply bg-primary-light;
+  border-radius: 5px;
+}
+
+/* Handle on hover */
+.scroll-container::-webkit-scrollbar-thumb:hover {
+  @apply bg-primary-light
+}
+
+aside {
+  display: none;
+
+  .flex {
+    flex: 1 1 0%;
+  }
+
+  .menu-toggle-wrap {
     display: flex;
     justify-content: flex-end;
     margin-bottom: 1rem;
     position: relative;
     top: 0;
     transition: 0.2s ease-in-out;
+
     .menu-toggle {
-        transition: 0.2s ease-in-out;
+      transition: 0.2s ease-in-out;
+
+      .material-icons {
+        font-size: 2rem;
+        color: white;
+        transition: 0.2s ease-out;
+      }
+
+      &:hover {
         .material-icons {
-            font-size: 2rem;
-            color: white;
-            transition: 0.2s ease-out;
+          color: white;
+          transform: translateX(1rem);
         }
-        &:hover {
-            .material-icons {
-                color: white;
-                transform: translateX(1rem);
-            }
-        }
+      }
     }
-}
-&.is-expanded {
+  }
+
+  &.is-expanded {
     display: flex;
     flex-direction: column;
     @apply bg-primary-dark text-white font-bold;
@@ -663,21 +671,24 @@ display: none;
     z-index: 99;
     margin-top: 14%;
     margin-left: 1%;
+
     .menu-toggle-wrap {
-        top: -1rem;
-        .menu-toggle {
-            transform: rotate(-180deg);
-    z-index: 99;
+      top: -1rem;
+
+      .menu-toggle {
+        transform: rotate(-180deg);
+        z-index: 99;
+      }
     }
-}
-}
+  }
 }
 
 
 * {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-    font-size: 14px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  font-size: 14px;
 }
+
 .sidebar-wrapper {
   position: relative;
 }
@@ -688,7 +699,7 @@ display: none;
   left: 0;
   width: 100%;
   height: 100%;
-  z-index: 999; /* Make sure the overlay is above other elements */
-}
-</style>
+  z-index: 999;
+  /* Make sure the overlay is above other elements */
+}</style>
 

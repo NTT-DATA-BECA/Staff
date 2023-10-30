@@ -85,16 +85,18 @@ export default {
             for (let C = range.s.c; C <= range.e.c; ++C) {
               const cell = sheet[XLSX.utils.encode_cell({ r: R, c: C })];
               var columnName: string = columns[C];
-              columnName=columnName.replace(/\s+/g, "_");
-              columnName=columnName.replace(/([[\]()])/g, "\\$1");
-              columnName=columnName.replace(/[\[\]]/g, "\\$1");
-              columnName=columnName.replace(/([[\]\/])/g, "\\$1");
-              columnName=columnName.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&");
-              columnName=columnName.replace(/\//g, "_");
-              columnName=columnName.replace(/[\(\)]/g, "_");
-              columnName = columnName.replace(/_%/g, "");
-              const cellValue: string = XLSX.utils.format_cell(cell);
-              row[columnName] = cellValue;
+              if(columnName != undefined && columnName != ""){
+                columnName=columnName.replace(/\s+/g, "_");
+                columnName=columnName.replace(/([[\]()])/g, "\\$1");
+                columnName=columnName.replace(/[\[\]]/g, "\\$1");
+                columnName=columnName.replace(/([[\]\/])/g, "\\$1");
+                columnName=columnName.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&");
+                columnName=columnName.replace(/\//g, "_");
+                columnName=columnName.replace(/[\(\)]/g, "_");
+                columnName = columnName.replace(/_%/g, "");
+                const cellValue: string = XLSX.utils.format_cell(cell);
+                row[columnName] = cellValue;
+              }
             }
             dataRows.push(row);
           }
