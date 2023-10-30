@@ -50,7 +50,7 @@
         </button>
       </div>
     </div>
-      <div className="flex flex-row w-[1380px] h-full">
+      <div className="flex flex-row w-[1380px] h-[600px]">
               <aside :class="`${showSidebar ? 'is-expanded' : showSidebar}`">
                         <link href="https://fonts.googleapis.com/css2?family=Material+Icons" rel="stylesheet">
                         <button class=" menu-toggle-wrap menu-toggle" @click="showSidebar = !showSidebar">
