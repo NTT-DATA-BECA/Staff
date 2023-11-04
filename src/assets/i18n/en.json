@@ -12,7 +12,7 @@
         "open":"Open Docs File",
         "delete":"Delete",
         "generate":"Generate PDF",
-        "select":"Select Excel File",
+        "select":"Select Excel",
         "duplicate":"Duplicate file",
         "addname":"Add filename",
         "editname":"Edit filename"
@@ -44,7 +44,8 @@
         "delete":"Delete Manager",
         "edit":"Edit",
         "table":"managers per page",
-        "merge":"Merge"
+        "merge":"Merge",
+        "excel":"Import Excel"
         },
         "messages":{
           "showSucess":"Operation has been completed !!",
@@ -105,7 +106,7 @@
           "generatepdf":"GeneratePDF",
           "path":"Path",
           "group":"choose a group",
-          "newNode":"newNode"
+          "Qr-Code":"Qr Code"
         }
     
 }

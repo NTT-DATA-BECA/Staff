@@ -83,7 +83,7 @@
                 </div>
                 </div>
             </div>
-            <div class="drawflow-container border border-slate-400 rounded w-full h-full relative">
+            <div class="drawflow-container border border-slate-400 rounded w-[1280px] h-full relative">
                 <div id="drawflow" @drop=" drop($event)" @dragover=" allowDrop($event)">
                     <div>
                         <div v-if="action != 'add'" class="flex bg-primary-light w-fit text-white p-2 justify-center"
@@ -126,11 +126,11 @@ import NodeStart from '../components/Node-start.vue'
 import NodeEnd from '../components/Node-end.vue'
 import NodeGeneratePdf from '../components/Node-GeneratePdf.vue'
 import NodeZipFolder from '../components/Node-zipFolder.vue'
+import NodeQrCode from '../components/Node-QrCode.vue'
 import Condition from '../components/Node-Condition.vue'
 import sendEmail from '../components/Node-sendEmail.vue'
 import groupPdfBy from '../components/Node-groupPdfBy.vue'
 import alert from '../components/Node-alert.vue'
-import newNode from '../components/NewNode.vue'
 import Swal from 'sweetalert2'
 import { nodesList } from '../utils/nodesList'
 import { ipcRenderer } from 'electron';
@@ -200,7 +200,7 @@ export default {
         this.editor.value.registerNode("send-email", sendEmail, {}, {});
         this.editor.value.registerNode("groupPdfBy", groupPdfBy, {}, {});
         this.editor.value.registerNode("alert", alert, {}, {});
-        this.editor.value.registerNode("newNode", newNode, {}, {});
+        this.editor.value.registerNode("Qr-Code", NodeQrCode, {}, {});
         let mytemplate = ""
         let excelName = ""
         const store = useStore()
@@ -213,6 +213,7 @@ export default {
         let variable1 = ""
         let group = ""
         let myzip = ""
+        let imgpath=""
         // const updateNodeOperation = (output_class: any, outputTemplate: any, outputExcelName: any, outputHeaders: any, outputExcelData: any, outputSymbole: any, outputpdfpath: any, outputmessage: any, outputVariable2: any, outputVariable1: any, outputMyzip: any, outputGroup: any, inputNodeData: any) => {
         //     if (output_class == "input_1") {
         //         mytemplate = outputTemplate;
@@ -244,6 +245,7 @@ export default {
                 variable1 = editorData[i].data.variable1;
                 myzip = editorData[i].data.myzip;
                 group = editorData[i].data.group;
+                imgpath=editorData[i].data.imgpath;
             });
 
         });
@@ -311,7 +313,7 @@ export default {
             pos_y = pos_y * (this.editor.value.precanvas.clientHeight / (this.editor.value.precanvas.clientHeight * this.editor.value.zoom)) - (this.editor.value.precanvas.getBoundingClientRect().y
                 * (this.editor.value.precanvas.clientHeight / (this.editor.value.precanvas.clientHeight * this.editor.value.zoom)));
             const nodeSelected: any = nodesList.find(object => object.item === name);
-            this.editor.value.addNode(name, nodeSelected.input, nodeSelected.output, pos_x, pos_y, name, { mytemplate: "", excelName: "", headers: [], excelData: "", symbole: "", pdfpath: "", message: "", varaible1: "", varaible2: "", myzip: "" }, name, "vue");
+            this.editor.value.addNode(name, nodeSelected.input, nodeSelected.output, pos_x, pos_y, name, { mytemplate: "", excelName: "", headers: [], excelData: "", symbole: "", pdfpath: "", message: "", varaible1: "", varaible2: "", myzip: "",imgpath:"" }, name, "vue");
         },
         addProgramName(event: any) {
             this.programName = event.target.value;

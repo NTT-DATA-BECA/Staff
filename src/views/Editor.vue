@@ -4,7 +4,7 @@
       <v-select v-model="selectedOption" :options="files" label="name" class="h-9 text-primary-dark rounded w-60 mr-3"
         @click="() => loadNameFiles()" @option:selected="onChangeFile()">
       </v-select>
-      <div class="flex justify-end text-gray-100">
+      <div class="w-[1250px] flex justify-end text-gray-100">
         <input className="input mr-2"
           v-bind:placeholder="getPlaceholderText()"  v-model="fileName"
           v-if="action == 'add' || isEditName" />
@@ -83,7 +83,7 @@
                             </div>
                         </div>
               </aside>
-              <div className="flex flex-col gap-2 w-[300px] mx-auto mr-28 h-full">
+              <div className="flex flex-col gap-2 w-[300px] mx-auto h-full">
                     <label>
                       <input class="text-sm cursor-pointer w-36 hidden" type="file" @input="importDocument" accept=".doc, .docx">
                       <div class="btn  mr-2 mb-2 w-[240px] cursor-pointer flex items-center justify-center">

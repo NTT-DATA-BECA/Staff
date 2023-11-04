@@ -22,7 +22,7 @@
                 <input id="file-upload" type="file"
                   accept=".xls,.xlsx,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
                   class="hidden" @change="loadExcelFile" />
-                <EasyDataTable body-text-direction="center" header-text-direction="center" class="mt-4"
+                <EasyDataTable body-text-direction="center" header-text-direction="center" class="mt-4 "
                   :headers="headersExcel" :items="itemsExcel" :search-value="searchValue" 
                   buttons-pagination :rowsPerPage="5" :loading="loading">
                 </EasyDataTable>
@@ -44,7 +44,7 @@
         <button class="w-40 text-sm btn" @click="() => deleteManagers()">{{ t("managers.delete") }}</button>
       </div>
     </div>
-    <div class="w-full h-full">
+    <div class="w-[1487px] h-full">
       <EasyDataTable table-class-name="customize-table" body-text-direction="center" header-text-direction="center"
         v-model:items-selected="itemsSelected" :headers="headers" :items="items" :rowsPerPage="17"
         :search-field="['first_name', 'last_name', 'email', 'category']" :search-value="searchValue"
