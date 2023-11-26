@@ -1,21 +1,21 @@
 <template>
   <div className="h-full w-full flex flex-col p-4">
-    <div class="flex justify-between mb-3 text-gray-100">
-      <v-select v-model="selectedOption" :options="files" label="name" class="h-9 text-primary-dark rounded w-60 mr-3"
+    <div class="flex justify-between mb-2 text-gray-100">
+      <v-select v-model="selectedOption" :options="files" label="name" class="h-9 text-primary-dark rounded w-[19rem] mr-3"
         @click="() => loadNameFiles()" @option:selected="onChangeFile()">
       </v-select>
       <div class="w-[1250px] flex justify-end text-gray-100">
-        <input className="input mr-2"
+        <!-- <input className="input mr-2"
           v-bind:placeholder="getPlaceholderText()"  v-model="fileName"
-          v-if="action == 'add' || isEditName" />
-        <button v-if="action == 'edit'" class="btn flex items-center mr-2 mb-3" @click="editName">
+          v-if="action == 'add' || isEditName" /> -->
+        <!-- <button v-if="action == 'edit'" class="btn flex items-center mr-2 mb-3" @click="editName">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="mr-2 bi bi-pen-fill"
             viewBox="0 0 16 16">
             <path
               d="m13.498.795.149-.149a1.207 1.207 0 1 1 1.707 1.708l-.149.148a1.5 1.5 0 0 1-.059 2.059L4.854 14.854a.5.5 0 0 1-.233.131l-4 1a.5.5 0 0 1-.606-.606l1-4a.5.5 0 0 1 .131-.232l9.642-9.642a.5.5 0 0 0-.642.056L6.854 4.854a.5.5 0 1 1-.708-.708L9.44.854A1.5 1.5 0 0 1 11.5.796a1.5 1.5 0 0 1 1.998-.001z" />
           </svg>
           {{ t("editor.edit") }}
-        </button>
+        </button> -->
         <button class="btn rounded-lg px-5 py-2.5 text-center mr-2 mb-3 flex items-center" @click="saveToDatabase">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
             class="mr-2 bi bi-file-earmark-arrow-up-fill" viewBox="0 0 16 16">
@@ -24,30 +24,30 @@
           </svg>
           {{ t("editor.save") }}
         </button>
-        <button class="mr-2 btn flex items-center" @click="newFile">
+        <!-- <button class="mr-2 btn flex items-center" @click="newFile">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="mr-2 bi bi-plus-lg"
             viewBox="0 0 16 16">
             <path fill-rule="evenodd"
               d="M8 2a.5.5 0 0 1 .5.5v5h5a.5.5 0 0 1 0 1h-5v5a.5.5 0 0 1-1 0v-5h-5a.5.5 0 0 1 0-1h5v-5A.5.5 0 0 1 8 2Z" />
           </svg>
           {{ t("editor.new") }}
-        </button>
-        <button v-if="action == 'edit'" class="btn flex items-center" @click="duplicateFile">
+        </button> -->
+        <!-- <button v-if="action == 'edit'" class="btn flex items-center" @click="duplicateFile">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
             class="mr-2 bi bi-file-earmark-plus-fill" viewBox="0 0 16 16">
             <path
               d="M9.293 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V4.707A1 1 0 0 0 13.707 4L10 .293A1 1 0 0 0 9.293 0zM9.5 3.5v-2l3 3h-2a1 1 0 0 1-1-1zM8.5 7v1.5H10a.5.5 0 0 1 0 1H8.5V11a.5.5 0 0 1-1 0V9.5H6a.5.5 0 0 1 0-1h1.5V7a.5.5 0 0 1 1 0z" />
           </svg>
           {{ t("editor.duplicate") }}
-        </button>
-        <button v-if="action == 'edit'" class="btn ml-2 flex items-center" @click="deleteFile">
+        </button> -->
+       <!--  <button v-if="action == 'edit'" class="btn ml-2 flex items-center" @click="deleteFile">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="mr-2 bi bi-trash-fill"
             viewBox="0 0 16 16">
             <path
               d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1H2.5zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5zM8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5zm3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0z" />
           </svg>
           {{ t("editor.delete") }}
-        </button>
+        </button> -->
       </div>
     </div>
       <div className="flex flex-row w-[1380px] h-[600px]">
@@ -84,7 +84,7 @@
                         </div>
               </aside>
               <div className="flex flex-col gap-2 w-[300px] mx-auto h-full">
-                    <label>
+                    <!-- <label>
                       <input class="text-sm cursor-pointer w-36 hidden" type="file" @input="importDocument" accept=".doc, .docx">
                       <div class="btn  mr-2 mb-2 w-[240px] cursor-pointer flex items-center justify-center">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
@@ -94,7 +94,7 @@
                         </svg>
                         {{ t("editor.open") }}
                       </div>
-                    </label>
+                    </label> -->
                     <button class="btn mr-3 w-[240px] flex items-center justify-center" @click="downloadPdf">
                       <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
                         class="mr-2 bi bi-cloud-arrow-down-fill" viewBox="0 0 16 16">
@@ -103,10 +103,10 @@
                       </svg>
                       {{ t("editor.generate") }}
                     </button>
-                    <div className="relative w-[240px] mx-auto mr-4">
-                          <button class="menu-toggle absolute left-0 top-0" @click="showSidebar = !showSidebar">
+                    <div className="relative w-[240px] mx-auto mr-16">
+                         <!--  <button class="menu-toggle absolute left-0 top-0" @click="showSidebar = !showSidebar">
                               <span class="material-icons">keyboard_double_arrow_right</span>
-                          </button>
+                          </button> -->
                           <h2 className="border-b-4 p-2 border-primary-dark text-center font-bold text-black-700  ">Node Excel</h2>
                     </div>
                     <div class="file_upload p-1 relative border-4 border-dotted border-primary-dark rounded-lg"
@@ -128,7 +128,7 @@
                       <tree  class="cursor-grab" :nodes="nodes" :config="config"></tree>
                     </div>
               </div>
-              <div className="flex flex-col w-full h-full">
+              <div className="flex flex-col w-4/5 h-full">
                     <div id="editor" ref="editor">
                     </div>
               </div>
@@ -396,14 +396,14 @@ export default {
     async downloadPdf() {
       var contenu = this.editor.root.innerHTML;
       var name = this.selectedOption
-      var html = '<html><head><style> footer{position: fixed;bottom: 0;margin-left:90px; margin-right:130px}' + quillCSS + '</style></head><body><div class="ql-editor">' + contenu + ' <footer style="padding-top: 100px;"><div style="border-top: 2px solid #011627;"><div style="font-size :15px; text-align:center; color:#011627;margin-left:0px;margin-right:5px;"><p> NTT DATA Morocco Centers – SARL au capital de 7.700.000 Dhs – Parc Technologique de Tétouanshore, Route de Cabo Negro, Martil – Maroc – RC: 19687 – IF : 15294847 – CNSS : 4639532 – Taxe Prof. :51840121</p></div></footer> </div></body></html>'
+      var html = '<html><head><style> footer{position: fixed;bottom: 30px;margin-left:90px; margin-right:130px}' + quillCSS + '</style></head><body><div class="ql-editor">' + contenu + ' <footer style="padding-top: 100px;"><div style="border-top: 4px solid #011627;"><div style="font-size :20px; text-align:center; color:#011627;margin-left:0px;margin-right:5px;"><p> NTT DATA Morocco Centers – SARL au capital de 7.700.000 Dhs – Parc Technologique de Tétouanshore, Route de Cabo Negro, Martil – Maroc – RC: 19687 – IF : 15294847 – CNSS : 4639532 – Taxe Prof. :51840121</p></div></footer> </div></body></html>'
       const pathpdf = require('path');
       var pdf = require('html-pdf-phantomjs-included');
       var options = {
         "height": "920px",
         "width": "690px",
         phantomPath: require('requireg')('phantomjs').path.replace('app.asar', 'app.asar.unpacked'),
-       // script: pathpdf.join(__dirname, 'node_modules/html-pdf-phantomjs-included/lib/scripts/pdf_a4_portrait.js').replace('app.asar', 'app.asar.unpacked').replace('\dist',''),
+        //script: pathpdf.join(__dirname, 'node_modules/html-pdf-phantomjs-included/lib/scripts/pdf_a4_portrait.js').replace('app.asar', 'app.asar.unpacked').replace('\dist',''),
    
       };
       pdf.create(html, options).toFile("C:/pdfsApp/" + name + '.pdf',  (err, res) => {

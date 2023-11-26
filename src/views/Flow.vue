@@ -47,7 +47,7 @@
                 <button class=" menu-toggle-wrap menu-toggle" @click="showSidebar = !showSidebar">
                     <span class="material-icons">keyboard_double_arrow_left</span>
                 </button>
-                <h4 className="border-b-4 p-2 border-white text-center font-bold text-black-700 mt-0.1 ">Flow History</h4>
+                <h4 className="border-b-4 p-2 mb-1 mr-2 border-white text-center font-bold text-black-700 mt-0.1 ">Flow History</h4>
             <br>
                 <div id="app" class="scroll-container">
                     <div>
@@ -69,12 +69,12 @@
                     </div>
                 </div>
             </aside>
-            <div className="flex flex-col gap-2 w-[190px] mx-auto mr-8">
-                <div className="relative w-[200px] mx-auto mr-40">
+            <div className="flex flex-col gap-2 w-60 mx-auto">
+                <div className="relative w-60 mx-auto">
                     <button class="menu-toggle absolute left-0 top-0" @click="showSidebar = !showSidebar">
                         <span class="material-icons">keyboard_double_arrow_right</span>
                     </button>
-                    <h4 className="border-b-4 p-2 border-primary-dark text-center font-bold text-black-700  ">{{ t("flow.types") }}</h4>
+                    <h4 className="border-b-4 p-2 mr-1 border-primary-dark text-center font-bold text-black-700  ">{{ t("flow.types") }}</h4>
                 </div>
                 <div class="scroll-container1">
                 <div class="nodes-list" draggable="true" v-for="i in nodesList" :key="i.name" :node-item="i.item"
@@ -83,7 +83,7 @@
                 </div>
                 </div>
             </div>
-            <div class="drawflow-container border border-slate-400 rounded w-[1280px] h-full relative">
+            <div class="drawflow-container border border-slate-400 rounded w-full h-full relative">
                 <div id="drawflow" @drop=" drop($event)" @dragover=" allowDrop($event)">
                     <div>
                         <div v-if="action != 'add'" class="flex bg-primary-light w-fit text-white p-2 justify-center"
@@ -607,7 +607,7 @@ export default {
 
 <style lang="scss" scoped>
 .node {
-    @apply bg-primary-light border border-collapse text-white p-3 rounded w-40 m-1  cursor-pointer sm:text-sm flex hover:bg-primary-dark hover:border hover:border-gray-800;
+    @apply bg-primary-light border border-collapse text-white p-3 rounded w-[13rem] m-1  cursor-pointer sm:text-sm flex hover:bg-primary-dark hover:border hover:border-gray-800 h-12;
 }
 
 
@@ -624,8 +624,8 @@ export default {
     overflow-y: scroll;
     overflow-x: scroll; /* Hide the horizontal scrollbar */
     max-height: 630px;
-    margin-right: 0%;
-    width: 190px;
+    margin-right: 3%;
+    
     
 }
 

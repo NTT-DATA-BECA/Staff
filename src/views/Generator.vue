@@ -6,7 +6,7 @@
             <button class="btn" @click="() => generateFlow()">{{ t("generator.btn") }}</button>
         </div>
         <div class="w-full h-full">
-            <div class="drawflow-container border border-slate-400 rounded w-[1502px] h-full relative">
+            <div class="drawflow-container border border-slate-400 rounded w-full h-full relative">
                 <div id="drawflow">
                     <div>
                         <div v-if="action != 'add'" class="flex bg-primary-light w-fit text-white p-2 justify-center"
@@ -312,10 +312,12 @@ export default {
                             }
                         } else if (messagesAlert) {
                             messagesAlert = "";
+                            this.dialog = false;
                         }
                     }
                     this.dynamicConditionJson = {};
                 }
+                this.dialog = false;
             }
 
         },
@@ -557,7 +559,7 @@ END:VCARD`
             const editorData = this.editor.value.export().drawflow.Home.data;
             var nbre = 0;
             Object.keys(editorData).forEach(function (i) {
-                if (editorData[i].name === "Generatepdf" || editorData[i].name === "groupPdfBy") {
+                if (editorData[i].name === "Generatepdf"/*  || editorData[i].name === "groupPdfBy" */) {
                     nbre++;
                 }
             });
@@ -653,7 +655,7 @@ END:VCARD`
         },
         downloadPdf(htmlforpdf: any, namefile: any, path: any) {
             var name = namefile
-            var html = '<html><head><style> footer{position: fixed;bottom: 0;margin-left:90px; margin-right:130px}' + quillCSS + '</style></head><body><div class="ql-editor">' + htmlforpdf + ' <footer style="padding-top: 100px;"><div style="border-top: 2px solid #011627;"><div style="font-size :15px; text-align:center; color:#011627;margin-left:0px;margin-right:5px;"><p> NTT DATA Morocco Centers – SARL au capital de 7.700.000 Dhs – Parc Technologique de Tétouanshore, Route de Cabo Negro, Martil – Maroc – RC: 19687 – IF : 15294847 – CNSS : 4639532 – Taxe Prof. :51840121</p></div></footer> </div></body></html>'
+            var html = '<html><head><style> footer{position: fixed;bottom: 30px;margin-left:90px; margin-right:130px}' + quillCSS + '</style></head><body><div class="ql-editor">' + htmlforpdf + ' <footer style="padding-top: 100px;"><div style="border-top: 4px solid #011627;"><div style="font-size :20px; text-align:center; color:#011627;margin-left:0px;margin-right:5px;"><p> NTT DATA Morocco Centers – SARL au capital de 7.700.000 Dhs – Parc Technologique de Tétouanshore, Route de Cabo Negro, Martil – Maroc – RC: 19687 – IF : 15294847 – CNSS : 4639532 – Taxe Prof. :51840121</p></div></footer> </div></body></html>'
             var pdf = require('html-pdf-phantomjs-included');
             const pathpdf = require('path');
             var options = {
@@ -661,7 +663,7 @@ END:VCARD`
                  "width": "690px",
                 timeout: 210000,
                 phantomPath: require('requireg')('phantomjs').path.replace('app.asar', 'app.asar.unpacked'),
-              // script: pathpdf.join(__dirname, 'node_modules/html-pdf-phantomjs-included/lib/scripts/pdf_a4_portrait.js').replace('app.asar', 'app.asar.unpacked').replace('\dist',''),
+                //script: pathpdf.join(__dirname, 'node_modules/html-pdf-phantomjs-included/lib/scripts/pdf_a4_portrait.js').replace('app.asar', 'app.asar.unpacked').replace('\dist',''),
    
             };
             if (this.lenghtData > 300) {
@@ -670,7 +672,7 @@ END:VCARD`
                     "width": "690px",
                     timeout: 500000 ,
                     phantomPath: require('requireg')('phantomjs').path.replace('app.asar', 'app.asar.unpacked'),
-   // script: pathpdf.join(__dirname, 'node_modules/html-pdf-phantomjs-included/lib/scripts/pdf_a4_portrait.js').replace('app.asar', 'app.asar.unpacked').replace('\dist',''),
+                    //script: pathpdf.join(__dirname, 'node_modules/html-pdf-phantomjs-included/lib/scripts/pdf_a4_portrait.js').replace('app.asar', 'app.asar.unpacked').replace('\dist',''),
    
                 };
             }

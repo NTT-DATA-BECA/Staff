@@ -44,7 +44,7 @@
         <button class="w-40 text-sm btn" @click="() => deleteManagers()">{{ t("managers.delete") }}</button>
       </div>
     </div>
-    <div class="w-[1487px] h-full">
+    <div class="w-full h-full">
       <EasyDataTable table-class-name="customize-table" body-text-direction="center" header-text-direction="center"
         v-model:items-selected="itemsSelected" :headers="headers" :items="items" :rowsPerPage="17"
         :search-field="['first_name', 'last_name', 'email', 'category']" :search-value="searchValue"
