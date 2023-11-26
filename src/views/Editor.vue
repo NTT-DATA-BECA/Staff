@@ -403,7 +403,7 @@ export default {
         "height": "920px",
         "width": "690px",
         phantomPath: require('requireg')('phantomjs').path.replace('app.asar', 'app.asar.unpacked'),
-        //script: pathpdf.join(__dirname, 'node_modules/html-pdf-phantomjs-included/lib/scripts/pdf_a4_portrait.js').replace('app.asar', 'app.asar.unpacked').replace('\dist',''),
+        script: pathpdf.join(__dirname, 'node_modules/html-pdf-phantomjs-included/lib/scripts/pdf_a4_portrait.js').replace('app.asar', 'app.asar.unpacked').replace('\dist',''),
    
       };
       pdf.create(html, options).toFile("C:/pdfsApp/" + name + '.pdf',  (err, res) => {
