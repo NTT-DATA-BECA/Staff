@@ -4,7 +4,8 @@
       <v-select v-model="selectedOption" :options="files" label="name" class="h-9 text-primary-dark rounded w-60 mr-3"
         @click="() => loadNameFiles()" @option:selected="onChangeFile()">
       </v-select>
-      <div class="flex justify-end text-gray-100">
+      
+       <div class="flex justify-end text-gray-100">
         <input className="input mr-2"
           v-bind:placeholder="getPlaceholderText()"  v-model="fileName"
           v-if="action == 'add' || isEditName" />
@@ -16,6 +17,7 @@
           </svg>
           {{ t("editor.edit") }}
         </button>
+        <button class="mr-2 btn flex items-center"  @click="VCardTemplate">vcard</button>
         <button class="btn rounded-lg px-5 py-2.5 text-center mr-2 mb-3 flex items-center" @click="saveToDatabase">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
             class="mr-2 bi bi-file-earmark-arrow-up-fill" viewBox="0 0 16 16">
@@ -24,6 +26,7 @@
           </svg>
           {{ t("editor.save") }}
         </button>
+        
         <button class="mr-2 btn flex items-center" @click="newFile">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="mr-2 bi bi-plus-lg"
             viewBox="0 0 16 16">
@@ -56,10 +59,12 @@
                         <button class=" menu-toggle-wrap menu-toggle" @click="showSidebar = !showSidebar">
                             <span class="material-icons">keyboard_double_arrow_left</span>
                         </button>
+                        
                         <h4 className="border-b-4 p-2 border-white text-center font-bold text-black-700 -mt-10 ">{{ t("messages.TranslateTitleEditorHistory") }}</h4>
                         <br>
                         <div id="app" class="scroll-container">
                             <div>
+                             
                                 <div style="display: flex">
                                     <vue3-tree-vue :items="items"
                                         :hideGuideLines="false"
@@ -75,15 +80,18 @@
                                                 </template>
                                                 <template>
                                                     <div class="d-flex" style="display: flex; justify-content: center; vertical-align: center; justify-items: center; align-items: center; margin-right: 10px;">
-                                                    <span style="color: black;">-</span>
+                                                    <span style="color: rgb(0, 0, 0);">-</span>
                                                     </div>
                                                 </template>
+                                               
                                     </vue3-tree-vue>
+                                    
                                 </div>
                             </div>
                         </div>
               </aside>
-              <div v-if="showSidebar" class="sidebar-overlay" @click="closeSidebar"></div>
+              <div v-if="showSidebar" class="sidebar-overlay" @click="closeSidebar">
+             </div>
               <div className="flex flex-col gap-2 w-[300px] mx-auto mr-0.1 h-full">
                 <label>
                   <input class="text-sm cursor-pointer w-36 hidden" type="file" @input="importDocument" accept=".doc, .docx">
@@ -117,25 +125,42 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                       d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                   </svg>
+                  
                   <div class="input_field flex flex-col w-max mx-auto text-center">
                     <label>
                       <input class="text-sm cursor-pointer w-36 hidden" type="file" @change="loadExcelFile" />
                       <div class="btn text-sm rounded-lg text-center m-auto" style="height: unset; width: 190px;">
-                        {{ t("editor.select") }}</div>
+                        {{ t("editor.select") }}
+                      </div>
                     </label>
                   </div>
                 </div>
                 <div v-if="allow" class="scroll-container1">
+                  
         <tree  class="cursor-grab" :nodes="nodes" :config="config"></tree>
       </div>
               </div>
               <div className="flex flex-col w-full h-full">
+             
+             
                 <div id="editor" ref="editor">
-                </div>
-              </div>
-      </div>
   
-  </div>
+                 </div>
+                  
+           
+            
+         </div>
+        
+           
+              
+              </div>
+             
+      </div>
+      
+   
+  
+  
+  
 </template>
 
 <script lang="ts">
@@ -157,8 +182,9 @@ import Vue3TreeVue from '../components/tree-component.vue';
 import { TreeViewItem } from '../Tree/types';
 import { useStore } from 'vuex';
 import pkg from "../../package.json";
-import { join } from 'path'
+import { join } from 'path';
 import { homedir } from "os";
+import VCardTemplate from "../components/VCardTemplate.vue" ;
 // Quil configuration
 Quill.register('modules/imageDropAndPaste', QuillImageDropAndPaste)
 Quill.register("modules/resize", ResizeModule);
@@ -174,6 +200,9 @@ export default {
   components: {
         Vue3TreeVue,
         tree: treeview,
+        
+        
+       
   },
   data() {
     return {
@@ -205,7 +234,11 @@ export default {
           children: [],
         }
       },
-      allow:false
+      allow:false,
+       
+        
+
+   
     }
   },
   mounted() {
@@ -277,7 +310,14 @@ export default {
     });
     const store = useStore()
     this.loadItems(store.getters.getTranslateYears);
+     this.$nextTick(() => {
+      const templateElement = this.$refs.VCardTemplateRef;
+      if (templateElement) {
+       
+      }
+    });
 
+   
   },
   methods: {
     closeSidebar(){
@@ -295,6 +335,9 @@ export default {
       return this.t('editor.addname');
     }
   },
+  
+   
+  
     deleteFile() {
       Swal.fire({
         title: this.t('messages.sure'),
@@ -417,7 +460,7 @@ export default {
       "height": "920px",
       "width": "690px",
     phantomPath: require('requireg')('phantomjs').path.replace('app.asar', 'app.asar.unpacked'),
-    script: path.join(__dirname, 'node_modules/html-pdf-phantomjs-included/lib/scripts/pdf_a4_portrait.js').replace('app.asar', 'app.asar.unpacked').replace('\dist',''),
+    //script: path.join(__dirname, 'node_modules/html-pdf-phantomjs-included/lib/scripts/pdf_a4_portrait.js').replace('app.asar', 'app.asar.unpacked').replace('\dist',''),
     };
     pdf.create(html, options).toFile(join(appDirectory, "pdfsApp/" + name + '.pdf'),  (err, res) => {
       if (err) {
@@ -440,6 +483,21 @@ export default {
     });
 
     },
+      VCardTemplate() {
+      this.$nextTick(() => {
+        const vCardComponent = this.$refs.vCardRef as any;
+        if (vCardComponent) {
+          const vCardContent = vCardComponent.$el?.outerHTML;
+          if (vCardContent) {
+            console.log(vCardContent);
+            // Faire ce que vous devez avec le contenu HTML
+          } else {
+            console.error("Le contenu HTML du composant n'a pas été trouvé.");
+          }
+        } 
+      });
+    },
+  
     async saveToDatabase() {
       if (this.fileName) {
         if (this.isEditName) {
@@ -690,5 +748,51 @@ display: none;
   height: 100%;
   z-index: 999; /* Make sure the overlay is above other elements */
 }
+.vcard-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center; 
+  margin-bottom: 100px;
+
+}
+.vcard-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+}
+.vcard {
+  width: 350px;
+  height: 450px; 
+  background-color: rgb(44, 124, 214);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: rgb(236, 227, 227);
+  border-radius: 10px;
+  text-align: center;
+}
+
+.qrcode-placeholder {
+   width: 160px;
+   height: 160px;
+  background-color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: -200px;
+  border-radius: 10px;
+}
+.logo {
+  
+ width: 170px;
+ margin-bottom: 300px;
+}
+
+
+
 </style>
 

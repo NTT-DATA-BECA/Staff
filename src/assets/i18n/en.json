@@ -101,9 +101,12 @@
           "condition":"Condition",
           "alert":"Alert",
           "email":"SendEmail",
+          "qrcode":"QR-Code-Generator",
+          "filetype":"File-Type-To-Generate",
           "grouppdf":"GroupPDFBy",
           "generatepdf":"GeneratePDF",
           "path":"Path",
+          "qrpath":"QrPath",
           "group":"choose a group"
         }
     

@@ -39,6 +39,7 @@
 import { h, getCurrentInstance, render } from 'vue'
 import Drawflow from 'drawflow'
 import Swal from 'sweetalert2'
+import QR from 'qrcode-base64';
 import { SweetAlertIcon } from 'sweetalert2'
 import ImportExcel from '../components/ImportExcel.vue'
 import NodeFileInput from '../components/Node-file-input.vue'
@@ -48,6 +49,8 @@ import Condition from '../components/Node-Condition.vue'
 import NodeGeneratePdf from '../components/Node-GeneratePdf.vue'
 import NodeZipFolder from '../components/Node-zipFolder.vue'
 import sendEmail from '../components/Node-sendEmail.vue'
+import qrcode from '../components/Node-qrcode.vue'
+import filetype from '../components/Node-filetype.vue'
 import groupPdfBy from '../components/Node-groupPdfBy.vue'
 import alert from '../components/Node-alert.vue'
 import { nodesList } from '../utils/nodesList'
@@ -56,6 +59,8 @@ import { useI18n } from 'vue-i18n'
 import quillCSS from 'quill/dist/quill.snow.css'
 import 'vue3-toastify/dist/index.css';
 import { mapActions } from 'vuex';
+import htmlToImage from 'html-to-image';
+
 
 export default {
     name: "DrawflowDashboard",
@@ -83,7 +88,11 @@ export default {
             dataList: [] as any,
             lenghtData: 0,
             nonGeneratedPdf: false,
-            allow: true
+            allow: true,
+            vCardData: ''
+             
+
+           
         };
     },
     mounted() {
@@ -100,6 +109,8 @@ export default {
         this.editor.value.registerNode("Generatepdf", NodeGeneratePdf, {}, {});
         this.editor.value.registerNode("condition", Condition, {}, {});
         this.editor.value.registerNode("groupPdfBy", groupPdfBy, {}, {});
+        this.editor.value.registerNode("qrcode", qrcode, {}, {});
+        this.editor.value.registerNode("filetype", filetype, {}, {});
         this.editor.value.registerNode("send-email", sendEmail, {}, {});
         this.editor.value.registerNode("zip-folder", NodeZipFolder, {}, {});
         this.editor.value.registerNode("alert", alert, {}, {});
@@ -154,6 +165,7 @@ export default {
                 var startoutputs = 0;
                 var dataExcel = [];
                 var templateName = "";
+                var imgPath = "";
                 var genebasic = "yes";
                 var pdfPathGrpBy = "";
                 var nbreAlert = this.countNodeAlert();
@@ -175,6 +187,31 @@ export default {
                         if (nameNode == "file-input") {
                             templateName = dataNode.data.mytemplate;
                         }
+                        if(nameNode == "qrcode"  ) {
+                            imgPath = dataNode.data.imgpath;
+                          for (var i = 0; i < dataExcel.length; i++) {
+                            var dataemployee = dataExcel[i];
+                            var imgBase64 = this.generateQRCode(dataemployee);
+                             var htmlwithqr =` <div id="qrcode" style="width: 400px; margin: 0 auto; background-color: #0072bc; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #ffffff; border-radius: 15px; text-align: center; padding: 20px;">
+                                                <img style="height: 120px; width: 200px; border-radius: 50%;" src="../assets/NTT-Data-White.png">
+                                                 <h2 style="color: white; font-weight: bold; font-size: 28px; margin-top: 10px;">${dataemployee['Firstname']} ${dataemployee['Lastname']}</h2>
+                                               <div style="margin-top: 20px;">
+                                                   <img style="height: 300px; width: 300px; border-radius: 15px;" src="${imgBase64}" >
+                                               </div>
+                                             </div>`;
+                                   var fileName = dataemployee['Firstname'] + "-" + dataemployee['Lastname'] + ".png"; // Specify the filename
+                                   await this.startgenerationimg(htmlwithqr, imgPath, fileName)
+
+                             var dataemployee = dataExcel[i];
+                                if (nameNode == "groupPdfBy") {
+                                    await this.startQRCodeGeneration(dataNode, dataemployee, dataNode.data.group, templateName);
+                                }
+                                else {
+                                    await this.startQRCodeGeneration(dataNode, dataemployee, null, templateName);
+                                }
+                            }
+
+                             }
                         if (nameNode == "Generatepdf" || nameNode == "groupPdfBy") {
                             this.lenghtData = dataExcel.length;
                             if (JSON.stringify(this.dynamicConditionJson) != "{}") {
@@ -370,8 +407,25 @@ export default {
                 }
             }
         },
+        async startgenerationimg(htmlContent, imgPath, fileName) {
+           /*  var div = document.getElementById('qrcode');
+            div.innerHTML = htmlContent;
+            document.body.appendChild(div);*/
+            var htmlToImage = require('html-to-image');
+            var fs = require('fs');
+            htmlToImage.toPng(htmlContent).then(function (dataUrl) {
+                const imageBuffer = Buffer.from(dataUrl.split(',')[1], 'base64');
+                fs.writeFileSync(`${imgPath}/${fileName}`, imageBuffer, 'binary');
+                htmlContent.style.display = 'none'
+                document.body.removeChild(htmlContent);
+            }).catch(function (error) {
+                console.error('error', error);
+            });
+        },
+
         async startgenerationpdf(dataNode: any, dataemployee: any, group: any, template: any) {
             var response = await ipcRenderer.invoke('getQuillContentData', { name: template });
+             const qrCodeData = await this.startQRCodeGeneration(dataNode, dataemployee, group, template);
             if (response) {
                 if (dataemployee) {
                     const currentDate = new Date();
@@ -416,6 +470,57 @@ export default {
                 console.log(fullName + "full Name")
             }
         },
+       async startQRCodeGeneration(dataNode: any, dataemployee: any, group: any, template: any) {
+
+            var response = await ipcRenderer.invoke('getQuillContentData', { name: template });
+            if (response) {
+                if (dataemployee) {
+                    const currentDate = new Date();
+                    const currentYear = currentDate.getFullYear();
+                    const currentDateStr = currentDate.toISOString().split('T')[0];
+                    const lastNameKeys = ["LastName", "Last Name", "Lastname", "Last name", "Surname", "SurName"];
+                    var lastName = this.searchAndReplace(lastNameKeys, dataemployee, lastName);
+                    const firstNameKeys = ["FirstName", "First Name", "Firstname", "First name", "name", "Name"];
+                    var firstName = this.searchAndReplace(firstNameKeys, dataemployee, firstName);
+                    const fullNameKeys = ["Full Name", "FullName", "Fullname", "Full name"];
+                    var fullName = this.searchAndReplace(fullNameKeys, dataemployee, fullName);
+                    response = response.replace(/{ANS}/g, "" + currentYear);
+                    response = response.replace(/{ANS-(\d+)}/g, function (match, number) {
+                        const previousYear = currentYear - parseInt(number);
+                        return "" + previousYear;
+
+                    });
+                    response = response.replace(/{DATE}/g, currentDateStr);
+                    response = response.replace(/{([^{}]+)}/g, (match, var1) => {
+                        var1 = this.replaceHeader(var1);
+                        return `{${var1}}`;
+                    });
+                    response = this.replaceVariables(response, dataemployee);
+                    response = this.replaceQrcodeVariable(response, dataemployee);
+
+                    if (group) {
+                        if (!lastName || !firstName) {
+                            this.downloadPdf(response, "NTT DATA Morocco Centers -" + fullName, dataNode.data.pdfpath + '/' + dataemployee[group] + '/')
+                        } else {
+                            this.downloadPdf(response, "NTT DATA Morocco Centers -" + lastName + "_" + firstName, dataNode.data.pdfpath + '/' + dataemployee[group] + '/')
+                        }
+                    } else {
+                        if (!lastName || !firstName) {
+                            this.downloadPdf(response, "NTT DATA Morocco Centers -" + fullName, dataNode.data.pdfpath + '/')
+                        } else {
+                            this.downloadPdf(response, "NTT DATA Morocco Centers -" + lastName + "_" + firstName, dataNode.data.pdfpath + '/')
+                        }
+                    }
+                }
+                else {
+                    this.downloadPdf(response, template, dataNode.data.pdfpath + '/')
+                }
+                
+            }
+           
+        },
+
+       
         addDataEmployeeAndTemplate(dataEmployee, template) {
             var data = {
                 dataEmployee: dataEmployee,
@@ -475,8 +580,44 @@ export default {
                 }
             }
             return response;
-        }
-        ,
+        },
+        replaceQrcodeVariable(response, employee ) {
+            var imageqr = this.generateQRCode(employee);
+
+           if (response ) {
+                response = response.replace("{qrcode}", "<img src="+imageqr+"/>");
+           }
+            return response
+        },
+         generateQRCode(dataemployee) {
+           let imageqr = '';
+
+            if (dataemployee) {
+
+                const vCard = `BEGIN:VCARD
+VERSION:3.0
+N:${dataemployee.LastName};${dataemployee.FirstName}
+FN:${dataemployee.LastName};${dataemployee.FirstName}
+ORG:www.nttdata.com
+TEL;TYPE=voice,work,pref:${dataemployee.Numero_de_tel}
+EMAIL:${dataemployee.Email}
+ADR:${dataemployee.Adress}
+URL:${dataemployee.URL}
+END:VCARD`;
+
+              
+            imageqr = QR.drawImg(vCard, {
+                    typeNumber: 4,
+                    errorCorrectLevel: 'M',
+                    size: 300
+                });
+            
+                
+
+            
+            }
+            return imageqr;
+        },
         searchNodeEnd() {
             const editorData = this.editor.value.export().drawflow.Home.data;
             let idEnd = "";
@@ -598,7 +739,7 @@ export default {
                  "width": "690px",
                 timeout: 210000,
                 phantomPath: require('requireg')('phantomjs').path.replace('app.asar', 'app.asar.unpacked'),
-               script: pathpdf.join(__dirname, 'node_modules/html-pdf-phantomjs-included/lib/scripts/pdf_a4_portrait.js').replace('app.asar', 'app.asar.unpacked').replace('\dist',''),
+              //script: pathpdf.join(__dirname, 'node_modules/html-pdf-phantomjs-included/lib/scripts/pdf_a4_portrait.js').replace('app.asar', 'app.asar.unpacked').replace('\dist',''),
    
             };
             if (this.lenghtData > 300) {
@@ -607,7 +748,7 @@ export default {
                     "width": "690px",
                     timeout: 500000 ,
                     phantomPath: require('requireg')('phantomjs').path.replace('app.asar', 'app.asar.unpacked'),
-    script: pathpdf.join(__dirname, 'node_modules/html-pdf-phantomjs-included/lib/scripts/pdf_a4_portrait.js').replace('app.asar', 'app.asar.unpacked').replace('\dist',''),
+    //script: pathpdf.join(__dirname, 'node_modules/html-pdf-phantomjs-included/lib/scripts/pdf_a4_portrait.js').replace('app.asar', 'app.asar.unpacked').replace('\dist',''),
    
                 };
             }
@@ -631,6 +772,7 @@ export default {
                 message
             );
         },
+        
         replaceHeader(header: string) {
             header = header.replace(/\s+/g, "_");
             header = header.replace(/([[\]()])/g, "\\$1");

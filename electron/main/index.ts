@@ -159,7 +159,7 @@ async function createWindow() {
     title: 'Auto Documents Generation NTT DATA Tetouan',
     icon: join(process.env.PUBLIC, 'favicon.ico'),
     webPreferences: {
-      preload:path.join(__dirname, 'preload.js'),
+      preload:path.join(__dirname, '../preload/index.js'),
       // Warning: Enable nodeIntegration and disable contextIsolation is not secure in production
       // Consider using contextBridge.exposeInMainWorld
       // Read more on https://www.electronjs.org/docs/latest/tutorial/context-isolation
@@ -173,7 +173,9 @@ async function createWindow() {
   } else {
     win.loadURL(url)
     // Open devTool if the app is not packaged
-    win.webContents.openDevTools()
+    win.on("ready-to-show", () => {
+      win.webContents.openDevTools();
+    });
   }
   // Test actively push message to the Electron-Renderer
   win.webContents.on('did-finish-load', () => {
@@ -600,7 +602,7 @@ const path = require('path');
 ipcMain.handle('open-win', (event, arg) => {
   const childWindow = new BrowserWindow({
     webPreferences: {
-      preload:path.join(__dirname, 'preload.js'),
+      preload:path.join(__dirname, '../preload/index.js'),
     },
   })
 

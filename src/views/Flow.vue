@@ -45,8 +45,8 @@
             <aside :class="`${showSidebar ? 'is-expanded' : showSidebar}`">
                 <link href="https://fonts.googleapis.com/css2?family=Material+Icons" rel="stylesheet">
                 <button class=" menu-toggle-wrap menu-toggle" @click="showSidebar = !showSidebar">
-                    <span class="material-icons">keyboard_double_arrow_left</span>
-                </button>
+                        <span class="material-icons">keyboard_double_arrow_left</span>
+                    </button>
                 <h4 className="border-b-4 p-2 border-white text-center font-bold text-black-700 -mt-10 ">{{ t("messages.TranslateTitleFlowHistory") }}</h4>
                <br>
                 <div class="scroll-container">
@@ -128,6 +128,8 @@ import NodeGeneratePdf from '../components/Node-GeneratePdf.vue'
 import NodeZipFolder from '../components/Node-zipFolder.vue'
 import Condition from '../components/Node-Condition.vue'
 import sendEmail from '../components/Node-sendEmail.vue'
+import qrcode from '../components/Node-qrcode.vue'
+import filetype from '../components/Node-filetype.vue'
 import groupPdfBy from '../components/Node-groupPdfBy.vue'
 import alert from '../components/Node-alert.vue'
 import Swal from 'sweetalert2'
@@ -145,7 +147,8 @@ export default {
     name: "DrawflowDashboard",
     inject: ['ipcRenderer'],
     components: {
-        Vue3TreeVue
+        Vue3TreeVue,
+        NodeFileInput,
     },
     setup() {
         const { t } = useI18n()
@@ -198,8 +201,11 @@ export default {
         this.editor.value.registerNode("zip-folder", NodeZipFolder, {}, {});
         this.editor.value.registerNode("condition", Condition, {}, {});
         this.editor.value.registerNode("send-email", sendEmail, {}, {});
+        this.editor.value.registerNode("qrcode", qrcode, {}, {});
+        this.editor.value.registerNode("filetype", filetype, {}, {});
         this.editor.value.registerNode("groupPdfBy", groupPdfBy, {}, {});
         this.editor.value.registerNode("alert", alert, {}, {});
+        
         let mytemplate = ""
         let excelName = ""
         const store = useStore()
@@ -207,12 +213,14 @@ export default {
         let excelData = store.getters.getExcelData // Access excelData from Vuex getter
         let symbole = ""
         let pdfpath = ""
+        let imgpath = ""
+        let fileType =""
         let message = ""
         let variable2 = ""
         let variable1 = ""
         let group = ""
         let myzip = ""
-        const updateNodeOperation = (output_class: any, outputTemplate: any, outputExcelName: any, outputHeaders: any, outputExcelData: any, outputSymbole: any, outputpdfpath: any, outputmessage: any, outputVariable2: any, outputVariable1: any, outputMyzip: any, outputGroup: any, inputNodeData: any) => {
+        const updateNodeOperation = (output_class: any, outputTemplate: any, outputExcelName: any, outputHeaders: any, outputExcelData: any, outputSymbole: any, outputpdfpath: any, outputimgpath: any, outputmessage: any, outputVariable2: any, outputVariable1: any, outputMyzip: any, outputGroup: any, outputfileType: any, inputNodeData: any ) => {
             if (output_class == "input_1") {
                 mytemplate = outputTemplate;
                 excelName = outputExcelName;
@@ -220,6 +228,8 @@ export default {
                 excelData = outputExcelData;
                 symbole = outputSymbole;
                 pdfpath = outputpdfpath;
+                imgpath = outputimgpath;
+                fileType = outputfileType;
                 message = outputmessage;
                 variable2 = outputVariable2;
                 variable1 = outputVariable1;
@@ -227,7 +237,7 @@ export default {
                 group = outputGroup;
             }
             const input_id = inputNodeData.id;
-            this.editor.value.updateNodeDataFromId(input_id, { mytemplate: mytemplate, excelName: excelName, headers: headers, excelData: excelData, symbole: symbole, pdfpath: pdfpath, message: message, variable1: variable1, variable2: variable2, myzip: myzip, group: group });
+            this.editor.value.updateNodeDataFromId(input_id, { mytemplate: mytemplate, excelName: excelName, headers: headers, excelData: excelData, symbole: symbole, pdfpath: pdfpath, imgpath: imgpath, message: message, variable1: variable1, variable2: variable2, myzip: myzip, fileType: fileType, group: group });
         }
         this.editor.value.on("import", () => {
             const editorData = this.editor.value.export().drawflow.Home.data;
@@ -238,6 +248,8 @@ export default {
                 excelData = editorData[i].data.excelData;
                 symbole = editorData[i].data.symbole;
                 pdfpath = editorData[i].data.pdfpath;
+                imgpath = editorData[i].data.imgpath;
+                fileType= editorData[i].data.fileType;
                 message = editorData[i].data.message;
                 variable2 = editorData[i].data.variable2;
                 variable1 = editorData[i].data.variable1;
@@ -275,6 +287,81 @@ export default {
             } else {
                 return this.t('flow.addname');
             }
+        },
+         setFileInputTemplate() {
+            const templateHtml = `
+        <template>
+         <div class="vcard-container">
+         <div class="vcard">
+      <div class="vcard-header">
+        <img src="../assets/NTT-Data-White.png" class="logo">
+         
+        <div class="qrcode-placeholder">
+           {qrcode}
+        </div>
+
+      </div>
+
+
+    </div>
+
+  </div>
+</template>
+
+
+
+<style scoped>
+.vcard-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 100px;
+
+}
+
+.vcard-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+}
+
+.vcard {
+  width: 350px;
+  height: 450px;
+  background-color: rgb(44, 124, 214);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: rgb(236, 227, 227);
+  border-radius: 10px;
+  text-align: center;
+}
+
+.qrcode-placeholder {
+  width: 160px;
+  height: 160px;
+  background-color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: -200px;
+  border-radius: 10px;
+}
+
+.logo {
+
+  width: 170px;
+  margin-bottom: 300px;
+}
+</style>
+      `
+
+    
+            
         },
         notify(message) {
             toast.success(message, {
@@ -318,7 +405,7 @@ export default {
             pos_y = pos_y * (this.editor.value.precanvas.clientHeight / (this.editor.value.precanvas.clientHeight * this.editor.value.zoom)) - (this.editor.value.precanvas.getBoundingClientRect().y
                 * (this.editor.value.precanvas.clientHeight / (this.editor.value.precanvas.clientHeight * this.editor.value.zoom)));
             const nodeSelected: any = nodesList.find(object => object.item === name);
-            this.editor.value.addNode(name, nodeSelected.input, nodeSelected.output, pos_x, pos_y, name, { mytemplate: "", excelName: "", headers: [], excelData: "", symbole: "", pdfpath: "", message: "", varaible1: "", varaible2: "", myzip: "" }, name, "vue");
+            this.editor.value.addNode(name, nodeSelected.input, nodeSelected.output, pos_x, pos_y, name, { mytemplate: "", excelName: "", headers: [], excelData: "", symbole: "", pdfpath: "", imgpath: "", message: "", varaible1: "", varaible2: "", myzip: "", fileType: "" }, name, "vue");
         },
         addProgramName(event: any) {
             this.programName = event.target.value;
