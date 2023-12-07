@@ -45,11 +45,12 @@
             <aside :class="`${showSidebar ? 'is-expanded' : showSidebar}`">
                 <link href="https://fonts.googleapis.com/css2?family=Material+Icons" rel="stylesheet">
                 <button class=" menu-toggle-wrap menu-toggle" @click="showSidebar = !showSidebar">
-                        <span class="material-icons">keyboard_double_arrow_left</span>
-                    </button>
-                <h4 className="border-b-4 p-2 border-white text-center font-bold text-black-700 -mt-10 ">{{ t("messages.TranslateTitleFlowHistory") }}</h4>
-               <br>
-                <div class="scroll-container">
+
+                    <span class="material-icons">keyboard_double_arrow_left</span>
+                </button>
+                <h4 className="border-b-4 p-2 mb-1 mr-2 border-white text-center font-bold text-black-700 mt-0.1 ">Flow History</h4>
+            <br>
+                <div id="app" class="scroll-container">
                     <div>
                         <div style="display: flex">
                             <vue3-tree-vue :items="items"
@@ -69,17 +70,18 @@
                     </div>
                 </div>
             </aside>
-            <div v-if="showSidebar" class="sidebar-overlay" @click="closeSidebar"></div>
-            <div className="flex flex-col gap-2 w-[170px] mx-auto mr-20">
-                <div className="relative w-[239px] mx-auto mr-40">
-                    <button class="menu-toggle absolute left-0 top-0" @click="toggleSidebarAndChangeItems">
+            <div className="flex flex-col gap-2 w-60 mx-auto">
+                <div className="relative w-60 mx-auto">
+                    <button class="menu-toggle absolute left-0 top-0" @click="showSidebar = !showSidebar">
                         <span class="material-icons">keyboard_double_arrow_right</span>
                     </button>
-                    <h4 className="border-b-4 p-2 border-primary-dark text-center font-bold text-black-700  ">{{ t("flow.types") }}</h4>
+                    <h4 className="border-b-4 p-2 mr-1 border-primary-dark text-center font-bold text-black-700  ">{{ t("flow.types") }}</h4>
                 </div>
+                <div class="scroll-container1">
                 <div class="nodes-list" draggable="true" v-for="i in nodesList" :key="i.name" :node-item="i.item"
                     @dragstart="drag($event)">
                     <span class="node"> <span v-html="i.icon" class="m-1 "></span> {{ t("nodes." + i.name) }}</span>
+                </div>
                 </div>
             </div>
             <div class="drawflow-container border border-slate-400 rounded w-full h-full relative">
@@ -114,11 +116,10 @@
 
         </div>
     </div>
-    
 </template>
 
 <script lang="ts">
-import { h, getCurrentInstance, render,nextTick } from 'vue'
+import { h, getCurrentInstance, render } from 'vue'
 import Drawflow from 'drawflow'
 import ImportExcel from '../components/ImportExcel.vue'
 import NodeFileInput from '../components/Node-file-input.vue'
@@ -174,7 +175,6 @@ export default {
             onItemSelected: [] as any,
             isExpanded: localStorage.getItem('is_expanded') === 'true',
             showSidebar: false,
-            initialTranslateYears:"years"
         };
     },
     async mounted() {
@@ -205,7 +205,6 @@ export default {
         this.editor.value.registerNode("filetype", filetype, {}, {});
         this.editor.value.registerNode("groupPdfBy", groupPdfBy, {}, {});
         this.editor.value.registerNode("alert", alert, {}, {});
-        
         let mytemplate = ""
         let excelName = ""
         const store = useStore()
@@ -220,25 +219,23 @@ export default {
         let variable1 = ""
         let group = ""
         let myzip = ""
-        const updateNodeOperation = (output_class: any, outputTemplate: any, outputExcelName: any, outputHeaders: any, outputExcelData: any, outputSymbole: any, outputpdfpath: any, outputimgpath: any, outputmessage: any, outputVariable2: any, outputVariable1: any, outputMyzip: any, outputGroup: any, outputfileType: any, inputNodeData: any ) => {
-            if (output_class == "input_1") {
-                mytemplate = outputTemplate;
-                excelName = outputExcelName;
-                headers = outputHeaders;
-                excelData = outputExcelData;
-                symbole = outputSymbole;
-                pdfpath = outputpdfpath;
-                imgpath = outputimgpath;
-                fileType = outputfileType;
-                message = outputmessage;
-                variable2 = outputVariable2;
-                variable1 = outputVariable1;
-                myzip = outputMyzip;
-                group = outputGroup;
-            }
-            const input_id = inputNodeData.id;
-            this.editor.value.updateNodeDataFromId(input_id, { mytemplate: mytemplate, excelName: excelName, headers: headers, excelData: excelData, symbole: symbole, pdfpath: pdfpath, imgpath: imgpath, message: message, variable1: variable1, variable2: variable2, myzip: myzip, fileType: fileType, group: group });
-        }
+        // const updateNodeOperation = (output_class: any, outputTemplate: any, outputExcelName: any, outputHeaders: any, outputExcelData: any, outputSymbole: any, outputpdfpath: any, outputmessage: any, outputVariable2: any, outputVariable1: any, outputMyzip: any, outputGroup: any, inputNodeData: any) => {
+        //     if (output_class == "input_1") {
+        //         mytemplate = outputTemplate;
+        //         excelName = outputExcelName;
+        //         headers = outputHeaders;
+        //         excelData = outputExcelData;
+        //         symbole = outputSymbole;
+        //         pdfpath = outputpdfpath;
+        //         message = outputmessage;
+        //         variable2 = outputVariable2;
+        //         variable1 = outputVariable1;
+        //         myzip = outputMyzip;
+        //         group = outputGroup;
+        //     }
+        //     const input_id = inputNodeData.id;
+        //     this.editor.value.updateNodeDataFromId(input_id, { mytemplate: mytemplate, excelName: excelName, headers: headers, excelData: excelData, symbole: symbole, pdfpath: pdfpath, message: message, variable1: variable1, variable2: variable2, myzip: myzip, group: group });
+        // }
         this.editor.value.on("import", () => {
             const editorData = this.editor.value.export().drawflow.Home.data;
             Object.keys(editorData).forEach(function (i) {
@@ -255,6 +252,7 @@ export default {
                 variable1 = editorData[i].data.variable1;
                 myzip = editorData[i].data.myzip;
                 group = editorData[i].data.group;
+                imgpath=editorData[i].data.imgpath;
             });
 
         });
@@ -268,19 +266,11 @@ export default {
             });
         });
         
-        this.loadItems(store.getters.getTranslateYears);
+        this.loadItems();
 
     },
     methods: {
         ...mapActions(['setHeaders', 'setExcelData']),
-        closeSidebar(){
-            this.showSidebar=false;
-        },
-        toggleSidebarAndChangeItems(){
-         this.showSidebar = !this.showSidebar
-         const store = useStore()
-         this.loadItems(store.getters.getTranslateYears);  
-        },
         getPlaceholderText() {
             if (this.action === 'edit' || this.isEditName) {
                 return this.t('flow.editname');
@@ -635,13 +625,12 @@ export default {
             this.isExpanded = !this.isExpanded;
             localStorage.setItem('is_expanded', this.isExpanded.toString());
         },
-        async loadItems(traductionYear:any) {
-   
+        async loadItems() {
             try {
                 const years = await ipcRenderer.invoke('getYearsFlow');
                 this.items = [
                     {
-                        name: traductionYear,
+                        name: 'Years',
                         id: 'years',
                         type: 'string',
                         children: await Promise.all(
@@ -667,6 +656,7 @@ export default {
             }
         },
         async handleFlowClick(selectedItem) {
+
             const selectedFlow = selectedItem?.name;
             this.flowName = selectedFlow;
             this.isEditName = false;
@@ -699,7 +689,7 @@ export default {
 
 <style lang="scss" scoped>
 .node {
-    @apply bg-primary-light border border-collapse text-white p-3 rounded w-60  cursor-pointer sm:text-sm flex hover:bg-primary-dark hover:border hover:border-gray-800;
+    @apply bg-primary-light border border-collapse text-white p-3 rounded w-[13rem] m-1  cursor-pointer sm:text-sm flex hover:bg-primary-dark hover:border hover:border-gray-800 h-12;
 }
 
 
@@ -710,6 +700,33 @@ export default {
     background: #f1eeee;
     background-size: 20px 20px;
     background-image: radial-gradient(#c5c3c3 1px, transparent 1px);
+}
+
+.scroll-container1 {
+    overflow-y: scroll;
+    overflow-x: scroll; /* Hide the horizontal scrollbar */
+    max-height: 630px;
+    margin-right: 3%;
+    
+    
+}
+
+.scroll-container1::-webkit-scrollbar {
+    width: 12px;
+    height: 12px; 
+}
+
+.scroll-container1::-webkit-scrollbar-track {
+    background: #f1eeee;
+}
+
+.scroll-container1::-webkit-scrollbar-thumb {
+    @apply bg-primary-light;
+    border-radius: 5px;
+}
+
+.scroll-container1::-webkit-scrollbar-thumb:hover {
+    @apply bg-primary-light;
 }
 
 .scroll-container {
@@ -819,18 +836,4 @@ aside {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
     font-size: 14px;
 }
-.sidebar-wrapper {
-  position: relative;
-}
-
-.sidebar-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 999; /* Make sure the overlay is above other elements */
-}
-
 </style>
-

@@ -1,5 +1,5 @@
 <template>
-  <div class="h-screen flex flex-col">
+  <div class="left-0 h-screen flex flex-col">
     <nav class="flex bg-slate-50 shadow justify-between">
       <div class="flex items-center">
         <div class="flex">

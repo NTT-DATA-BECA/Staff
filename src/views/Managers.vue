@@ -22,7 +22,7 @@
                 <input id="file-upload" type="file"
                   accept=".xls,.xlsx,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
                   class="hidden" @change="loadExcelFile" />
-                <EasyDataTable body-text-direction="center" header-text-direction="center" class="mt-4"
+                <EasyDataTable body-text-direction="center" header-text-direction="center" class="mt-4 "
                   :headers="headersExcel" :items="itemsExcel" :search-value="searchValue" 
                   buttons-pagination :rowsPerPage="5" :loading="loading">
                 </EasyDataTable>

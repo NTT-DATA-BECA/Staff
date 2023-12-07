@@ -1,6 +1,6 @@
 {
   "appId": "com.ntt.gendoc",
-  "productName": "genDoc Ntt Data Morocco",
+  "productName": "Print Generator",
   "asar": true,
   "directories": {
     "output": "release/${version}"

@@ -43,7 +43,8 @@
   "add": "Agregar gestor",
   "delete": "Eliminar gestor",
   "edit": "Editar",
-  "table": "Gerentes por página"
+  "table": "Gerentes por página",
+  "excel":"Importar Excel"
   },
   "messages": {
   "showSucess": "¡La operación ha sido completada!",
@@ -101,6 +102,7 @@
   "grouppdf": "Agrupar PDF por",
   "generatepdf": "Generar PDF",
   "path": "Ruta",
-  "group":"Elige un grupo"
+  "group":"Elige un grupo",
+  "Qr-Code":"Qr Code"
   }
   }

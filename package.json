@@ -57,6 +57,7 @@
     "js-beautify": "^1.14.7",
     "jsdom": "^22.1.0",
     "json-pointer": "^0.6.2",
+    "jspdf-html2canvas": "^1.4.9",
     "knex": "^2.3.0",
     "list-to-tree": "^2.2.5",
     "mammoth-style": "^0.0.3",
