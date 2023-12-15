@@ -106,7 +106,7 @@
           "generatepdf":"GeneratePDF",
           "path":"Path",
           "group":"choose a group",
-          "Qr-Code":"Qr Code"
+          "QrCode":"Qr Code"
         }
     
 }

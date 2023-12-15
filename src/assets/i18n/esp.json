@@ -103,6 +103,6 @@
   "generatepdf": "Generar PDF",
   "path": "Ruta",
   "group":"Elige un grupo",
-  "Qr-Code":"Qr Code"
+  "QrCode":"Qr Code"
   }
   }

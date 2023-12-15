@@ -1,13 +1,13 @@
 <template>
-    <h2 id="node-title">{{ t("nodes.Qr-Code") }}</h2>
-    <input v-model="imgpath" class="text-black ml-2 w-36 align-middle" type="text" df-imgpath />
+    <h2 id="node-title">{{ t("nodes.QrCode") }}</h2>
+    <input v-model="imgpath" placeholder="Enter the Path folder" class="text-black ml-2 w-36 align-middle" type="text" df-imgpath />
   </template> 
     
   <script lang="ts">
   import { getCurrentInstance, nextTick } from 'vue'
   import { useI18n } from 'vue-i18n'
   export default {
-    name: 'Qr-Code',
+    name: 'QrCode',
     setup() {
       const { t } = useI18n()
       return { t }

@@ -200,7 +200,7 @@ export default {
         this.editor.value.registerNode("send-email", sendEmail, {}, {});
         this.editor.value.registerNode("groupPdfBy", groupPdfBy, {}, {});
         this.editor.value.registerNode("alert", alert, {}, {});
-        this.editor.value.registerNode("Qr-Code", NodeQrCode, {}, {});
+        this.editor.value.registerNode("QrCode", NodeQrCode, {}, {});
         let mytemplate = ""
         let excelName = ""
         const store = useStore()
